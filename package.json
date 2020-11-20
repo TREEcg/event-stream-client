@@ -1,0 +1,40 @@
+{
+  "name": "event-stream-client",
+  "version": "0.0.1",
+  "description": "Syncs an entire TREE collection, but only emits the objects, does not store them. ",
+  "main": "lib/sync.js",
+  "bin": {
+    "event-stream-client": "cli.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TREEcg/event-stream-client.git"
+  },
+  "keywords": [
+    "event",
+    "stream",
+    "TREE",
+    "hypermedia",
+    "Web",
+    "API"
+  ],
+  "author": "Brecht Van de Vyvere",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TREEcg/event-stream-client/issues"
+  },
+  "homepage": "https://github.com/TREEcg/event-stream-client#readme",
+  "dependencies": {
+    "@tusbar/cache-control": "^0.5.0",
+    "cacheable-request": "^7.0.1",
+    "follow-redirects": "^1.13.0",
+    "js-priority-queue": "^0.1.5",
+    "ldfetch": "^1.2.3",
+    "n3": "^1.6.4",
+    "rdf-parse": "^1.6.0",
+    "streamify-string": "^1.0.1"
+  }
+}
