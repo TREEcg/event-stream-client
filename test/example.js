@@ -1,15 +1,15 @@
-let sync = require('../lib/sync.js');
-let treesync = new sync();
-
-let eventstream = "http://localhost:3000/objecten";
+const sync = require('../lib/sync.js');
 
 var main = async function () {
     try {
-        let syncOptions = {
-            "url": "http://localhost:3000/objecten",
+        let url = "http://lodi.ilabt.imec.be/coghent/objecten";
+        let options = {
             "pollingInterval": 5000 // millis
         };
-        let eventstreamSync = sync.createReadStream(syncOptions);
+        let eventstreamSync = sync.createReadStream(url, options);
+        eventstreamSync.on('data', (data) => {
+            console.log(data)
+        })
     } catch (e) {
         console.error(e);
     }

@@ -6,31 +6,25 @@ console.error('TREE sync. Use --help to discover more instructions');
 
 let url = "";
 
-let list = function (val) {
-    return val.split(',');
-}
-
 program
+    .option('-p, --pollingInterval <milliseconds>', 'Number of milliseconds before refetching uncacheable fragments', 10000) // Default: 10 seconds
     .arguments('<url>')
     .action(function (argUrl) {
         url = argUrl;
     })
     .parse(process.argv);
 
-if (!process.argv[0]) {
+if (!url || url === "") {
     console.error('Provide a URI of a TREE root node please');
     process.exit();
 }
 
-url = process.argv[0];
-
-let syncOptions = {
-    "url": "http://localhost:3000/objecten",
-    "pollingInterval": 10000 // millis
+let options = {
+    "pollingInterval": program.pollingInterval
 };
 
 // Create readable stream
-let eventstreamSync = sync.createReadStream(syncOptions);
+let eventstreamSync = sync.createReadStream(url, options);
 
 // Pipe it to stdout
 eventstreamSync.pipe(process.stdout);
