@@ -4,7 +4,7 @@ Emits new or potentially updated members of a TREE collection
 ## Install
 
 ```
-npm install -g event-stream-client
+npm install -g @brechtvdv/event-stream-client
 ```
 
 In order to use it as a library, you can leave out the `-g`.
@@ -14,7 +14,7 @@ In order to use it as a library, you can leave out the `-g`.
 ### Command line
 
 ```
-node bin/cli.js --pollingInterval 10000 https://lodi.ilabt.imec.be/coghent/objecten
+event-stream-client --pollingInterval 10000 https://lodi.ilabt.imec.be/coghent/objecten
 ```
 
 ### NodeJS

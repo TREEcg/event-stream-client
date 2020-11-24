@@ -19,12 +19,17 @@ if (!url || url === "") {
     process.exit();
 }
 
-let options = {
-    "pollingInterval": program.pollingInterval
-};
+try {
+    let options = {
+        "pollingInterval": parseInt(program.pollingInterval)
+    };
 
-// Create readable stream
-let eventstreamSync = sync.createReadStream(url, options);
+    // Create readable stream
+    let eventstreamSync = sync.createReadStream(url, options);
 
-// Pipe it to stdout
-eventstreamSync.pipe(process.stdout);
+    // Pipe it to stdout
+    eventstreamSync.pipe(process.stdout);
+} catch (e) {
+    console.error(e);
+    process.exit();
+}
