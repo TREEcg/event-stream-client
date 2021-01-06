@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-let sync = require('../lib/sync.js');
+const Sync = require('../dist/sync.js').Sync;
+let sync = new Sync();
 
 let program = require('commander');
 console.error('TREE sync. Use --help to discover more instructions');

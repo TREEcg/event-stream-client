@@ -21,7 +21,6 @@ event-stream-client --pollingInterval 10000 https://lodi.ilabt.imec.be/coghent/o
 
 A small example synchronizing with a TREE node
 ```javascript
-  const sync = require('../lib/sync.js');
   try {
     let url = "https://lodi.ilabt.imec.be/coghent/objecten";
     let options = {
