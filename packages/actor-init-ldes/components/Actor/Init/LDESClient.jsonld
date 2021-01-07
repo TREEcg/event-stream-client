@@ -1,0 +1,21 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/actor-init-ldes/^1.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/bus-rdf-parse/^1.0.0/components/context.jsonld"
+  ],
+  "@id": "npmd:actor-init-ldes",
+  "components": [
+    {
+      "@id": "ldes:LDESClient",
+      "@type": "Class",
+      "requireElement": "LDESClient",
+      "comment": "An Linked Data Event Stream client.",
+      "parameters": [
+
+      ],
+      "constructorArguments": [
+
+      ]
+    }
+  ]
+}

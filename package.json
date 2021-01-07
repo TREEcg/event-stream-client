@@ -1,12 +1,28 @@
 {
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "name": "@brechtvdv/event-stream-client",
   "version": "0.0.5",
   "description": "Syncs an entire TREE collection, but only emits the objects, does not store them. ",
-  "main": "dist/sync.js",
-  "bin": "bin/cli.js",
   "scripts": {
+    "test-changed": "lerna run packages/actor-init-ldes/test --since HEAD",
+    "lint-changed": "lerna run lint --since HEAD",
+    "build-changed": "lerna run build --since HEAD",
+    "coveralls": "jest --coverage && cat ./coverage/lcov.info | coveralls",
+    "test-ci": "jest --ci --maxWorkers=4 --coverage",
+    "coveralls-ci": "cat ./coverage/lcov.info | coveralls",
+    "lint": "tslint packages/*/lib/**/*.ts packages/*/test/**/*.ts --exclude '**/*.d.ts'",
+    "clean": "rm -rf ./node_modules && rm -rf ./packages/*/node_modules",
+    "build-watch": "tsc --watch",
+    "publish": "yarn run build && lerna publish",
+    "publish-bare": "lerna exec -- npm publish --silent",
+    "doc": "typedoc --name Comunica --disableOutputCheck --external-modulemap '.*packages/([^/]+)/.*' --mode modules --out documentation",
+    "postinstall": "yarn run build && lerna run prepare",
+    "version": "manual-git-changelog onversion",
     "build": "node \"./node_modules/typescript/bin/tsc\"",
-    "test": "node ./dist/example.js"
+    "test": "jest"
   },
   "jest": {
     "globals": {
@@ -43,6 +59,10 @@
   },
   "homepage": "https://github.com/TREEcg/event-stream-client#readme",
   "dependencies": {
+    "@comunica/runner": "^1.6.0",
+    "@comunica/runner-cli": "^1.6.0",
+    "@comunica/bus-init": "~1.18.0",
+    "@comunica/core": "~1.18.0",
     "@rdfjs/data-model": "^1.2.0",
     "awesome-typescript-loader": "^5.2.1",
     "cacheable-request": "^7.0.1",

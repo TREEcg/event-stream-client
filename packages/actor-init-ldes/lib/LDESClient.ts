@@ -29,10 +29,10 @@ const jsonLdSerializer = new JsonLdSerializer({ space: '  ', context: [
 const {namedNode, literal, triple} = require("@rdfjs/data-model");
 
 //const Bookkeeper = require('./bookkeeper');
-import { Bookkeeper } from './bookkeeper';
+import { Bookkeeper } from './Bookkeeper';
 let bk = new Bookkeeper();
 
-export class Sync {
+export class LDESClient {
     public constructor() {
     }
 

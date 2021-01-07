@@ -1,11 +1,10 @@
 {
-  "defaultSeverity": "error",
+  "compileOnSave": true,
   "compilerOptions": {
     "module": "commonjs",
     "lib": [
       "es6",
-      "dom",
-      "esnext.asynciterable"
+      "dom"
     ],
     "target": "es2017",
     "noImplicitAny": true,
@@ -13,14 +12,12 @@
     "preserveConstEnums": true,
     "sourceMap": true,
     "inlineSources": true,
-    "declaration": true,
-    "outDir": "./dist",
-    "allowJs": true
+    "declaration": true
   },
   "include": [
-    "./packages/*/lib/**/*",
-    "./packages/*/bin/**/*",
-    "./packages/*/index.ts"
+    "index.ts",
+    "lib/**/*",
+    "bin/**/*"
   ],
   "exclude": [
     "**/node_modules",
