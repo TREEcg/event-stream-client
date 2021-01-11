@@ -1,0 +1,20 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@brechtvdv/actor-init-ldes-client/^1.0.0/components/context.jsonld"
+  ],
+  "@id": "npmd:@brechtvdv/actor-init-ldes-client",
+  "components": [
+    {
+      "@id": "ldes:LDESClient",
+      "@type": "Class",
+      "requireElement": "LDESClient",
+      "comment": "An Linked Data Event Stream client.",
+      "parameters": [
+
+      ],
+      "constructorArguments": [
+
+      ]
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "@context": "https://linkedsoftwaredependencies.org/bundles/npm/@brechtvdv/actor-init-ldes-client/^1.0.0/components/context.jsonld",
+  "@id": "npmd:@brechtvdv/actor-init-ldes-client",
+  "@type": "Module",
+  "requireName": "./lib/LDESClient",
+  "import": [
+    "files-ldes:components/Actor/Init/LDESClient.jsonld"
+  ]
+}

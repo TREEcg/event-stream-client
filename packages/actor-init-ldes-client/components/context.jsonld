@@ -1,0 +1,13 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/componentsjs/^3.0.0/components/context.jsonld",
+    {
+      "npmd": "https://linkedsoftwaredependencies.org/bundles/npm/",
+      "ldes": "npmd:@brechtvdv/actor-init-ldes-client/",
+      "files-ldes": "ldes:^1.0.0/",
+      "config": "files-ldes:config/config-default.json#",
+
+      "LDESClient": "ldes:LDESClient"
+    }
+  ]
+}
