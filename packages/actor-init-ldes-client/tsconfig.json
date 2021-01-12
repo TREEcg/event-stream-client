@@ -6,6 +6,7 @@
   "include": [
     "index.ts",
     "lib/**/*",
-    "bin/**/*"
+    "bin/**/*",
+    "engine-default.js"
   ]
 }

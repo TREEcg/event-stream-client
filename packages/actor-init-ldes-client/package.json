@@ -1,6 +1,6 @@
 {
   "name": "@brechtvdv/actor-init-ldes-client",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An init actor that can fetches members from a tree API",
   "publishConfig": {
     "access": "public"
@@ -48,9 +48,8 @@
     "collectCoverage": true
   },
   "dependencies": {
+    "@brechtvdv/actor-init-ldes-client": "^1.0.1",
     "@comunica/actor-init-sparql": "^1.13.1",
-    "@comunica/actor-rdf-metadata-extract-tree-relations": "^1.0.0",
-    "@comunica/actor-rdf-resolve-hypermedia-links-tree": "^1.0.0",
     "@comunica/runner": "^1.6.0",
     "@comunica/runner-cli": "^1.6.0",
     "@comunica/bus-init": "~1.18.0",
@@ -80,7 +79,7 @@
     "webpack-cli": "^4.3.1"
   },
   "bin": {
-    "ldesclient": "./bin/cli.js"
+    "actor-init-ldes-client": "./bin/query.js"
   },
   "directories": {
     "lib": "lib",
