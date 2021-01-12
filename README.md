@@ -1,39 +1,18 @@
 # event-stream-client
-Emits new or potentially updated members of a TREE collection 
 
 ## Install
 
 ```
-npm install -g @brechtvdv/event-stream-client
+yarn install
 ```
 
-In order to use it as a library, you can leave out the `-g`.
+## Sync
+If you want to sync with an event stream, have a look at the pre-built engine:
 
-## How to use it
+- [actor-init-ldes-client](https://github.com/brechtvdv/event-stream-client/tree/main/packages/actor-init-ldes-client): Comunica engine to sync with an event stream from JavaScript applications or the CLI.
 
-### Command line
+## Publish
 
 ```
-event-stream-client --pollingInterval 10000 https://lodi.ilabt.imec.be/coghent/objecten
-```
-
-### NodeJS
-
-A small example synchronizing with a TREE node
-```javascript
-  try {
-    let url = "https://lodi.ilabt.imec.be/coghent/objecten";
-    let options = {
-      "pollingInterval": 5000 // millis
-    };
-    let eventstreamSync = sync.createReadStream(url, options);
-    eventstreamSync.on('data', (data) => {
-      console.log(data)
-    });
-    eventstreamSync.on('end', () => {
-      console.log("No more data!")
-    });
-  } catch (e) {
-    console.error(e);
-  }
+npm publish --public
 ```
