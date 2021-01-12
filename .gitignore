@@ -1,6 +1,7 @@
 .idea
 node_modules
 package-lock.json
+yarn.lock
 dist
 .rdf-test-suite-cache
 lerna-debug.log

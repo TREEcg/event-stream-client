@@ -1,26 +1,11 @@
 {
-  "compileOnSave": true,
+  "extends": "../../tsconfig.packages.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "lib": [
-      "es6",
-      "dom"
-    ],
-    "target": "es2017",
-    "noImplicitAny": true,
-    "removeComments": false,
-    "preserveConstEnums": true,
-    "sourceMap": true,
-    "inlineSources": true,
-    "declaration": true
+    "outDir": "dist"
   },
   "include": [
     "index.ts",
     "lib/**/*",
     "bin/**/*"
-  ],
-  "exclude": [
-    "**/node_modules",
-    "**/test/*"
   ]
 }
