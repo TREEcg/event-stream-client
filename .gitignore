@@ -4,6 +4,7 @@ package-lock.json
 yarn.lock
 .yarnrc
 .yarn
+tsconfig.tsbuildinfo
 dist
 .rdf-test-suite-cache
 lerna-debug.log

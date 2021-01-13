@@ -1,12 +1,8 @@
 {
   "extends": "../../tsconfig.packages.json",
-  "compilerOptions": {
-    "outDir": "dist"
-  },
   "include": [
     "index.ts",
     "lib/**/*",
-    "bin/**/*",
-    "engine-default.js"
+    "bin/**/*"
   ]
 }
