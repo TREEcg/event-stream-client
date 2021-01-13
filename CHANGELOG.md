@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v1.18.7"></a>
+## [v1.18.7](https://github.com/TREEcg/event-stream-client/compare/v1.18.6...v1.18.7) - 2021-01-13
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Add bin folder](https://github.com/TREEcg/event-stream-client/commit/4a4fee7eb531db45ad213169fc4f0aa12ec180f9)
+
 <a name="v1.18.6"></a>
 ## [v1.18.6](https://github.com/TREEcg/event-stream-client/compare/v1.18.5...v1.18.6) - 2021-01-13
 
