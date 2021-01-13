@@ -1,6 +1,6 @@
 {
   "name": "@brechtvdv/actor-init-ldes-client",
-  "version": "1.18.3",
+  "version": "1.18.4",
   "description": "An init actor that fetches members from an Event Stream API",
   "publishConfig": {
     "access": "public"
