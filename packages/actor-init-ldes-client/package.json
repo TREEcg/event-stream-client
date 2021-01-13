@@ -1,6 +1,6 @@
 {
   "name": "@brechtvdv/actor-init-ldes-client",
-  "version": "1.0.5",
+  "version": "1.18.2",
   "description": "An init actor that fetches members from an Event Stream API",
   "publishConfig": {
     "access": "public"
@@ -48,7 +48,6 @@
     "collectCoverage": true
   },
   "dependencies": {
-    "@brechtvdv/actor-init-ldes-client": "^1.0.2",
     "@comunica/actor-init-sparql": "^1.13.1",
     "@comunica/bus-init": "~1.18.0",
     "@comunica/core": "~1.18.0",
