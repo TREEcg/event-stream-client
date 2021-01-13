@@ -1,39 +1,60 @@
+import {ActorInit, IActionInit, IActorOutputInit} from "@comunica/bus-init";
+import {IActorArgs, IActorTest} from "@comunica/core";
+
 const FETCH_PAUSE = 2000; // in milliseconds; pause before fetching the next fragment
 let pollingInterval = 10000; // in milliseconds; when the response is cacheable, wait this time before refetching it
 
 const followRedirects = require('follow-redirects');
 followRedirects.maxRedirects = 10;
-const { http, https } = followRedirects;
+const {http, https} = followRedirects;
 const CacheableRequest = require('cacheable-request');
 const cacheableRequestHttp = new CacheableRequest(http.request);
 const cacheableRequestHttps = new CacheableRequest(https.request);
 const CachePolicy = require('http-cache-semantics');
 
+import minimist = require('minimist');
+
 import rdfParser from "rdf-parse";
 import * as RDF from "rdf-js";
+
 const N3 = require('n3');
-const streamWriter = new N3.StreamWriter({ prefixes: { tree: 'https://w3id.org/tree#' } });
+const streamWriter = new N3.StreamWriter({prefixes: {tree: 'https://w3id.org/tree#'}});
 const RdfObjectLoader = require("rdf-object").RdfObjectLoader;
 const JsonLdSerializer = require("jsonld-streaming-serializer").JsonLdSerializer;
-const jsonLdSerializer = new JsonLdSerializer({ space: '  ', context: [
+const jsonLdSerializer = new JsonLdSerializer({
+    space: '  ', context: [
         "https://data.vlaanderen.be/doc/applicatieprofiel/cultureel-erfgoed-object/kandidaatstandaard/2020-07-17/context/cultureel-erfgoed-object-ap.jsonld",
         "https://data.vlaanderen.be/context/persoon-basis.jsonld",
         "https://brechtvdv.github.io/demo-data/cultureel-erfgoed-event-ap.jsonld",
         {
             "dcterms:isVersionOf": {
-"@type": "@id"
-},
-"prov": "http://www.w3.org/ns/prov#"
-}
-] });
+                "@type": "@id"
+            },
+            "prov": "http://www.w3.org/ns/prov#"
+        }
+    ]
+});
 const {namedNode, literal, triple} = require("@rdfjs/data-model");
 
-//const Bookkeeper = require('./bookkeeper');
-import { Bookkeeper } from './Bookkeeper';
+import {Bookkeeper} from './Bookkeeper';
+
 let bk = new Bookkeeper();
 
-export class LDESClient {
-    public constructor() {
+export class LDESClient extends ActorInit {
+    public constructor(args: IActorArgs<IActionInit, IActorTest, IActorOutputInit>) {
+        super(args);
+    }
+
+    public async test(action: IActionInit): Promise<IActorTest> {
+        return true;
+    }
+
+    public async run(action: IActionInit): Promise<IActorOutputInit> {
+        const pollingInterval: string = action.argv.length > 0 ? action.argv[0] : "5000";
+
+        const args = minimist(action.argv);
+
+        return { stdout: require('streamify-string')(`{"test": "success"}\n`) };
     }
 
     public createReadStream(url: string, options: { pollingInterval: number; }) {

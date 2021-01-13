@@ -1,19 +1,24 @@
 {
   "@context": [
-    "https://linkedsoftwaredependencies.org/bundles/npm/@brechtvdv/actor-init-ldes-client/^1.0.0/components/context.jsonld"
+    "https://linkedsoftwaredependencies.org/bundles/npm/@brechtvdv/actor-init-ldes-client/^1.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/bus-init/^1.0.0/components/context.jsonld"
   ],
   "@id": "npmd:@brechtvdv/actor-init-ldes-client",
   "components": [
     {
       "@id": "ldes:LDESClient",
       "@type": "Class",
+      "extends": "cbi:Actor/Init",
       "requireElement": "LDESClient",
-      "comment": "An Linked Data Event Stream client.",
+      "comment": "An actor that listens on the 'init' bus that fetches fragments from an Event Stream.",
       "parameters": [
 
       ],
       "constructorArguments": [
-
+        {
+        "@id": "ldes:LDESClient/constructorArgumentsObject",
+        "extends": "cc:Actor/constructorArgumentsObject"
+        }
       ]
     }
   ]

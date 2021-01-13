@@ -15,6 +15,7 @@ yarn-error.log
 **/test/**/*.js
 **/test/**/*.js.map
 **/test/**/*.d.ts
+**/bin/**/*.js
 **/bin/**/*.js.map
 **/bin/**/*.d.ts
 **/index.js
