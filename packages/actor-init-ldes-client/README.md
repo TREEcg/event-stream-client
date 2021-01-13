@@ -36,7 +36,7 @@ Here is an example synchronizing with a TREE root node of an Event Stream with p
     let options = {
       "pollingInterval": 5000 // millis
     };
-    let eventstreamSync = sync.createReadStream(url, options);
+    let eventstreamSync = LDESClient.createReadStream(url, options);
     eventstreamSync.on('data', (data) => {
       console.log(data)
     });
