@@ -3,6 +3,8 @@
 ## Install
 
 ```
+git clone https://github.com/brechtvdv/event-stream-client.git
+cd event-stream-client
 yarn install
 ```
 
@@ -14,5 +16,5 @@ If you want to sync with an event stream, have a look at the pre-built engine:
 ## Publish
 
 ```
-npm publish --public
+ npm publish packages/actor-init-ldes-client --access public
 ```
