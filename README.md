@@ -16,5 +16,5 @@ If you want to sync with an event stream, have a look at the pre-built engine:
 ## Publish
 
 ```
- npm publish packages/actor-init-ldes-client --access public
+yarn run publish
 ```
