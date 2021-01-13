@@ -50,10 +50,10 @@
   "dependencies": {
     "@brechtvdv/actor-init-ldes-client": "^1.0.2",
     "@comunica/actor-init-sparql": "^1.13.1",
-    "@comunica/runner": "^1.6.0",
-    "@comunica/runner-cli": "^1.6.0",
     "@comunica/bus-init": "~1.18.0",
     "@comunica/core": "~1.18.0",
+    "@comunica/runner": "^1.6.0",
+    "@comunica/runner-cli": "^1.6.0",
     "@rdfjs/data-model": "^1.2.0",
     "awesome-typescript-loader": "^5.2.1",
     "cacheable-request": "^7.0.1",
@@ -92,5 +92,6 @@
     "postinstall": "npm run build && npm run prepare"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "gitHead": "4bba049c50f27edf74e3364c5705608f61794105"
 }
