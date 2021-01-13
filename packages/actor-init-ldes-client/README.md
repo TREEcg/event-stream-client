@@ -22,7 +22,7 @@ actor-init-ldes-client --pollingInterval 10000 https://lodi.ilabt.imec.be/coghen
 ### Usage within application
 The easyest way to create an engine (with default config) is as follows:
 ```
-const newEngine = require('@comunica/actor-init-ldes-client').default;
+const newEngine = require('@brechtvdv/actor-init-ldes-client').default;
 
 const LDESClient =  newEngine();
 ```
