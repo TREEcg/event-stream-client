@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v1.19.1"></a>
+## [v1.19.1](https://github.com/TREEcg/event-stream-client/compare/v1.19.0...v1.19.1) - 2021-01-15
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Continue even when fragment gives error](https://github.com/TREEcg/event-stream-client/commit/8778581c4a1af48341fc658cee385727a9bcbdfb)
+* [Change bin to run.js](https://github.com/TREEcg/event-stream-client/commit/49ba94d29b06121a6dc2e5afb5717b5204422c63)
+
 <a name="v1.19.0"></a>
 ## [v1.19.0](https://github.com/TREEcg/event-stream-client/compare/v1.18.7...v1.19.0) - 2021-01-15
 
