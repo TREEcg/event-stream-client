@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v1.19.0"></a>
+## [v1.19.0](https://github.com/TREEcg/event-stream-client/compare/v1.18.7...v1.19.0) - 2021-01-15
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Make true init actor + add pollingInterval parameter to actor](https://github.com/TREEcg/event-stream-client/commit/867ef6257acf69173b713133387ad0cbb2a43e5f)
+* [Converting to real init actor](https://github.com/TREEcg/event-stream-client/commit/30e877136a271106c3f3be851bbbb7fb3fed913c)
+* [Update readme](https://github.com/TREEcg/event-stream-client/commit/074651839c5a4257f5e2847ab17852fb2735198f)
+
 <a name="v1.18.7"></a>
 ## [v1.18.7](https://github.com/TREEcg/event-stream-client/compare/v1.18.6...v1.18.7) - 2021-01-13
 
