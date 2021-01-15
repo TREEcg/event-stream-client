@@ -1,5 +1,6 @@
 import {ActorInit, IActionInit, IActorOutputInit} from "@comunica/bus-init";
 import {IActorArgs, IActorTest} from "@comunica/core";
+import { PassThrough } from 'stream';
 
 const FETCH_PAUSE = 2000; // in milliseconds; pause before fetching the next fragment
 let pollingInterval = 10000; // in milliseconds; when the response is cacheable, wait this time before refetching it
@@ -41,6 +42,20 @@ import {Bookkeeper} from './Bookkeeper';
 let bk = new Bookkeeper();
 
 export class LDESClient extends ActorInit {
+    public static readonly HELP_MESSAGE = `actor-init-ldes-client syncs event streams
+  Usage:
+    actor-init-ldes-client --pollingInterval 5000 https://lodi.ilabt.imec.be/coghent/industriemuseum/objecten
+
+  Options:
+    -p            Number of milliseconds before refetching uncacheable fragments
+                evaluate the SPARQL query in the given file
+    -t            the MIME type of the output (e.g., application/ld+json)
+    -l            sets the log level (e.g., debug, info, warn, ... defaults to warn)
+    --help        print this help message
+  `;
+
+    public readonly pollingInterval: number;
+
     public constructor(args: IActorArgs<IActionInit, IActorTest, IActorOutputInit>) {
         super(args);
     }
@@ -50,23 +65,22 @@ export class LDESClient extends ActorInit {
     }
 
     public async run(action: IActionInit): Promise<IActorOutputInit> {
-        const pollingInterval: string = action.argv.length > 0 ? action.argv[0] : "5000";
-
         const args = minimist(action.argv);
 
-        return { stdout: require('streamify-string')(`{"test": "success"}\n`) };
+        const pollingInterval: number = args.pollingInterval ? parseInt(args.pollingInterval) : this.pollingInterval;
+        if (args["_"].length) {
+            const url = args._[args._.length - 1];
+            const readable = new PassThrough();
+
+            return { 'stdout': this.createReadStream(url, {"pollingInterval": pollingInterval}).pipe(readable) }
+        }
+        else return { stderr: require('streamify-string')(<Error> new Error(LDESClient.HELP_MESSAGE)) };
     }
 
     public createReadStream(url: string, options: { pollingInterval: number; }) {
-        if (!url) {
-            console.error('Provide a URI of a TREE root node please');
-            process.exit();
-        }
-        if (options && options.pollingInterval) pollingInterval = options.pollingInterval;
-
         this.retrieve(url);
         return jsonLdSerializer;
-        // return streamWriter;
+        //return streamWriter;
     }
 
     public async retrieve(pageUrl: string) {
@@ -96,7 +110,7 @@ export class LDESClient extends ActorInit {
                 let collectionURI;
                 rdfParser.parse(dataStream, {contentType: mediaType})
                     .on('data', (quad: RDF.Quad) => {
-                        // streamWriter.write(quad);
+                        //streamWriter.write(quad);
                         jsonLdSerializer.write(quad);
                         if (quad.object.value === 'https://w3id.org/tree#Collection') collectionURI = quad.subject.value;
                         if (quad.predicate.value === "https://w3id.org/tree#node") {

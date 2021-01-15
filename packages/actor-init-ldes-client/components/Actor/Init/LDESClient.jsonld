@@ -12,12 +12,25 @@
       "requireElement": "LDESClient",
       "comment": "An actor that listens on the 'init' bus that fetches fragments from an Event Stream.",
       "parameters": [
-
+        {
+          "@id": "ldes:pollingInterval",
+          "comment": "The number of milliseconds before refetching a fragment after it's invalidation",
+          "required": false,
+          "range": "xsd:integer",
+          "default": "5000",
+          "unique": true
+        }
       ],
       "constructorArguments": [
         {
         "@id": "ldes:LDESClient/constructorArgumentsObject",
-        "extends": "cc:Actor/constructorArgumentsObject"
+        "extends": "cc:Actor/constructorArgumentsObject",
+        "fields": [
+            {
+              "keyRaw": "pollingInterval",
+              "value": "ldes:pollingInterval"
+            }
+        ]
         }
       ]
     }
