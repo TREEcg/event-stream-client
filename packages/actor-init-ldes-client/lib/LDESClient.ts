@@ -118,7 +118,10 @@ export class LDESClient extends ActorInit {
                             bk.addFragment(quad.object.value, 0);
                         }
                     })
-                    .on('error', (error: any) => console.error(error))
+                    .on('error', (error: any) => {
+                        console.error(error);
+                        this.retrieveRecursively();
+                    })
                     .on('end', () => {
                         // now we know the collectionURI
                         //getMembers(collectionURI, rdfParser.parse(require('streamify-string')(page.data.toString()), {contentType: mediaType}));
