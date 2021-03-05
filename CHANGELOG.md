@@ -1,6 +1,16 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.0.2"></a>
+## [v2.0.2](https://github.com/TREEcg/event-stream-client/compare/v2.0.1...v2.0.2) - 2021-03-05
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Remove unused dependencies](https://github.com/TREEcg/event-stream-client/commit/04cb6af4770dbd1243b5f07e118ddbf657fa65b3)
+* [Fix #5 : only emit multiple times when explicitly configured. Fix #6 : latest fragment is automatically refetched every time leading to feching new pages too](https://github.com/TREEcg/event-stream-client/commit/4d39c8456bc6a9fc0296eabf2220e69a4cfa1f91)
+* [Fix #7](https://github.com/TREEcg/event-stream-client/commit/3107c7e9d2ca7b37da4da4b60eb9209c76f8445c)
+* [Use LRU cache in book keeper](https://github.com/TREEcg/event-stream-client/commit/3d4426ab89d85adc3e6f95cb7cd246439a0064c5)
+* [Update to version 2](https://github.com/TREEcg/event-stream-client/commit/003be7c2f7a6ff27fbe3557f0d41a563ed95fb7f)
+
 <a name="v2.0.1"></a>
 ## [v2.0.1](https://github.com/TREEcg/event-stream-client/compare/v1.19.1...v2.0.1) - 2021-03-05
 
