@@ -66,5 +66,6 @@
     "@types/jsonld": "^1.5.4",
     "jsonld": "^4.0.1",
     "stream-to-string": "^1.2.0"
-  }
+  },
+  "gitHead": "7e3418ef6a15a38e973f5651d6e67a83bd5cf421"
 }
