@@ -211,10 +211,11 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
 
             // Retrieve TREE relations towards other nodes
             for (const [_, relation] of treeMetadata.metadata.treeMetadata.relations) {
-                // When relation has a prov:generatedAtTime less than what we need, prune
+                // Prune when the value of the relation is a datetime and less than what we need
+                // To be enhanced when more TREE filtering capabilities are available
                 if (this.fromGeneratedAtTime && relation["@type"][0] === "https://w3id.org/tree#LessThanRelation"
-                && (relation.path[0]["@value"] === "http://www.w3.org/ns/prov#generatedAtTime" || relation.path[0]["@value"] === "prov:generatedAtTime")
-                && new Date(relation.value[0]["@value"]).getTime() < this.fromGeneratedAtTime.getTime()) {
+                    && moment(relation.value[0]["@value"]).isValid()
+                    && new Date(relation.value[0]["@value"]).getTime() < this.fromGeneratedAtTime.getTime()) {
                     // Prune - do nothing
                 } else {
                     // Add node to book keeper with ttl 0 (as soon as possible)
@@ -293,7 +294,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
         })).handle.quads
     }
 
-    protected getMembers = function(treeMetadata: any) : string[] {
+    protected getMembers(treeMetadata: any) : string[] {
         let members = [];
         // Retrieve members from all collections found in the fragment
         const collections = treeMetadata.metadata.treeMetadata.collections;
