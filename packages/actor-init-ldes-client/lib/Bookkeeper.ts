@@ -1,31 +1,39 @@
 const PriorityQueue = require('js-priority-queue');
+const LRU = require("lru-cache");
 
 export class Bookkeeper {
     protected readonly queue = new PriorityQueue({ comparator: compareFragments});
-    protected readonly queued: any = {}; // to know whether a fragment URL is already added to the priority queue
+    protected readonly queued: any = new LRU({
+        max: 500,
+        maxAge: 1000 * 60 * 60 * 24
+    }); // to know whether a fragment URL is already added to the priority queue
 
     public constructor() {
 
     }
 
+    public fragmentAlreadyAdded(url: string) {
+        return this.queued.has(url);
+    }
+
     public addFragment(url: string, ttl: number) {
-        if (!Object.keys(this.queued).includes(url)) {
+        if (!this.fragmentAlreadyAdded(url)) {
             let fragmentInfo = {
                 "url": url,
                 "refetchTime": new Date(new Date().getTime() + ttl) // now
             }
             this.queue.queue(fragmentInfo);
-            this.queued[url] = {};
+            this.queued.set(url, true);
         }
     }
 
     public nextFragmentExists() {
-        return this.queue.length > 0 ? true : false;
+        return this.queued.length > 0;
     }
 
     public getNextFragmentToFetch() {
         let next = this.queue.dequeue();
-        delete this.queued[next.url];
+        this.queued.del(next.url);
         return next;
     }
 }
