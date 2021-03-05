@@ -1,6 +1,6 @@
 {
   "name": "@treecg/actor-rdf-filter-object-with-framing",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "A rdf-filter-object-with-framing actor",
   "lsd:module": true,
   "main": "index.js",
@@ -35,9 +35,9 @@
     "@treecg/bus-rdf-filter-object": "^1.0.0"
   },
   "devDependencies": {
-    "@comunica/core": "^1.19.2",
-    "@treecg/bus-rdf-filter-object": "^1.0.0",
     "@comunica/bus-rdf-parse": "^1.19.2",
+    "@comunica/core": "^1.19.2",
+    "@treecg/bus-rdf-filter-object": "^2.0.0",
     "@types/rdf-js": "^4.0.1"
   },
   "jest": {

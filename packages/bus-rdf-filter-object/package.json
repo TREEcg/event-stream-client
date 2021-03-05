@@ -1,6 +1,6 @@
 {
   "name": "@treecg/bus-rdf-filter-object",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "A comunica bus for extracting the quads relevant for a certain object from the stream of data quads.",
   "lsd:module": true,
   "main": "index.js",
