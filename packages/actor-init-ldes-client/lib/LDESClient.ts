@@ -1,9 +1,24 @@
-import {ActorInit, IActionInit, IActorOutputInit} from "@comunica/bus-init";
-import {IActorArgs, IActorTest} from "@comunica/core";
-import { PassThrough } from 'stream';
+import {ActorInit, IActionInit, IActorOutputInit} from "@comunica/bus-init/lib/ActorInit";
+import {Actor, IAction, IActorArgs, IActorTest, Mediator} from "@comunica/core";
+import type {
+    IActionRdfMetadataExtract,
+    IActorRdfMetadataExtractOutput,
+} from '@comunica/bus-rdf-metadata-extract/lib/ActorRdfMetadataExtract';
+
+import * as moment from 'moment';
+
+import { DataFactory } from 'rdf-data-factory';
+import type * as RDF from 'rdf-js';
+
+const DF: RDF.DataFactory = new DataFactory();
+
+import { Readable } from 'stream';
+const readStream = new Readable({objectMode: true});
+ readStream._read = () => {
+     // Do nothing
+};
 
 const FETCH_PAUSE = 2000; // in milliseconds; pause before fetching the next fragment
-let pollingInterval = 10000; // in milliseconds; when the response is cacheable, wait this time before refetching it
 
 const followRedirects = require('follow-redirects');
 followRedirects.maxRedirects = 10;
@@ -13,50 +28,74 @@ const cacheableRequestHttp = new CacheableRequest(http.request);
 const cacheableRequestHttps = new CacheableRequest(https.request);
 const CachePolicy = require('http-cache-semantics');
 
-import minimist = require('minimist');
+import {ContextDefinition} from "jsonld";
 
-import rdfParser from "rdf-parse";
-import * as RDF from "rdf-js";
+import minimist = require("minimist");
 
-const N3 = require('n3');
-const streamWriter = new N3.StreamWriter({prefixes: {tree: 'https://w3id.org/tree#'}});
-const RdfObjectLoader = require("rdf-object").RdfObjectLoader;
-const JsonLdSerializer = require("jsonld-streaming-serializer").JsonLdSerializer;
-const jsonLdSerializer = new JsonLdSerializer({
-    space: '  ', context: [
-        "https://data.vlaanderen.be/doc/applicatieprofiel/cultureel-erfgoed-object/kandidaatstandaard/2020-07-17/context/cultureel-erfgoed-object-ap.jsonld",
-        "https://data.vlaanderen.be/context/persoon-basis.jsonld",
-        "https://brechtvdv.github.io/demo-data/cultureel-erfgoed-event-ap.jsonld",
-        {
-            "dcterms:isVersionOf": {
-                "@type": "@id"
-            },
-            "prov": "http://www.w3.org/ns/prov#"
-        }
-    ]
-});
-const {namedNode, literal, triple} = require("@rdfjs/data-model");
+const stringifyStream = require('stream-to-string');
+const streamifyString = require('streamify-string');
+
+const LRU = require("lru-cache");
+const LRUcache = new LRU({});
+import { existsSync, readFileSync } from 'fs';
 
 import {Bookkeeper} from './Bookkeeper';
+import {ActorRdfMetadataExtract} from "@comunica/bus-rdf-metadata-extract/lib/ActorRdfMetadataExtract";
+import {
+    IActionHandleRdfParse,
+    IActorOutputHandleRdfParse,
+    IActorTestHandleRdfParse
+} from "@comunica/bus-rdf-parse";
+import {IActionRdfFilterObject, IActorRdfFilterObjectOutput} from "../../bus-rdf-filter-object";
+import {IActionRdfFrame, IActorRdfFrameOutput} from "../../bus-rdf-frame";
+import {
+    IActionSparqlSerializeHandle,
+    IActorOutputSparqlSerializeHandle,
+    IActorTestSparqlSerializeHandle
+} from "@comunica/bus-sparql-serialize";
+import {IActorQueryOperationOutputQuads} from "@comunica/bus-query-operation";
+import {Quad, Stream} from "rdf-js";
 
 let bk = new Bookkeeper();
 
-export class LDESClient extends ActorInit {
+export class LDESClient extends ActorInit implements ILDESClientArgs {
     public static readonly HELP_MESSAGE = `actor-init-ldes-client syncs event streams
   Usage:
     actor-init-ldes-client --pollingInterval 5000 https://lodi.ilabt.imec.be/coghent/industriemuseum/objecten
 
   Options:
-    -p            Number of milliseconds before refetching uncacheable fragments
-                evaluate the SPARQL query in the given file
-    -t            the MIME type of the output (e.g., application/ld+json)
-    -l            sets the log level (e.g., debug, info, warn, ... defaults to warn)
-    --help        print this help message
+    --pollingInterval            Number of milliseconds before refetching uncacheable fragments (e.g., 5000)
+    --mimeType                   the MIME type of the output (e.g., application/ld+json)
+    --context                    path to a file with the JSON-LD context you want to use when MIME type is application/ld+json (e.g., ./context.jsonld)
+    --fromGeneratedAtTime        datetime to filter members that contain a higher prov:generatedAtTime (e.g., 2020-01-01T00:00:00)
+    --emitMemberOnce             whether to emit a member only once, because collection contains immutable version objects. Value can be set to "true" or "false"
+    --help                       print this help message
   `;
 
-    public readonly pollingInterval: number;
+    public readonly mediatorRdfMetadataExtractTree: Mediator<ActorRdfMetadataExtract,
+        IActionRdfMetadataExtract, IActorTest, IActorRdfMetadataExtractOutput>;
 
-    public constructor(args: IActorArgs<IActionInit, IActorTest, IActorOutputInit>) {
+    public readonly mediatorRdfParse: Mediator<Actor<IActionHandleRdfParse, IActorTestHandleRdfParse, IActorOutputHandleRdfParse>,
+        IActionHandleRdfParse, IActorTestHandleRdfParse, IActorOutputHandleRdfParse>;
+
+    public readonly mediatorRdfFilterObject: Mediator<Actor<IActionRdfFilterObject, IActorTest, IActorRdfFilterObjectOutput>,
+        IActionRdfFilterObject, IActorTest, IActorRdfFilterObjectOutput>;
+
+    public readonly mediatorRdfFrame: Mediator<Actor<IActionRdfFrame, IActorTest, IActorRdfFrameOutput>,
+        IActionRdfFrame, IActorTest, IActorRdfFrameOutput>;
+
+    public readonly mediatorRdfSerialize: Mediator<Actor<IActionSparqlSerializeHandle, IActorTestSparqlSerializeHandle, IActorOutputSparqlSerializeHandle>,
+        IActionSparqlSerializeHandle, IActorTestSparqlSerializeHandle, IActorOutputSparqlSerializeHandle>;
+
+    public pollingInterval: number;
+    public mimeType: string;
+    public jsonLdContextPath: string;
+    public jsonLdContextString: string;
+    public jsonLdContext: ContextDefinition;
+    public emitMemberOnce: boolean;
+    public fromGeneratedAtTime: Date;
+
+    public constructor(args: ILDESClientArgs) {
         super(args);
     }
 
@@ -66,100 +105,131 @@ export class LDESClient extends ActorInit {
 
     public async run(action: IActionInit): Promise<IActorOutputInit> {
         const args = minimist(action.argv);
-
         const pollingInterval: number = args.pollingInterval ? parseInt(args.pollingInterval) : this.pollingInterval;
+        const mimeType: string = args.mimeType ? args.mimeType : this.mimeType;
+        if (args.context && existsSync(args.context)) {
+            this.jsonLdContextString = readFileSync(args.context, 'utf8');
+        } else if (this.jsonLdContextPath != "" && existsSync(this.jsonLdContextPath)) {
+            this.jsonLdContextString = readFileSync(this.jsonLdContextPath, 'utf8');
+        }
+        if (args.fromGeneratedAtTime && moment(args.fromGeneratedAtTime).isValid())
+            this.fromGeneratedAtTime = new Date(args.fromGeneratedAtTime);
+
+        if (args.emitMemberOnce) this.emitMemberOnce = args.onlyEmitMemberOnce;
+
         if (args["_"].length) {
             const url = args._[args._.length - 1];
-            const readable = new PassThrough();
 
-            return { 'stdout': this.createReadStream(url, {"pollingInterval": pollingInterval}).pipe(readable) }
-        }
-        else return { stderr: require('streamify-string')(<Error> new Error(LDESClient.HELP_MESSAGE)) };
+            this.createReadStream(url, {"pollingInterval": pollingInterval, "mimeType": mimeType, "jsonLdContext": JSON.parse(this.jsonLdContextString)});
+            return {'stdout': readStream}
+        } else return {stderr: require('streamify-string')(<Error>new Error(LDESClient.HELP_MESSAGE))};
     }
 
-    public createReadStream(url: string, options: { pollingInterval: number; }) {
+    public createReadStream(url: string, options: { pollingInterval?: number; mimeType?: string, jsonLdContext?: ContextDefinition, fromGeneratedAtTime?: Date, emitMemberOnce?: boolean}) {
+        if (options.pollingInterval) this.pollingInterval = options.pollingInterval;
+        if (options.mimeType) this.mimeType = options.mimeType;
+        this.jsonLdContext = options.jsonLdContext ? options.jsonLdContext : JSON.parse(this.jsonLdContextString);
+        if (options.fromGeneratedAtTime && moment(options.fromGeneratedAtTime).isValid()) this.fromGeneratedAtTime = options.fromGeneratedAtTime;
+        if (options.emitMemberOnce) this.emitMemberOnce = options.emitMemberOnce;
+
         this.retrieve(url);
-        return jsonLdSerializer;
-        //return streamWriter;
+        return readStream;
     }
 
-    public async retrieve(pageUrl: string) {
-        console.error('GET ' + pageUrl);
-        let startTime = new Date();
+    protected async retrieve(pageUrl: string) {
+        super.logDebug(undefined, 'GET ' + pageUrl);
+        const startTime = new Date();
+
         try {
-            let page = await this.getPage(pageUrl);
-            let endTime = new Date();
-            let isFromCache = page.fromCache;
+            const page = await this.getPage(pageUrl);
+            super.logDebug(undefined, '' + page.statusCode + ' ' + page.url + ' (' + (new Date().getTime() - startTime.getTime()) + 'ms)');
+            // Retrieve media type
+            // TODO: Fetch mediaType by using response and comunica actor
+            const mediaType = page.headers['content-type'].indexOf(';') > 0 ? page.headers['content-type'].substr(0, page.headers['content-type'].indexOf(';')) : page.headers['content-type'];
 
-            if (isFromCache) {
-                // this should never happen, because timeToLive should be expired
-                console.error('' + page.statusCode + ' ' + pageUrl + ' (' + (endTime.getTime() - startTime.getTime()) + 'ms)');
-                // Add again to book keeper
-                // use pageUrl, because page.url is undefined when coming from client-side cache
-                bk.addFragment(pageUrl, pollingInterval);
-                this.retrieveRecursively();
-            } else {
-                console.error('' + page.statusCode + ' ' + page.url + ' (' + (endTime.getTime() - startTime.getTime()) + 'ms)');
-                const policy = new CachePolicy(page.request, page.response);
-                const ttl = policy.storable() ? policy.timeToLive() : pollingInterval;
-                bk.addFragment(page.url, ttl);
+            // Based on the HTTP Caching headers, poll this fragment
+            const policy = new CachePolicy(page.request, page.response);
+            const ttl = policy.storable() ? policy.timeToLive() : this.pollingInterval; // pollingInterval is fallback
+            bk.addFragment(page.url, ttl);
 
-                let dataStream = require('streamify-string')(page.data.toString());
-                // only keep media-type directive of content-type header
-                let mediaType = page.headers['content-type'].indexOf(';') > 0 ? page.headers['content-type'].substr(0, page.headers['content-type'].indexOf(';')) : page.headers['content-type'];
-                let collectionURI;
-                rdfParser.parse(dataStream, {contentType: mediaType})
-                    .on('data', (quad: RDF.Quad) => {
-                        //streamWriter.write(quad);
-                        jsonLdSerializer.write(quad);
-                        if (quad.object.value === 'https://w3id.org/tree#Collection') collectionURI = quad.subject.value;
-                        if (quad.predicate.value === "https://w3id.org/tree#node") {
-                            // later: add relation metadata so the bookkeeper can prune
-                            bk.addFragment(quad.object.value, 0);
+            // Parse into RDF Stream to retrieve TREE metadata
+            const quadsForMetadata = await this.stringToQuadStream(page.data.toString(), '', mediaType);
+            const treeMetadata = await this.mediatorRdfMetadataExtractTree.mediate({
+                metadata: quadsForMetadata,
+                url: page.url
+            });
+
+            const members = this.getMembers(treeMetadata);
+
+            // Get prov:generatedAtTime of members
+            const quadsToFetchGeneratedAtTimes = await this.stringToQuadStream(page.data.toString(), '', mediaType);
+            const memberToGeneratedAtTime = await this.mapMemberToGeneratedAtTime(quadsToFetchGeneratedAtTimes, members);
+
+            for (let member of members) {
+                // Only process member when its prov:generatedAtTime is higher
+                if (!this.fromGeneratedAtTime || (moment(this.fromGeneratedAtTime).isValid() && memberToGeneratedAtTime[member].getTime() >= this.fromGeneratedAtTime.getTime())) {
+                    // Check if in LRU CACHE
+                    if (this.emitMemberOnce && !LRUcache.has(member)) {
+                        LRUcache.set(member, true);
+
+                        // A stream can be read only once, so we need to create a new one
+                        const quadsForFilteringOnObject = await this.stringToQuadStream(page.data.toString(), '', mediaType);
+                        // Filter the quads that are relevant for this member
+                        const memberQuads = (await this.mediatorRdfFilterObject.mediate({
+                            data: quadsForFilteringOnObject,
+                            objectURI: member,
+                            constraints: undefined
+                        })).data;
+
+                        // Serialize back into string
+                        let outputString;
+                        if (this.mimeType != "application/ld+json") {
+                            const handle: IActorQueryOperationOutputQuads = {
+                                type: "quads",
+                                quadStream: memberQuads
+                            };
+                            outputString = await stringifyStream((await this.mediatorRdfSerialize.mediate({
+                                handle: handle,
+                                handleMediaType: this.mimeType
+                            })).handle.data);
+                        } else {
+                            // Create framed JSON-LD output
+                            const frame = {
+                                "@id": member
+                            };
+                            const framedObject: object = (await this.mediatorRdfFrame.mediate({
+                                data: memberQuads,
+                                frame: frame,
+                                jsonLdContext: this.jsonLdContext
+                            })).data;
+                            outputString = JSON.stringify(framedObject);
                         }
-                    })
-                    .on('error', (error: any) => {
-                        console.error(error);
-                        this.retrieveRecursively();
-                    })
-                    .on('end', () => {
-                        // now we know the collectionURI
-                        //getMembers(collectionURI, rdfParser.parse(require('streamify-string')(page.data.toString()), {contentType: mediaType}));
-                        this.retrieveRecursively()
-                    });
+                        readStream.push(`${outputString}\n`);
+                    }
+                }
             }
+
+            // Retrieve TREE relations towards other nodes
+            for (const [_, relation] of treeMetadata.metadata.treeMetadata.relations) {
+                // When relation has a prov:generatedAtTime less than what we need, prune
+                if (this.fromGeneratedAtTime && relation["@type"][0] === "https://w3id.org/tree#LessThanRelation"
+                && (relation.path[0]["@value"] === "http://www.w3.org/ns/prov#generatedAtTime" || relation.path[0]["@value"] === "prov:generatedAtTime")
+                && new Date(relation.value[0]["@value"]).getTime() < this.fromGeneratedAtTime.getTime()) {
+                    // Prune - do nothing
+                } else {
+                    // Add node to book keeper with ttl 0 (as soon as possible)
+                    for (const node of relation.node) bk.addFragment(node['@id'], 0);
+                }
+            }
+
+            this.retrieveRecursively();
         } catch (e) {
-            console.error('Failed to retrieve ' + pageUrl + ': ' + e);
+            super.logError(undefined, 'Failed to retrieve ' + pageUrl + ': ' + e);
             this.retrieveRecursively();
         }
     }
 
-    /*async function getMembers(collection, parsedStream) {
-        const myLoader = new RdfObjectLoader({ context: "https://data.vlaanderen.be/doc/applicatieprofiel/cultureel-erfgoed-object/kandidaatstandaard/2020-07-17/context/cultureel-erfgoed-object-ap.jsonld" }) ;
-        myLoader.import(parsedStream).then(() => {
-            let members = myLoader.resources[collection].properties['https://w3id.org/tree#member'];
-            for (let m in members) {
-                // we need to retrieve all quads that are linked with this member
-                let member = members[m];
-                for (let property in member.properties) {
-                    let p = member.properties[property];
-                    console.log(property)
-
-                }
-                // output quads
-                //streamWriter.write(output);
-            }
-
-            // Get property values by shortcut
-            const myResource = myLoader.resources[collection];
-            console.log(`URI:  ${myResource.value}`);
-            console.log(`Term type: ${myResource.type}`);
-            console.log(`Term value: ${myResource.value}`);
-            console.log(`Term: ${myResource.term}`);
-        });
-    }*/
-
-    public async retrieveRecursively() {
+    private async retrieveRecursively() {
         await this.sleep(FETCH_PAUSE);
         if (bk.nextFragmentExists()) {
             let next = bk.getNextFragmentToFetch();
@@ -172,7 +242,7 @@ export class LDESClient extends ActorInit {
             this.retrieve(next.url);
         } else {
             // We're done
-            streamWriter.push(null);
+            readStream.push(null);
         }
     }
 
@@ -205,13 +275,53 @@ export class LDESClient extends ActorInit {
                 })
             })
 
-            cacheReq.on('request', (request : any) => request.end());
+            cacheReq.on('request', (request: any) => request.end());
             cacheReq.on('error', (e: any) => reject(e));
         });
     }
 
-    public sleep(ms: number) {
+    private sleep(ms: number) {
         return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    protected async stringToQuadStream(data: string, baseIRI: string, mediaType: string): Promise<RDF.Stream> {
+        return (await this.mediatorRdfParse.mediate({
+            handle: {
+                input: streamifyString(data),
+                baseIRI: baseIRI
+            }, handleMediaType: mediaType
+        })).handle.quads
+    }
+
+    protected getMembers = function(treeMetadata: any) : string[] {
+        let members = [];
+        // Retrieve members from all collections found in the fragment
+        const collections = treeMetadata.metadata.treeMetadata.collections;
+        for (const [c, collectionValue] of collections.entries()) {
+            for (let m in collectionValue.member) {
+                const member = collectionValue.member[m]["@id"];
+                members.push(member);
+            }
+        }
+        return members;
+    }
+
+    private mapMemberToGeneratedAtTime(quadsToFetchGeneratedAtTimes: Stream<Quad>, members: string[]): Promise<Record<string, Date>> {
+        return new Promise(resolve => {
+            const memberToGeneratedAtTime: Record<string, Date> = {};
+
+            quadsToFetchGeneratedAtTimes.on('data', (quad: RDF.Quad) => {
+                    if (quad.subject.termType === 'NamedNode') {
+                        const potentialMember = quad.subject.value;
+                        const predicate = quad.predicate.value;
+                        if (members.indexOf(potentialMember) != -1 && predicate === "http://www.w3.org/ns/prov#generatedAtTime")
+                            memberToGeneratedAtTime[potentialMember] = new Date(quad.object.value);
+                    }
+                })
+                .on('end', () => {
+                    resolve(memberToGeneratedAtTime)
+                });
+        });
     }
 }
 
@@ -223,4 +333,23 @@ class PageMetadata {
     public "data": string;
     public "statusCode": number;
     public "fromCache": boolean;
+}
+
+export interface ILDESClientArgs extends IActorArgs<IActionInit, IActorTest, IActorOutputInit> {
+    mediatorRdfMetadataExtractTree: Mediator<
+        ActorRdfMetadataExtract,
+        IActionRdfMetadataExtract, IActorTest, IActorRdfMetadataExtractOutput>;
+    mediatorRdfParse: Mediator<Actor<IActionHandleRdfParse, IActorTestHandleRdfParse, IActorOutputHandleRdfParse>, IActionHandleRdfParse, IActorTestHandleRdfParse, IActorOutputHandleRdfParse>
+    mediatorRdfFilterObject: Mediator<
+        Actor<IActionRdfFilterObject, IActorTest, IActorRdfFilterObjectOutput>,
+        IActionRdfFilterObject, IActorTest, IActorRdfFilterObjectOutput>;
+    mediatorRdfFrame: Mediator<Actor<IActionRdfFrame, IActorTest, IActorRdfFrameOutput>, IActionRdfFrame, IActorTest, IActorRdfFrameOutput>;
+    mediatorRdfSerialize: Mediator<Actor<IActionSparqlSerializeHandle, IActorTestSparqlSerializeHandle, IActorOutputSparqlSerializeHandle>,
+        IActionSparqlSerializeHandle, IActorTestSparqlSerializeHandle, IActorOutputSparqlSerializeHandle>;
+    pollingInterval: number;
+    mimeType: string;
+    jsonLdContextPath: string;
+    jsonLdContextString: string;
+    emitMemberOnce: boolean;
+    fromGeneratedAtTime: Date;
 }

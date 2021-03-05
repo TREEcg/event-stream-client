@@ -1,0 +1,12 @@
+{   "@context": [
+      "https://data.vlaanderen.be/doc/applicatieprofiel/cultureel-erfgoed-object/kandidaatstandaard/2020-07-17/context/cultureel-erfgoed-object-ap.jsonld",
+      "https://data.vlaanderen.be/context/persoon-basis.jsonld",
+      "https://brechtvdv.github.io/demo-data/cultureel-erfgoed-event-ap.jsonld",
+      {
+          "dcterms:isVersionOf": {
+              "@type": "@id"
+          },
+          "prov": "http://www.w3.org/ns/prov#"
+      }
+  ]
+}

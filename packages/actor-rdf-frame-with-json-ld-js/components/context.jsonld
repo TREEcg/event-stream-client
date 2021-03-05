@@ -1,0 +1,13 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/core/^1.0.0/components/context.jsonld",
+    {
+      "npmd": "https://linkedsoftwaredependencies.org/bundles/npm/",
+      "carfwjlj": "npmd:@treecg/actor-rdf-frame-with-json-ld-js/",
+      "files-carfwjlj": "carfwjlj:^1.0.0/",
+
+      "ActorRdfFrameWithJSONLDjs": "carfwjlj:Actor/RdfFrameWithJSONLDjs",
+      "mediatorRdfSerialize": "carfwjlj:mediatorRdfSerialize"
+    }
+  ]
+}

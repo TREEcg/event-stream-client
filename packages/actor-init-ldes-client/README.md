@@ -1,11 +1,10 @@
-# @brechtvdv/actor-init-ldes-client
-Fetches fragments of a TREE Event Stream and emits its data (in the future: members) when a fragment's caching headers has been invalidated
-In order to avoid receiving duplicate members, we will create in the future a tool filters members by storing it. 
+# @treecg/actor-init-ldes-client
+Metadata harvester for a Linked Data Event Stream.
 
 ## Install
 
 ```
-npm install -g @brechtvdv/actor-init-ldes-client
+npm install -g @treecg/actor-init-ldes-client
 ```
 
 In order to use it as a library, you can leave out the `-g`.
@@ -16,34 +15,71 @@ In order to use it as a library, you can leave out the `-g`.
 ### Usage from the command line
 
 ```
-actor-init-ldes-client --pollingInterval 10000 https://lodi.ilabt.imec.be/coghent/industriemuseum/objecten
+actor-init-ldes-client --parameter ${PARAMETER} ${URL}
 ```
+
+Possible parameters:
+
+| Parameter  | Description | Possible values |
+| ------------- | ------------- | ------------- |
+|  pollingInterval | Number of milliseconds before refetching uncacheable fragments  | for example: 5000 |
+| mimeType  | the MIME type of the output  | application/ld+json, text/turtle... |
+| context  | path to a file with the JSON-LD context you want to use when MIME type is application/ld+json  | for example: ./context.jsonld |
+| fromGeneratedAtTime  | datetime to filter members that contain a higher prov:generatedAtTime | for example: 2020-01-01T00:00:00 |
+| emitMemberOnce  | whether to emit a member only once, because collection contains immutable version objects.  | true / false |
+
+Example commando with parameters:
+```
+actor-init-ldes-client --pollingInterval 5000 --mimeType application/ld+json --context context.jsonld --fromGeneratedAtTime 2021-02-03T15:48:12.309Z --emitMemberOnce true https://lodi.ilabt.imec.be/coghent/dmg/objecten
+```
+
 
 ### Usage within application
-The easyest way to create an engine (with default config) is as follows:
+The easiest way to create an engine (with default config) is as follows:
 ```
-const newEngine = require('@brechtvdv/actor-init-ldes-client').default;
+const newEngine = require('@treecg/actor-init-ldes-client').newEngine;
 
-const LDESClient =  newEngine();
+const LDESClient = new newEngine();
 ```
 
 With the engine or client created, you can now use it to call te async ```createReadStream(url, options)``` method.
 Here is an example synchronizing with a TREE root node of an Event Stream with polling interval of 5 seconds:
 
 ```javascript
-  try {
-    let url = "https://lodi.ilabt.imec.be/coghent/industriemuseum/objecten";
-    let options = {
-      "pollingInterval": 5000 // millis
-    };
-    let eventstreamSync = LDESClient.createReadStream(url, options);
-    eventstreamSync.on('data', (data) => {
-      console.log(data)
-    });
-    eventstreamSync.on('end', () => {
-      console.log("No more data!")
-    });
-  } catch (e) {
-    console.error(e);
-  }
+ main()
+ 
+ function main() {
+     try {
+         let url = "https://lodi.ilabt.imec.be/coghent/dmg/objecten";
+         let options = {
+             "pollingInterval": 5000, // millis
+             "mimeType": "application/ld+json",
+             "fromGeneratedAtTime": new Date("2021-02-03T15:46:12.307Z"),
+             "emitMemberOnce": true,
+             "jsonLdContext": {
+                 "@context": [
+                     "https://data.vlaanderen.be/doc/applicatieprofiel/cultureel-erfgoed-object/kandidaatstandaard/2020-07-17/context/cultureel-erfgoed-object-ap.jsonld",
+                     "https://data.vlaanderen.be/context/persoon-basis.jsonld",
+                     "https://brechtvdv.github.io/demo-data/cultureel-erfgoed-event-ap.jsonld",
+                     {
+                         "dcterms:isVersionOf": {
+                             "@type": "@id"
+                         },
+                         "prov": "http://www.w3.org/ns/prov#"
+                     }
+                 ]
+             }
+         };
+         let eventstreamSync = LDESClient.createReadStream(url, options);
+         eventstreamSync.on('data', (data) => {
+             let obj = JSON.parse(data)
+             console.log(obj)
+         });
+         eventstreamSync.on('end', () => {
+             console.log("No more data!")
+         });
+     } catch (e) {
+         console.error(e);
+     }
+ }
 ```

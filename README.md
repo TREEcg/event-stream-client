@@ -8,6 +8,8 @@ cd event-stream-client
 yarn install
 ```
 
+
+
 ## Sync
 If you want to sync with an event stream, have a look at the pre-built engine:
 

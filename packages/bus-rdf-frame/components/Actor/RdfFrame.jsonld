@@ -1,0 +1,32 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/bus-rdf-frame/^1.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/core/^1.0.0/components/context.jsonld"
+  ],
+  "@id": "npmd:@treecg/bus-rdf-frame",
+  "components": [
+    {
+      "@id": "cbrf:Actor/RdfFrame",
+      "@type": "AbstractClass",
+      "extends": "cc:Actor",
+      "requireElement": "ActorRdfFrame",
+      "comment": "A Comunica actor that frames a stream of quads",
+      "parameters": [
+        {
+          "@id": "cc:Actor/bus",
+          "defaultScoped": {
+            "defaultScope": "cbrf:Actor/RdfFrame",
+            "defaultScopedValue": { "@id": "cbrf:Bus/RdfFrame" }
+          }
+        }
+      ],
+      "constructorArguments": [
+        {
+          "@id": "cbrf:Actor/RdfFrame/constructorArgumentsObject",
+          "@type": "https://linkedsoftwaredependencies.org/vocabularies/object-oriented#Object",
+          "extends": "cc:Actor/constructorArgumentsObject"
+        }
+      ]
+    }
+  ]
+}

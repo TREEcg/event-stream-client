@@ -7,7 +7,7 @@
   "version": "0.0.5",
   "description": "Syncs an entire TREE collection, but only emits the objects, does not store them. ",
   "scripts": {
-    "test-changed": "lerna run packages/actor-init-ldes/test --since HEAD",
+    "test-changed": "lerna run test --since HEAD",
     "lint-changed": "lerna run lint --since HEAD",
     "build-changed": "lerna run build --since HEAD",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | coveralls",
@@ -25,20 +25,30 @@
     "test": "jest"
   },
   "jest": {
-    "globals": {
-      "ts-jest": {
-        "tsConfig": "test/tsconfig.json"
-      }
-    },
     "transform": {
-      "^.+\\.ts$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+      "^.+\\.ts$": "ts-jest"
     },
-    "testRegex": "(/test/.*|(\\.|/)(test|spec))\\.ts$",
+    "testRegex": "(/test/.*|(\\\\.|/)(test|spec))-test.ts$",
     "moduleFileExtensions": [
       "ts",
       "js"
     ],
-    "collectCoverage": true
+    "setupFilesAfterEnv": [ "./setup-jest.js" ],
+    "collectCoverage": true,
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/mocks/",
+      "index.js"
+    ],
+    "testEnvironment": "node",
+    "coverageThreshold": {
+      "global": {
+        "branches": 100,
+        "functions": 100,
+        "lines": 100,
+        "statements": 100
+      }
+    }
   },
   "repository": {
     "type": "git",
@@ -66,9 +76,11 @@
   },
   "devDependencies": {
     "@types/jest": "^24.0.0",
-    "@types/rdf-js": "^2.0.1",
-    "manual-git-changelog": "^1.0.1",
+    "@types/rdf-js": "*",
     "jest": "^26.6.3",
+    "jest-rdf": "^1.6.0",
+    "ts-jest": "^26.5.2",
+    "manual-git-changelog": "^1.0.1",
     "webpack": "^5.11.1",
     "webpack-cli": "^4.3.1"
   }
