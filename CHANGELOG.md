@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.0.1"></a>
+## [v2.0.1](https://github.com/TREEcg/event-stream-client/compare/v1.19.1...v2.0.1) - 2021-03-05
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Update lerna to main branch](https://github.com/TREEcg/event-stream-client/commit/4a3d162b0d22791116b10cf89434f1e1c38fd37b)
+* [New version with framing](https://github.com/TREEcg/event-stream-client/commit/045dac071b616ee69ce3db1f2ec4f186b6a88f83)
+
 <a name="v2.0.0"></a>
 ## [v2.0.0](https://github.com/TREEcg/event-stream-client/compare/v1.19.1...v2.0.0) - 2021-03-05
 
