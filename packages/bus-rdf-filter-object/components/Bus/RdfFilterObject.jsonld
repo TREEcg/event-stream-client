@@ -1,5 +1,5 @@
 {
-  "@context": "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/bus-rdf-filter-object/^1.0.0/components/context.jsonld",
+  "@context": "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/bus-rdf-filter-object/^2.0.0/components/context.jsonld",
   "@id": "cbrfo:Bus/RdfFilterObject",
   "@type": "cc:Bus",
   "comment": "A comunica bus for extracting the quads relevant for a certain object from the stream of data quads."

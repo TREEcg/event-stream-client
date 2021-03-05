@@ -4,7 +4,7 @@
     {
       "npmd": "https://linkedsoftwaredependencies.org/bundles/npm/",
       "ldes": "npmd:@treecg/actor-init-ldes-client/",
-      "files-ldes": "ldes:^1.0.0/",
+      "files-ldes": "ldes:^2.0.0/",
       "config": "files-ldes:config/config-default.json#",
 
       "LDESClient": "ldes:LDESClient",

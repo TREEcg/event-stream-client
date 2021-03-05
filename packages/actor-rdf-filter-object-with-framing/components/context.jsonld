@@ -4,7 +4,7 @@
     {
       "npmd": "https://linkedsoftwaredependencies.org/bundles/npm/",
       "carfowf": "npmd:@treecg/actor-rdf-filter-object-with-framing/",
-      "files-carfowf": "carfowf:^1.0.0/",
+      "files-carfowf": "carfowf:^2.0.0/",
 
       "ActorRdfFilterObjectWithFraming": "carfowf:Actor/RdfFilterObjectWithFraming",
        "context": "carfowf:context",

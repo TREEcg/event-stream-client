@@ -1,7 +1,7 @@
 {
   "@context": [
-    "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/actor-rdf-frame-with-json-ld-js/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/bus-rdf-frame/^1.0.0/components/context.jsonld"
+    "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/actor-rdf-frame-with-json-ld-js/^2.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/bus-rdf-frame/^2.0.0/components/context.jsonld"
   ],
   "@id": "npmd:@treecg/actor-rdf-frame-with-json-ld-js",
   "components": [
