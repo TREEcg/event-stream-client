@@ -95,6 +95,8 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     public emitMemberOnce: boolean;
     public fromGeneratedAtTime: Date;
 
+    private emitMemberOnceHasBeenConfigured: boolean = false;
+
     public constructor(args: ILDESClientArgs) {
         super(args);
     }
@@ -115,7 +117,10 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
         if (args.fromGeneratedAtTime && moment(args.fromGeneratedAtTime).isValid())
             this.fromGeneratedAtTime = new Date(args.fromGeneratedAtTime);
 
-        if (args.emitMemberOnce) this.emitMemberOnce = args.onlyEmitMemberOnce;
+        if (args.emitMemberOnce) {
+            this.emitMemberOnce = args.onlyEmitMemberOnce;
+            this.emitMemberOnceHasBeenConfigured = true;
+        }
 
         if (args["_"].length) {
             const url = args._[args._.length - 1];
@@ -130,7 +135,10 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
         if (options.mimeType) this.mimeType = options.mimeType;
         this.jsonLdContext = options.jsonLdContext ? options.jsonLdContext : JSON.parse(this.jsonLdContextString);
         if (options.fromGeneratedAtTime && moment(options.fromGeneratedAtTime).isValid()) this.fromGeneratedAtTime = options.fromGeneratedAtTime;
-        if (options.emitMemberOnce) this.emitMemberOnce = options.emitMemberOnce;
+        if (options.emitMemberOnce) {
+            this.emitMemberOnce = options.emitMemberOnce;
+            this.emitMemberOnceHasBeenConfigured = true;
+        }
 
         this.retrieve(url);
         return readStream;
@@ -159,7 +167,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
                 url: page.url
             });
 
-            const members = this.getMembers(treeMetadata);
+            const members : string[] = this.getMembers(treeMetadata);
 
             // Get prov:generatedAtTime of members
             const quadsToFetchGeneratedAtTimes = await this.stringToQuadStream(page.data.toString(), '', mediaType);
@@ -168,8 +176,10 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             for (let member of members) {
                 // Only process member when its prov:generatedAtTime is higher
                 if (!this.fromGeneratedAtTime || (moment(this.fromGeneratedAtTime).isValid() && memberToGeneratedAtTime[member].getTime() >= this.fromGeneratedAtTime.getTime())) {
-                    // Check if in LRU CACHE
-                    if (this.emitMemberOnce && !LRUcache.has(member)) {
+                    // Process if LRU Cache doesn't recognize
+                    // Or when it is configured that members may be emitted multiple times
+                    // Otherwise don't process the member
+                    if (!LRUcache.has(member) || (this.emitMemberOnceHasBeenConfigured && !this.emitMemberOnce)) {
                         LRUcache.set(member, true);
 
                         // A stream can be read only once, so we need to create a new one
@@ -294,8 +304,9 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
         })).handle.quads
     }
 
+    // Returns array of memberURI (string) -> immutable (boolean)
     protected getMembers(treeMetadata: any) : string[] {
-        let members = [];
+        let members : string[] = [];
         // Retrieve members from all collections found in the fragment
         const collections = treeMetadata.metadata.treeMetadata.collections;
         for (const [c, collectionValue] of collections.entries()) {
