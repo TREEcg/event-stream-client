@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.0.3"></a>
+## [v2.0.3](https://github.com/TREEcg/event-stream-client/compare/v2.0.2...v2.0.3) - 2021-03-08
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Rename fromGeneratedAtTime to fromTime](https://github.com/TREEcg/event-stream-client/commit/a00c344c75cc9e2d4a7fcdc2d744c368b8e7e0a6)
+* [Don't hard code on prov:generatedAtTime #7](https://github.com/TREEcg/event-stream-client/commit/bde86c90531c76cc2ee47ca2bb762d807009144c)
+
 <a name="v2.0.2"></a>
 ## [v2.0.2](https://github.com/TREEcg/event-stream-client/compare/v2.0.1...v2.0.2) - 2021-03-05
 
