@@ -273,7 +273,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
                 // The whole response has been received. Print out the result.
                 res.on('end', () => {
                     // This is necessary for cachePolicy
-                    res.req.headers = res.headers;
+                    res['req']['headers'] = res['headers'];
                     resolve({
                         "request": res.req,
                         "response": res,
