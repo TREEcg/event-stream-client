@@ -1,6 +1,16 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.0.4"></a>
+## [v2.0.4](https://github.com/TREEcg/event-stream-client/compare/v2.0.3...v2.0.4) - 2021-03-08
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Update Git URL](https://github.com/TREEcg/event-stream-client/commit/3619bbae2e1664a456681cdaebc085503c117d49)
+* [Rename to TREEcg](https://github.com/TREEcg/event-stream-client/commit/23c98a5e4e96bceccff43eace4b17ec8931c3213)
+* [Merge branch 'main' of github.com:TREEcg/event-stream-client into main](https://github.com/TREEcg/event-stream-client/commit/5f67b7528a5bcbb0bcf0bf2787c51de29dab9ec8)
+* [Change to fromTime](https://github.com/TREEcg/event-stream-client/commit/e7af3b1264fd2a0d83e9f2635c6866be0dafbd95)
+* [Merge pull request #1 from brechtvdv/main](https://github.com/TREEcg/event-stream-client/commit/590775762f666978cd49b47bb04df5429dcadeff)
+
 <a name="v2.0.3"></a>
 ## [v2.0.3](https://github.com/TREEcg/event-stream-client/compare/v2.0.2...v2.0.3) - 2021-03-08
 

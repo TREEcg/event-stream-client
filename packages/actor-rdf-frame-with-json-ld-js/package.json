@@ -1,6 +1,6 @@
 {
   "name": "@treecg/actor-rdf-frame-with-json-ld-js",
-  "version": "2.0.2",
+  "version": "2.0.4",
   "description": "An rdf-frame actor",
   "lsd:module": true,
   "main": "index.js",
@@ -38,7 +38,7 @@
   "devDependencies": {
     "@comunica/bus-rdf-serialize": "^1.19.2",
     "@comunica/core": "^1.19.2",
-    "@treecg/bus-rdf-frame": "^2.0.2"
+    "@treecg/bus-rdf-frame": "^2.0.4"
   },
   "jest": {
     "globals": {
