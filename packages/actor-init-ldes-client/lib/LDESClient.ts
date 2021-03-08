@@ -67,7 +67,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     --pollingInterval            Number of milliseconds before refetching uncacheable fragments (e.g., 5000)
     --mimeType                   the MIME type of the output (e.g., application/ld+json)
     --context                    path to a file with the JSON-LD context you want to use when MIME type is application/ld+json (e.g., ./context.jsonld)
-    --fromGeneratedAtTime        datetime to filter members that contain a higher prov:generatedAtTime (e.g., 2020-01-01T00:00:00)
+    --fromTime                   datetime to prune relations that have a lower datetime value (e.g., 2020-01-01T00:00:00)
     --emitMemberOnce             whether to emit a member only once, because collection contains immutable version objects. Value can be set to "true" or "false"
     --help                       print this help message
   `;
@@ -93,7 +93,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     public jsonLdContextString: string;
     public jsonLdContext: ContextDefinition;
     public emitMemberOnce: boolean;
-    public fromGeneratedAtTime: Date;
+    public fromTime: Date;
 
     private emitMemberOnceHasBeenConfigured: boolean = false;
 
@@ -363,5 +363,5 @@ export interface ILDESClientArgs extends IActorArgs<IActionInit, IActorTest, IAc
     jsonLdContextPath: string;
     jsonLdContextString: string;
     emitMemberOnce: boolean;
-    fromGeneratedAtTime: Date;
+    fromTime: Date;
 }

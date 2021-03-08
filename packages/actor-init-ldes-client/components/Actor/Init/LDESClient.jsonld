@@ -45,8 +45,8 @@
           "unique": true
         },
         {
-          "@id": "ldes:fromGeneratedAtTime",
-          "comment": "Only emit members that have a prov:generatedAtTime higher than this time.",
+          "@id": "ldes:fromTime",
+          "comment": "Datetime to prune relations that have a lower datetime value.",
           "range": "xsd:datetime",
           "unique": true
         },
@@ -115,7 +115,7 @@
               "value": "ldes:jsonLdContextPath"
             },
             {
-              "keyRaw": "fromGeneratedAtTime",
+              "keyRaw": "fromTime",
               "value": "ldes:fromGeneratedAtTime"
             },
             {

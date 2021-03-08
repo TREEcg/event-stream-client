@@ -25,7 +25,7 @@ Possible parameters:
 |  pollingInterval | Number of milliseconds before refetching uncacheable fragments  | for example: 5000 |
 | mimeType  | the MIME type of the output  | application/ld+json, text/turtle... |
 | context  | path to a file with the JSON-LD context you want to use when MIME type is application/ld+json  | for example: ./context.jsonld |
-| fromGeneratedAtTime  | datetime to filter members that contain a higher prov:generatedAtTime | for example: 2020-01-01T00:00:00 |
+| fromTime  | datetime to prune relations that have a lower datetime value | for example: 2020-01-01T00:00:00 |
 | emitMemberOnce  | whether to emit a member only once, because collection contains immutable version objects.  | true / false |
 
 Example commando with parameters:
@@ -54,7 +54,7 @@ Here is an example synchronizing with a TREE root node of an Event Stream with p
          let options = {
              "pollingInterval": 5000, // millis
              "mimeType": "application/ld+json",
-             "fromGeneratedAtTime": new Date("2021-02-03T15:46:12.307Z"),
+             "fromTime": new Date("2021-02-03T15:46:12.307Z"),
              "emitMemberOnce": true,
              "jsonLdContext": {
                  "@context": [
