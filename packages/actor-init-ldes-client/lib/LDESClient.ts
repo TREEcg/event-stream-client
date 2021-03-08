@@ -114,8 +114,8 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
         } else if (this.jsonLdContextPath != "" && existsSync(this.jsonLdContextPath)) {
             this.jsonLdContextString = readFileSync(this.jsonLdContextPath, 'utf8');
         }
-        if (args.fromGeneratedAtTime && moment(args.fromGeneratedAtTime).isValid())
-            this.fromGeneratedAtTime = new Date(args.fromGeneratedAtTime);
+        if (args.fromTime && moment(args.fromTime).isValid())
+            this.fromTime = new Date(args.fromTime);
 
         if (args.emitMemberOnce) {
             this.emitMemberOnce = args.onlyEmitMemberOnce;
@@ -130,11 +130,11 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
         } else return {stderr: require('streamify-string')(<Error>new Error(LDESClient.HELP_MESSAGE))};
     }
 
-    public createReadStream(url: string, options: { pollingInterval?: number; mimeType?: string, jsonLdContext?: ContextDefinition, fromGeneratedAtTime?: Date, emitMemberOnce?: boolean}) {
+    public createReadStream(url: string, options: { pollingInterval?: number; mimeType?: string, jsonLdContext?: ContextDefinition, fromTime?: Date, emitMemberOnce?: boolean}) {
         if (options.pollingInterval) this.pollingInterval = options.pollingInterval;
         if (options.mimeType) this.mimeType = options.mimeType;
         this.jsonLdContext = options.jsonLdContext ? options.jsonLdContext : JSON.parse(this.jsonLdContextString);
-        if (options.fromGeneratedAtTime && moment(options.fromGeneratedAtTime).isValid()) this.fromGeneratedAtTime = options.fromGeneratedAtTime;
+        if (options.fromTime && moment(options.fromTime).isValid()) this.fromTime = options.fromTime;
         if (options.emitMemberOnce) {
             this.emitMemberOnce = options.emitMemberOnce;
             this.emitMemberOnceHasBeenConfigured = true;
@@ -175,7 +175,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
 
             for (let member of members) {
                 // Only process member when its prov:generatedAtTime is higher
-                if (!this.fromGeneratedAtTime || (moment(this.fromGeneratedAtTime).isValid() && memberToGeneratedAtTime[member].getTime() >= this.fromGeneratedAtTime.getTime())) {
+                if (!this.fromTime || (moment(this.fromTime).isValid() && memberToGeneratedAtTime[member].getTime() >= this.fromTime.getTime())) {
                     // Process if LRU Cache doesn't recognize
                     // Or when it is configured that members may be emitted multiple times
                     // Otherwise don't process the member
@@ -223,9 +223,9 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             for (const [_, relation] of treeMetadata.metadata.treeMetadata.relations) {
                 // Prune when the value of the relation is a datetime and less than what we need
                 // To be enhanced when more TREE filtering capabilities are available
-                if (this.fromGeneratedAtTime && relation["@type"][0] === "https://w3id.org/tree#LessThanRelation"
+                if (this.fromTime && relation["@type"][0] === "https://w3id.org/tree#LessThanRelation"
                     && moment(relation.value[0]["@value"]).isValid()
-                    && new Date(relation.value[0]["@value"]).getTime() < this.fromGeneratedAtTime.getTime()) {
+                    && new Date(relation.value[0]["@value"]).getTime() < this.fromTime.getTime()) {
                     // Prune - do nothing
                 } else {
                     // Add node to book keeper with ttl 0 (as soon as possible)
