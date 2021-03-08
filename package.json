@@ -1,0 +1,87 @@
+{
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "name": "@brechtvdv/event-stream-client",
+  "version": "0.0.5",
+  "description": "Syncs an entire TREE collection, but only emits the objects, does not store them. ",
+  "scripts": {
+    "test-changed": "lerna run test --since HEAD",
+    "lint-changed": "lerna run lint --since HEAD",
+    "build-changed": "lerna run build --since HEAD",
+    "coveralls": "jest --coverage && cat ./coverage/lcov.info | coveralls",
+    "test-ci": "jest --ci --maxWorkers=4 --coverage",
+    "coveralls-ci": "cat ./coverage/lcov.info | coveralls",
+    "lint": "tslint packages/*/lib/**/*.ts packages/*/test/**/*.ts --exclude '**/*.d.ts'",
+    "clean": "rm -rf ./node_modules && rm -rf ./packages/*/node_modules",
+    "build-watch": "tsc --watch",
+    "publish": "yarn run build && lerna publish",
+    "publish-bare": "lerna exec -- npm publish --silent",
+    "doc": "typedoc --name Comunica --disableOutputCheck --external-modulemap '.*packages/([^/]+)/.*' --mode modules --out documentation",
+    "postinstall": "yarn run build && lerna run prepare",
+    "version": "manual-git-changelog onversion",
+    "build": "node \"./node_modules/typescript/bin/tsc\" --build --force tsconfig.json",
+    "test": "jest"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "testRegex": "(/test/.*|(\\\\.|/)(test|spec))-test.ts$",
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "setupFilesAfterEnv": [ "./setup-jest.js" ],
+    "collectCoverage": true,
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/mocks/",
+      "index.js"
+    ],
+    "testEnvironment": "node",
+    "coverageThreshold": {
+      "global": {
+        "branches": 100,
+        "functions": 100,
+        "lines": 100,
+        "statements": 100
+      }
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TREEcg/event-stream-client.git"
+  },
+  "keywords": [
+    "event",
+    "stream",
+    "TREE",
+    "hypermedia",
+    "Web",
+    "API"
+  ],
+  "author": "Brecht Van de Vyvere",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TREEcg/event-stream-client/issues"
+  },
+  "homepage": "https://github.com/TREEcg/event-stream-client#readme",
+  "dependencies": {
+    "awesome-typescript-loader": "^5.2.1",
+    "lerna": "^3.4.0",
+    "source-map-loader": "^2.0.0",
+    "typescript": "^4.1.3"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.0",
+    "@types/rdf-js": "*",
+    "jest": "^26.6.3",
+    "jest-rdf": "^1.6.0",
+    "ts-jest": "^26.5.2",
+    "manual-git-changelog": "^1.0.1",
+    "webpack": "^5.11.1",
+    "webpack-cli": "^4.3.1"
+  }
+}

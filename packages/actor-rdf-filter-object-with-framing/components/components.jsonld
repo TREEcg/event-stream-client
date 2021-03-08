@@ -1,0 +1,9 @@
+{
+  "@context": "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/actor-rdf-filter-object-with-framing/^2.0.0/components/context.jsonld",
+  "@id": "npmd:@treecg/actor-rdf-filter-object-with-framing",
+  "@type": "Module",
+  "requireName": "@treecg/actor-rdf-filter-object-with-framing",
+  "import": [
+    "files-carfowf:components/Actor/RdfFilterObjectWithFraming.jsonld"
+  ]
+}

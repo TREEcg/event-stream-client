@@ -1,0 +1,150 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/actor-init-ldes-client/^2.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/bus-init/^1.0.0/components/context.jsonld"
+  ],
+  "@id": "npmd:@treecg/actor-init-ldes-client",
+  "components": [
+    {
+      "@id": "ldes:LDESClient",
+      "@type": "Class",
+      "extends": "cbi:Actor/Init",
+      "requireElement": "LDESClient",
+      "comment": "An actor that listens on the 'init' bus that fetches fragments from an Event Stream.",
+      "parameters": [
+        {
+          "@id": "ldes:pollingInterval",
+          "comment": "The number of milliseconds before refetching a fragment after it's invalidation",
+          "required": false,
+          "range": "xsd:integer",
+          "default": "5000",
+          "unique": true
+        },
+        {
+          "@id": "ldes:mimeType",
+          "comment": "The mimetype of the serialized output",
+          "required": false,
+          "range": "xsd:string",
+          "default": "application/ld+json",
+          "unique": true
+        },
+        {
+          "@id": "ldes:jsonLdContextPath",
+          "comment": "Path towards a JSON-LD context for a JSON-LD compacted output",
+          "range": "xsd:string",
+          "default": "",
+          "required": true,
+          "unique": true
+        },
+        {
+          "@id": "ldes:jsonLdContextString",
+          "comment": "A JSON string of a JSON-LD context for a JSON-LD output",
+          "default": "{\"@context\":  {}}",
+          "range": "xsd:string",
+          "required": true,
+          "unique": true
+        },
+        {
+          "@id": "ldes:fromTime",
+          "comment": "Datetime to prune relations that have a lower datetime value.",
+          "range": "xsd:datetime",
+          "unique": true
+        },
+        {
+          "@id": "ldes:emitMemberOnce",
+          "comment": "Only emit members once as the tree:Collection only contains immutable version objects",
+          "range": "xsd:boolean",
+          "default": "true",
+          "required": true,
+          "unique": true
+        },
+        {
+          "@id": "ldes:mediatorRdfMetadataExtractTree",
+          "comment": "The RDF Metadata Extract TREE mediator",
+          "required": true,
+          "unique": true
+        },
+        {
+          "@id": "ldes:mediatorRdfParse",
+          "comment": "The RDF parse mediator of LDES Client",
+          "required": true,
+          "unique": true
+        },
+        {
+          "@id": "ldes:mediatorRdfFilterObject",
+          "comment": "The RDF Filter Object mediator of LDES Client",
+          "required": true,
+          "unique": true
+        },
+        {
+          "@id": "ldes:mediatorRdfFrame",
+          "comment": "The RDF Frame mediator of LDES Client",
+          "required": true,
+          "unique": true
+        },
+        {
+          "@id": "ldes:mediatorRdfSerialize",
+          "comment": "The RDF serialize mediator of LDES Client",
+          "required": true,
+          "unique": true
+        }
+      ],
+      "constructorArguments": [
+        {
+        "@id": "ldes:LDESClient/constructorArgumentsObject",
+        "extends": "cc:Actor/constructorArgumentsObject",
+        "fields": [
+            {
+              "keyRaw": "pollingInterval",
+              "value": "ldes:pollingInterval"
+            },
+            {
+              "keyRaw": "mimeType",
+              "value": "ldes:mimeType"
+            },
+            {
+              "keyRaw": "jsonLdContextString",
+              "value": "ldes:jsonLdContextString"
+            },
+            {
+              "keyRaw": "jsonLdContext",
+              "value": "ldes:jsonLdContext"
+            },
+            {
+              "keyRaw": "jsonLdContextPath",
+              "value": "ldes:jsonLdContextPath"
+            },
+            {
+              "keyRaw": "fromTime",
+              "value": "ldes:fromGeneratedAtTime"
+            },
+            {
+              "keyRaw": "emitMemberOnce",
+              "value": "ldes:emitMemberOnce"
+            },
+            {
+              "keyRaw": "mediatorRdfMetadataExtractTree",
+              "value": "ldes:mediatorRdfMetadataExtractTree"
+            },
+            {
+              "keyRaw": "mediatorRdfParse",
+              "value": "ldes:mediatorRdfParse"
+            },
+            {
+              "keyRaw": "mediatorRdfFilterObject",
+              "value": "ldes:mediatorRdfFilterObject"
+            },
+            {
+              "keyRaw": "mediatorRdfFrame",
+              "value": "ldes:mediatorRdfFrame"
+            },
+            {
+              "keyRaw": "mediatorRdfSerialize",
+              "value": "ldes:mediatorRdfSerialize"
+            }
+        ]
+        }
+      ]
+    }
+  ]
+}

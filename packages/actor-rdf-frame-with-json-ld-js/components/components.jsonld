@@ -1,0 +1,9 @@
+{
+  "@context": "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/actor-rdf-frame-with-json-ld-js/^2.0.0/components/context.jsonld",
+  "@id": "npmd:@treecg/actor-rdf-frame-with-json-ld-js",
+  "@type": "Module",
+  "requireName": "@treecg/actor-rdf-frame-with-json-ld-js",
+  "import": [
+    "files-carfwjlj:components/Actor/RdfFrameWithJSONLDjs.jsonld"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/core/^1.0.0/components/context.jsonld",
+    {
+      "cbrf": "npmd:@treecg/bus-rdf-frame/",
+      "files-cbrf": "cbrf:^2.0.0/",
+
+      "BusRdfFrame": "cbrf:Bus/RdfFrame",
+      "ActorRdfFrame": "cbrf:Actor/RdfFrame"
+    }
+  ]
+}

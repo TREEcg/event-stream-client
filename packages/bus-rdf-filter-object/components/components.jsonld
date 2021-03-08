@@ -1,0 +1,10 @@
+{
+  "@context": "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/bus-rdf-filter-object/^2.0.0/components/context.jsonld",
+  "@id": "npmd:@treecg/bus-rdf-filter-object",
+  "@type": "Module",
+  "requireName": "@treecg/bus-rdf-filter-object",
+  "import": [
+    "files-cbrfo:components/Bus/RdfFilterObject.jsonld",
+    "files-cbrfo:components/Actor/RdfFilterObject.jsonld"
+  ]
+}

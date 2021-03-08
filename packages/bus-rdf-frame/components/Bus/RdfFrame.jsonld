@@ -1,0 +1,6 @@
+{
+  "@context": "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/bus-rdf-frame/^2.0.0/components/context.jsonld",
+  "@id": "cbrf:Bus/RdfFrame",
+  "@type": "cc:Bus",
+  "comment": "A comunica bus to frame a stream of quads"
+}

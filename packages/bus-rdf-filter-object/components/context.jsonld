@@ -1,0 +1,12 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/core/^1.0.0/components/context.jsonld",
+    {
+      "cbrfo": "npmd:@treecg/bus-rdf-filter-object/",
+      "files-cbrfo": "cbrfo:^2.0.0/",
+
+      "BusRdfFilterObject": "cbrfo:Bus/RdfFilterObject",
+      "ActorRdfFilterObject": "cbrfo:Actor/RdfFilterObject"
+    }
+  ]
+}
