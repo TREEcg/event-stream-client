@@ -30,7 +30,7 @@ Possible parameters:
 
 Example commando with parameters:
 ```
-actor-init-ldes-client --pollingInterval 5000 --mimeType application/ld+json --context context.jsonld --fromGeneratedAtTime 2021-02-03T15:48:12.309Z --emitMemberOnce true https://lodi.ilabt.imec.be/coghent/dmg/objecten
+actor-init-ldes-client --pollingInterval 5000 --mimeType application/ld+json --context context.jsonld --fromTime 2021-02-03T15:48:12.309Z --emitMemberOnce true https://lodi.ilabt.imec.be/coghent/dmg/objecten
 ```
 
 
