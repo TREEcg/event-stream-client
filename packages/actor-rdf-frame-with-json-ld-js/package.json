@@ -33,7 +33,7 @@
   ],
   "peerDependencies": {
     "@comunica/core": "^1.19.2",
-    "@treecg/bus-rdf-frame": "^1.0.0"
+    "@treecg/bus-rdf-frame": "^2.0.4"
   },
   "devDependencies": {
     "@comunica/bus-rdf-serialize": "^1.19.2",

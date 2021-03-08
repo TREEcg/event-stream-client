@@ -58,6 +58,7 @@
     "@comunica/runner-cli": "^1.19.2",
     "@rdfjs/data-model": "^1.2.0",
     "@treecg/actor-rdf-frame-with-json-ld-js": "^2.0.4",
+    "@treecg/actor-rdf-filter-object-with-framing": "^2.0.4",
     "@treecg/actor-rdf-metadata-extract-tree": "^1.19.3",
     "@treecg/bus-rdf-filter-object": "^2.0.4",
     "@treecg/bus-rdf-frame": "^2.0.4",
