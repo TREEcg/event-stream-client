@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.0.5"></a>
+## [v2.0.5](https://github.com/TREEcg/event-stream-client/compare/v2.0.4...v2.0.5) - 2021-03-08
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Add actor-rdf-filter-object-with-framing as dependency](https://github.com/TREEcg/event-stream-client/commit/3329a8d38f38f452a5a0def9be778af68bf92a72)
+* [Change name to @treecg](https://github.com/TREEcg/event-stream-client/commit/bf0cfd55088524611b6fc7cc5c05fef2fc19a93e)
+
 <a name="v2.0.4"></a>
 ## [v2.0.4](https://github.com/TREEcg/event-stream-client/compare/v2.0.3...v2.0.4) - 2021-03-08
 

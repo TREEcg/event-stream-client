@@ -1,6 +1,6 @@
 {
   "name": "@treecg/actor-init-ldes-client",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "An init actor that fetches members from an Event Stream API",
   "publishConfig": {
     "access": "public"
@@ -57,8 +57,8 @@
     "@comunica/runner": "^1.19.2",
     "@comunica/runner-cli": "^1.19.2",
     "@rdfjs/data-model": "^1.2.0",
-    "@treecg/actor-rdf-frame-with-json-ld-js": "^2.0.4",
-    "@treecg/actor-rdf-filter-object-with-framing": "^2.0.4",
+    "@treecg/actor-rdf-filter-object-with-framing": "^2.0.5",
+    "@treecg/actor-rdf-frame-with-json-ld-js": "^2.0.5",
     "@treecg/actor-rdf-metadata-extract-tree": "^1.19.3",
     "@treecg/bus-rdf-filter-object": "^2.0.4",
     "@treecg/bus-rdf-frame": "^2.0.4",

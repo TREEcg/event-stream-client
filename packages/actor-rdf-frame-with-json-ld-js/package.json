@@ -1,6 +1,6 @@
 {
   "name": "@treecg/actor-rdf-frame-with-json-ld-js",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "An rdf-frame actor",
   "lsd:module": true,
   "main": "index.js",
