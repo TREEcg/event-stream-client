@@ -7,7 +7,7 @@
   "typings": "index",
   "repository": {
     "type": "git",
-    "url": "https://github.com/comunica/comunica.git",
+    "url": "https://github.com/treecg/event-stream-client.git",
     "directory": "packages/actor-rdf-frame-with-json-ld-js"
   },
   "publishConfig": {
