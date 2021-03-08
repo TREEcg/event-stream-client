@@ -53,22 +53,22 @@
             }
           },
           "ldes:mediatorRdfParse": {
-            "@id": "urn:comunica:rdf-parsers.json#mediatorRdfParse",
+            "@id": "urn:comunica:mediatorRdfParse",
             "@type": "MediatorRace",
             "cc:Mediator/bus": { "@id": "cbrp:Bus/RdfParse" }
           },
           "ldes:mediatorRdfFilterObject": {
-            "@id": "urn:comunica:rdf-filter-object.json#mediatorRdfFilterObject",
+            "@id": "urn:comunica:mediatorRdfFilterObject",
             "@type": "MediatorRace",
             "cc:Mediator/bus": { "@id": "cbrfo:Bus/RdfFilterObject" }
           },
           "ldes:mediatorRdfFrame": {
-            "@id": "urn:comunica#mediatorRdfFrame",
+            "@id": "urn:comunica:mediatorRdfFrame",
             "@type": "MediatorRace",
             "cc:Mediator/bus": { "@id": "cbrf:Bus/RdfFrame" }
           },
           "ldes:mediatorRdfSerialize": {
-            "@id": "config-sets:sparql-serializers.json#mediatorRdfSerialize",
+            "@id": "urn:comunica:mediatorRdfSerialize",
             "@type": "MediatorRace",
             "cc:Mediator/bus": { "@id": "cbrs:Bus/RdfSerialize" }
           }
@@ -78,20 +78,20 @@
           "@type": "ActorRdfMetadataExtractTree"
         },
         {
-          "@id": "urn:comunica:http.json#myHttpFetcher",
+          "@id": "urn:comunica:myHttpFetcher",
           "@type": "ActorHttpNative"
         },
         {
-          "@id": "urn:comunica:rdf-parsers.json#myRdfParserN3",
+          "@id": "urn:comunica:myRdfParserN3",
           "@type": "ActorRdfParseN3",
           "priorityScale": 1.0
         },
         {
-          "@id": "urn:comunica:rdf-parsers.json#myRdfParserJsonLd",
+          "@id": "urn:comunica:myRdfParserJsonLd",
           "@type": "ActorRdfParseJsonLd",
           "priorityScale": 0.9,
           "crpjl:Actor/RdfParse/JsonLd/mediatorHttp": {
-            "@id": "urn:comunica:http.json#mediatorHttp",
+            "@id": "urn:comunica:mediatorHttp",
             "@type": "MediatorNumberMin",
             "field": "time",
             "ignoreErrors": true,
@@ -101,47 +101,47 @@
           }
         },
         {
-          "@id": "urn:comunica:rdf-parsers.json#myRdfParserRdfXml",
+          "@id": "urn:comunica:myRdfParserRdfXml",
           "@type": "ActorRdfParseRdfXml",
           "priorityScale": 0.5
         },
         {
-          "@id": "urn:comunica:rdf-parsers.json#myRdfParserXmlRdfa",
+          "@id": "urn:comunica:myRdfParserXmlRdfa",
           "@type": "ActorRdfParseXmlRdfa",
           "priorityScale": 0.3
         },
         {
-          "@id": "urn:comunica:rdf-parsers.json#myRdfParserHtml",
+          "@id": "urn:comunica:myRdfParserHtml",
           "@type": "ActorRdfParseHtml",
           "priorityScale": 0.2
         },
         {
-          "@id": "urn:comunica:rdf-parsers.json#myRdfParserHtmlMicrodata",
+          "@id": "urn:comunica:myRdfParserHtmlMicrodata",
           "@type": "ActorRdfParseHtmlMicrodata"
         },
         {
-          "@id": "urn:comunica:rdf-parsers.json#myRdfParserHtmlRdfa",
+          "@id": "urn:comunica:myRdfParserHtmlRdfa",
           "@type": "ActorRdfParseHtmlRdfa"
         },
         {
-          "@id": "urn:comunica#myRdfFilterObjectWithFraming",
+          "@id": "urn:comunica:myRdfFilterObjectWithFraming",
           "@type": "ActorRdfFilterObjectWithFraming",
           "carfowf:mediatorRdfFrame": {
-            "@id": "urn:comunica#mediatorRdfFrame2",
+            "@id": "urn:comunica:mediatorRdfFrame2",
             "@type": "MediatorRace",
             "cc:Mediator/bus": { "@id": "cbrf:Bus/RdfFrame" }
           },
           "carfowf:mediatorRdfParse": {
-            "@id": "urn:comunica:rdf-parsers.json#mediatorRdfParse2",
+            "@id": "urn:comunica:mediatorRdfParse2",
             "@type": "MediatorRace",
             "cc:Mediator/bus": { "@id": "cbrp:Bus/RdfParse" }
           }
         },
         {
-          "@id": "urn:comunica#myActorRdfFrameWithJSONLDjs",
+          "@id": "urn:comunica:myActorRdfFrameWithJSONLDjs",
           "@type": "ActorRdfFrameWithJSONLDjs",
           "carfwjlj:mediatorRdfSerialize": {
-            "@id": "config-sets:sparql-serializers.json#mediatorRdfSerialize2",
+            "@id": "urn:comunica:mediatorRdfSerialize2",
             "@type": "MediatorRace",
             "cc:Mediator/bus": { "@id": "cbrs:Bus/RdfSerialize" }
           }
