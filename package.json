@@ -3,7 +3,7 @@
   "workspaces": [
     "packages/*"
   ],
-  "name": "@brechtvdv/event-stream-client",
+  "name": "@treecg/event-stream-client",
   "version": "0.0.5",
   "description": "Syncs an entire TREE collection, but only emits the objects, does not store them. ",
   "scripts": {
