@@ -118,7 +118,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             this.fromTime = new Date(args.fromTime);
 
         if (args.emitMemberOnce) {
-            this.emitMemberOnce = args.onlyEmitMemberOnce;
+            this.emitMemberOnce = args.emitMemberOnce;
             this.emitMemberOnceHasBeenConfigured = true;
         }
 
@@ -146,11 +146,16 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
 
     protected async retrieve(pageUrl: string) {
         super.logDebug(undefined, 'GET ' + pageUrl);
+        //console.log('GET ' + pageUrl)
+
         const startTime = new Date();
 
         try {
             const page = await this.getPage(pageUrl);
-            super.logDebug(undefined, '' + page.statusCode + ' ' + page.url + ' (' + (new Date().getTime() - startTime.getTime()) + 'ms)');
+            const message = '' + page.statusCode + ' ' + page.url + ' (' + (new Date().getTime() - startTime.getTime()) + 'ms)';
+            super.logDebug(undefined, message);
+            //console.log(message)
+
             // Retrieve media type
             // TODO: Fetch mediaType by using response and comunica actor
             const mediaType = page.headers['content-type'].indexOf(';') > 0 ? page.headers['content-type'].substr(0, page.headers['content-type'].indexOf(';')) : page.headers['content-type'];
@@ -164,7 +169,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             const quadsForMetadata = await this.stringToQuadStream(page.data.toString(), '', mediaType);
             const treeMetadata = await this.mediatorRdfMetadataExtractTree.mediate({
                 metadata: quadsForMetadata,
-                url: page.url
+                url: page['url']
             });
 
             const members : string[] = this.getMembers(treeMetadata);
@@ -179,7 +184,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
                     // Process if LRU Cache doesn't recognize
                     // Or when it is configured that members may be emitted multiple times
                     // Otherwise don't process the member
-                    if (!LRUcache.has(member) || (this.emitMemberOnceHasBeenConfigured && !this.emitMemberOnce)) {
+                    if (!LRUcache.has(member) || !this.emitMemberOnce) {
                         LRUcache.set(member, true);
 
                         // A stream can be read only once, so we need to create a new one
@@ -225,7 +230,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
                 // To be enhanced when more TREE filtering capabilities are available
                 if (this.fromTime && relation["@type"][0] === "https://w3id.org/tree#LessThanRelation"
                     && moment(relation.value[0]["@value"]).isValid()
-                    && new Date(relation.value[0]["@value"]).getTime() < this.fromTime.getTime()) {
+                    && new Date(relation.value[0]["@value"]).getTime() <= this.fromTime.getTime()) {
                     // Prune - do nothing
                 } else {
                     // Add node to book keeper with ttl 0 (as soon as possible)
@@ -252,6 +257,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             }
             this.retrieve(next.url);
         } else {
+            console.log("done")
             // We're done
             readStream.push(null);
         }
