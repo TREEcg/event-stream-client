@@ -30,11 +30,11 @@ const urn_comunica_actorRdfMetadataExtractTree = new (require('@treecg/actor-rdf
   'name': 'urn:comunica:actorRdfMetadataExtractTree',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__comunica_bus_rdf_metadata_extract_Bus_RdfMetadataExtract
 });
-const urn_comunica_rdf_parsers_json_mediatorRdfParse = new (require('@comunica/mediator-race').MediatorRace)({
-  'name': 'urn:comunica:rdf-parsers.json#mediatorRdfParse',
+const urn_comunica_mediatorRdfParse = new (require('@comunica/mediator-race').MediatorRace)({
+  'name': 'urn:comunica:mediatorRdfParse',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__comunica_bus_rdf_parse_Bus_RdfParse
 });
-const urn_comunica_rdf_parsers_json_myRdfParserN3 = new (require('@comunica/actor-rdf-parse-n3').ActorRdfParseN3)({
+const urn_comunica_myRdfParserN3 = new (require('@comunica/actor-rdf-parse-n3').ActorRdfParseN3)({
   'mediaTypes': {
   'application/n-quads': '1.0',
   'application/trig': '0.95',
@@ -50,10 +50,10 @@ const urn_comunica_rdf_parsers_json_myRdfParserN3 = new (require('@comunica/acto
   'text/n3': 'http://www.w3.org/ns/formats/N3'
 },
   'priorityScale': '1',
-  'name': 'urn:comunica:rdf-parsers.json#myRdfParserN3',
+  'name': 'urn:comunica:myRdfParserN3',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__comunica_bus_rdf_parse_Bus_RdfParse
 });
-const urn_comunica_rdf_parsers_json_myRdfParserRdfXml = new (require('@comunica/actor-rdf-parse-rdfxml').ActorRdfParseRdfXml)({
+const urn_comunica_myRdfParserRdfXml = new (require('@comunica/actor-rdf-parse-rdfxml').ActorRdfParseRdfXml)({
   'mediaTypes': {
   'application/rdf+xml': '1.0'
 },
@@ -61,10 +61,10 @@ const urn_comunica_rdf_parsers_json_myRdfParserRdfXml = new (require('@comunica/
   'application/rdf+xml': 'http://www.w3.org/ns/formats/RDF_XML'
 },
   'priorityScale': '5.0E-1',
-  'name': 'urn:comunica:rdf-parsers.json#myRdfParserRdfXml',
+  'name': 'urn:comunica:myRdfParserRdfXml',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__comunica_bus_rdf_parse_Bus_RdfParse
 });
-const urn_comunica_rdf_parsers_json_myRdfParserXmlRdfa = new (require('@comunica/actor-rdf-parse-xml-rdfa').ActorRdfParseXmlRdfa)({
+const urn_comunica_myRdfParserXmlRdfa = new (require('@comunica/actor-rdf-parse-xml-rdfa').ActorRdfParseXmlRdfa)({
   'mediaTypes': {
   'application/xml': '1.0',
   'text/xml': '1.0',
@@ -76,31 +76,31 @@ const urn_comunica_rdf_parsers_json_myRdfParserXmlRdfa = new (require('@comunica
   'image/svg+xml': 'http://www.w3.org/ns/formats/RDFa'
 },
   'priorityScale': '3.0E-1',
-  'name': 'urn:comunica:rdf-parsers.json#myRdfParserXmlRdfa',
+  'name': 'urn:comunica:myRdfParserXmlRdfa',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__comunica_bus_rdf_parse_Bus_RdfParse
 });
-const urn_comunica_rdf_parsers_json_mediatorRdfParse2 = new (require('@comunica/mediator-race').MediatorRace)({
-  'name': 'urn:comunica:rdf-parsers.json#mediatorRdfParse2',
+const urn_comunica_mediatorRdfParse2 = new (require('@comunica/mediator-race').MediatorRace)({
+  'name': 'urn:comunica:mediatorRdfParse2',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__comunica_bus_rdf_parse_Bus_RdfParse
 });
-const urn_comunica_rdf_filter_object_json_mediatorRdfFilterObject = new (require('@comunica/mediator-race').MediatorRace)({
-  'name': 'urn:comunica:rdf-filter-object.json#mediatorRdfFilterObject',
+const urn_comunica_mediatorRdfFilterObject = new (require('@comunica/mediator-race').MediatorRace)({
+  'name': 'urn:comunica:mediatorRdfFilterObject',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__treecg_bus_rdf_filter_object_Bus_RdfFilterObject
 });
 const urn_comunica_mediatorRdfFrame = new (require('@comunica/mediator-race').MediatorRace)({
-  'name': 'urn:comunica#mediatorRdfFrame',
+  'name': 'urn:comunica:mediatorRdfFrame',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__treecg_bus_rdf_frame_Bus_RdfFrame
 });
 const urn_comunica_mediatorRdfFrame2 = new (require('@comunica/mediator-race').MediatorRace)({
-  'name': 'urn:comunica#mediatorRdfFrame2',
+  'name': 'urn:comunica:mediatorRdfFrame2',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__treecg_bus_rdf_frame_Bus_RdfFrame
 });
-const config_sets_sparql_serializers_json_mediatorRdfSerialize = new (require('@comunica/mediator-race').MediatorRace)({
-  'name': 'config-sets:sparql-serializers.json#mediatorRdfSerialize',
+const urn_comunica_mediatorRdfSerialize = new (require('@comunica/mediator-race').MediatorRace)({
+  'name': 'urn:comunica:mediatorRdfSerialize',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__comunica_bus_rdf_serialize_Bus_RdfSerialize
 });
-const config_sets_sparql_serializers_json_mediatorRdfSerialize2 = new (require('@comunica/mediator-race').MediatorRace)({
-  'name': 'config-sets:sparql-serializers.json#mediatorRdfSerialize2',
+const urn_comunica_mediatorRdfSerialize2 = new (require('@comunica/mediator-race').MediatorRace)({
+  'name': 'urn:comunica:mediatorRdfSerialize2',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__comunica_bus_rdf_serialize_Bus_RdfSerialize
 });
 const https___linkedsoftwaredependencies_org_bundles_npm__comunica_actor_init_sparql__1_0_0_config_sets_rdf_serializers_json_myRdfSerializerN3 = new (require('@comunica/actor-rdf-serialize-n3').ActorRdfSerializeN3)({
@@ -133,19 +133,19 @@ const https___linkedsoftwaredependencies_org_bundles_npm__comunica_actor_init_sp
   'name': 'https://linkedsoftwaredependencies.org/bundles/npm/@comunica/actor-init-sparql/^1.0.0/config/sets/rdf-serializers.json#myRdfSerializeJsonLd',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__comunica_bus_rdf_serialize_Bus_RdfSerialize
 });
-const urn_comunica_http_json_myHttpFetcher = new (require('@comunica/actor-http-native').ActorHttpNative)({
+const urn_comunica_myHttpFetcher = new (require('@comunica/actor-http-native').ActorHttpNative)({
   'agentOptions': '{ "keepAlive": true, "maxSockets": 5 }',
-  'name': 'urn:comunica:http.json#myHttpFetcher',
+  'name': 'urn:comunica:myHttpFetcher',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__comunica_bus_http_Bus_Http
 });
-const urn_comunica_http_json_mediatorHttp = new (require('@comunica/mediator-number').MediatorNumber)({
+const urn_comunica_mediatorHttp = new (require('@comunica/mediator-number').MediatorNumber)({
   'field': 'time',
   'type': 'https://linkedsoftwaredependencies.org/bundles/npm/@comunica/mediator-number/Mediator/Number/type/TypeMin',
   'ignoreErrors': true,
-  'name': 'urn:comunica:http.json#mediatorHttp',
+  'name': 'urn:comunica:mediatorHttp',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__comunica_bus_http_Bus_Http
 });
-const urn_comunica_rdf_parsers_json_myRdfParserHtml = new (require('@comunica/actor-rdf-parse-html').ActorRdfParseHtml)({
+const urn_comunica_myRdfParserHtml = new (require('@comunica/actor-rdf-parse-html').ActorRdfParseHtml)({
   'busRdfParseHtml': https___linkedsoftwaredependencies_org_bundles_npm__comunica_bus_rdf_parse_html_Bus_RdfParseHtml,
   'mediaTypes': {
   'text/html': '1.0',
@@ -156,22 +156,22 @@ const urn_comunica_rdf_parsers_json_myRdfParserHtml = new (require('@comunica/ac
   'application/xhtml+xml': 'http://www.w3.org/ns/formats/HTML'
 },
   'priorityScale': '2.0E-1',
-  'name': 'urn:comunica:rdf-parsers.json#myRdfParserHtml',
+  'name': 'urn:comunica:myRdfParserHtml',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__comunica_bus_rdf_parse_Bus_RdfParse
 });
-const urn_comunica_rdf_parsers_json_myRdfParserHtmlMicrodata = new (require('@comunica/actor-rdf-parse-html-microdata').ActorRdfParseHtmlMicrodata)({
-  'name': 'urn:comunica:rdf-parsers.json#myRdfParserHtmlMicrodata',
+const urn_comunica_myRdfParserHtmlMicrodata = new (require('@comunica/actor-rdf-parse-html-microdata').ActorRdfParseHtmlMicrodata)({
+  'name': 'urn:comunica:myRdfParserHtmlMicrodata',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__comunica_bus_rdf_parse_html_Bus_RdfParseHtml
 });
-const urn_comunica_rdf_parsers_json_myRdfParserHtmlRdfa = new (require('@comunica/actor-rdf-parse-html-rdfa').ActorRdfParseHtmlRdfa)({
-  'name': 'urn:comunica:rdf-parsers.json#myRdfParserHtmlRdfa',
+const urn_comunica_myRdfParserHtmlRdfa = new (require('@comunica/actor-rdf-parse-html-rdfa').ActorRdfParseHtmlRdfa)({
+  'name': 'urn:comunica:myRdfParserHtmlRdfa',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__comunica_bus_rdf_parse_html_Bus_RdfParseHtml
 });
 const urn_comunica_myRdfFilterObjectWithFraming = new (require('@treecg/actor-rdf-filter-object-with-framing').ActorRdfFilterObjectWithFraming)({
   'context': '',
   'mediatorRdfFrame': urn_comunica_mediatorRdfFrame2,
-  'mediatorRdfParse': urn_comunica_rdf_parsers_json_mediatorRdfParse2,
-  'name': 'urn:comunica#myRdfFilterObjectWithFraming',
+  'mediatorRdfParse': urn_comunica_mediatorRdfParse2,
+  'name': 'urn:comunica:myRdfFilterObjectWithFraming',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__treecg_bus_rdf_filter_object_Bus_RdfFilterObject
 });
 const urn_comunica_myLDESClient = new (require('./index.js').LDESClient)({
@@ -181,20 +181,20 @@ const urn_comunica_myLDESClient = new (require('./index.js').LDESClient)({
   'jsonLdContextPath': '',
   'emitMemberOnce': true,
   'mediatorRdfMetadataExtractTree': urn_comunica_mediatorRdfMetadataExtractTree,
-  'mediatorRdfParse': urn_comunica_rdf_parsers_json_mediatorRdfParse,
-  'mediatorRdfFilterObject': urn_comunica_rdf_filter_object_json_mediatorRdfFilterObject,
+  'mediatorRdfParse': urn_comunica_mediatorRdfParse,
+  'mediatorRdfFilterObject': urn_comunica_mediatorRdfFilterObject,
   'mediatorRdfFrame': urn_comunica_mediatorRdfFrame,
-  'mediatorRdfSerialize': config_sets_sparql_serializers_json_mediatorRdfSerialize,
+  'mediatorRdfSerialize': urn_comunica_mediatorRdfSerialize,
   'name': 'urn:comunica:myLDESClient',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__comunica_bus_init_Bus_Init
 });
 const urn_comunica_myActorRdfFrameWithJSONLDjs = new (require('@treecg/actor-rdf-frame-with-json-ld-js').ActorRdfFrameWithJSONLDjs)({
-  'mediatorRdfSerialize': config_sets_sparql_serializers_json_mediatorRdfSerialize2,
-  'name': 'urn:comunica#myActorRdfFrameWithJSONLDjs',
+  'mediatorRdfSerialize': urn_comunica_mediatorRdfSerialize2,
+  'name': 'urn:comunica:myActorRdfFrameWithJSONLDjs',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__treecg_bus_rdf_frame_Bus_RdfFrame
 });
-const urn_comunica_rdf_parsers_json_myRdfParserJsonLd = new (require('@comunica/actor-rdf-parse-jsonld').ActorRdfParseJsonLd)({
-  'mediatorHttp': urn_comunica_http_json_mediatorHttp,
+const urn_comunica_myRdfParserJsonLd = new (require('@comunica/actor-rdf-parse-jsonld').ActorRdfParseJsonLd)({
+  'mediatorHttp': urn_comunica_mediatorHttp,
   'mediaTypes': {
   'application/ld+json': '1.0',
   'application/json': '0.5'
@@ -204,7 +204,7 @@ const urn_comunica_rdf_parsers_json_myRdfParserJsonLd = new (require('@comunica/
   'application/json': 'http://www.w3.org/ns/formats/JSON-LD'
 },
   'priorityScale': '9.0E-1',
-  'name': 'urn:comunica:rdf-parsers.json#myRdfParserJsonLd',
+  'name': 'urn:comunica:myRdfParserJsonLd',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__comunica_bus_rdf_parse_Bus_RdfParse
 });
 const urn_comunica_my = ({
@@ -212,14 +212,14 @@ const urn_comunica_my = ({
   'actors': [
   urn_comunica_myLDESClient,
   urn_comunica_actorRdfMetadataExtractTree,
-  urn_comunica_http_json_myHttpFetcher,
-  urn_comunica_rdf_parsers_json_myRdfParserN3,
-  urn_comunica_rdf_parsers_json_myRdfParserJsonLd,
-  urn_comunica_rdf_parsers_json_myRdfParserRdfXml,
-  urn_comunica_rdf_parsers_json_myRdfParserXmlRdfa,
-  urn_comunica_rdf_parsers_json_myRdfParserHtml,
-  urn_comunica_rdf_parsers_json_myRdfParserHtmlMicrodata,
-  urn_comunica_rdf_parsers_json_myRdfParserHtmlRdfa,
+  urn_comunica_myHttpFetcher,
+  urn_comunica_myRdfParserN3,
+  urn_comunica_myRdfParserJsonLd,
+  urn_comunica_myRdfParserRdfXml,
+  urn_comunica_myRdfParserXmlRdfa,
+  urn_comunica_myRdfParserHtml,
+  urn_comunica_myRdfParserHtmlMicrodata,
+  urn_comunica_myRdfParserHtmlRdfa,
   urn_comunica_myRdfFilterObjectWithFraming,
   urn_comunica_myActorRdfFrameWithJSONLDjs,
   https___linkedsoftwaredependencies_org_bundles_npm__comunica_actor_init_sparql__1_0_0_config_sets_rdf_serializers_json_myRdfSerializerN3,
