@@ -1,6 +1,16 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.0.8"></a>
+## [v2.0.8](https://github.com/TREEcg/event-stream-client/compare/v2.0.7...v2.0.8) - 2021-05-25
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Update engine-default](https://github.com/TREEcg/event-stream-client/commit/c8828bb0508d066293f7acafac8d14a23d6c735a)
+* [Fix now.getTime()](https://github.com/TREEcg/event-stream-client/commit/a287835f5c3205c1a1eb19b4fa0ad3ca7bbd38a0)
+* [Fix #9: headers crash](https://github.com/TREEcg/event-stream-client/commit/b511a563530e088b14eccb4e4e27403176c880db)
+* [Fix #8 output to stderr](https://github.com/TREEcg/event-stream-client/commit/f2b9a12c6f285d52390cec71e8bacc246319755f)
+* [Fix emit member once + <= fromTime](https://github.com/TREEcg/event-stream-client/commit/68fa129e3ddb30c4ff4aa8720eb97f8671e371bd)
+
 <a name="v2.0.7"></a>
 ## [v2.0.7](https://github.com/TREEcg/event-stream-client/compare/v2.0.6...v2.0.7) - 2021-03-08
 
