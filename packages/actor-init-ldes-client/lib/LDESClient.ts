@@ -146,7 +146,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
 
     protected async retrieve(pageUrl: string) {
         super.logDebug(undefined, 'GET ' + pageUrl);
-        //console.log('GET ' + pageUrl)
+        console.error('GET ' + pageUrl)
 
         const startTime = new Date();
 
@@ -154,7 +154,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             const page = await this.getPage(pageUrl);
             const message = '' + page.statusCode + ' ' + page.url + ' (' + (new Date().getTime() - startTime.getTime()) + 'ms)';
             super.logDebug(undefined, message);
-            //console.log(message)
+            console.error(message)
 
             // Retrieve media type
             // TODO: Fetch mediaType by using response and comunica actor
@@ -253,11 +253,12 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             // Do not refetch too soon
             while (next.refetchTime.getTime() > now.getTime()) {
                 await this.sleep(FETCH_PAUSE);
+                console.error("Waiting " + (next.refetchTime - now)/1000 + "s before refetching: " + next.url);
                 now = new Date();
             }
             this.retrieve(next.url);
         } else {
-            console.log("done")
+            console.error("done")
             // We're done
             readStream.push(null);
         }
