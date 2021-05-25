@@ -253,7 +253,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             // Do not refetch too soon
             while (next.refetchTime.getTime() > now.getTime()) {
                 await this.sleep(FETCH_PAUSE);
-                console.error("Waiting " + (next.refetchTime - now)/1000 + "s before refetching: " + next.url);
+                console.error("Waiting " + (next.refetchTime - now.getTime())/1000 + "s before refetching: " + next.url);
                 now = new Date();
             }
             this.retrieve(next.url);
