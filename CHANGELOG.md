@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.1.0"></a>
+## [v2.1.0](https://github.com/TREEcg/event-stream-client/compare/v2.0.9...v2.1.0) - 2021-06-10
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Fix #15: add disablePolling parameter](https://github.com/TREEcg/event-stream-client/commit/b2ea6e33649f4669b9282c6273e1bd7c0aaee10d)
+
 <a name="v2.0.9"></a>
 ## [v2.0.9](https://github.com/TREEcg/event-stream-client/compare/v2.0.8...v2.0.9) - 2021-06-10
 
