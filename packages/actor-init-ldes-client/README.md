@@ -27,10 +27,11 @@ Possible parameters:
 | context  | path to a file with the JSON-LD context you want to use when MIME type is application/ld+json  | for example: ./context.jsonld |
 | fromTime  | datetime to prune relations that have a lower datetime value | for example: 2020-01-01T00:00:00 |
 | emitMemberOnce  | whether to emit a member only once, because collection contains immutable version objects.  | true / false |
+| disablePolling  | whether to disable polling (by default: false).  | true / false |
 
 Example commando with parameters:
 ```
-actor-init-ldes-client --pollingInterval 5000 --mimeType application/ld+json --context context.jsonld --fromTime 2021-02-03T15:48:12.309Z --emitMemberOnce true https://lodi.ilabt.imec.be/coghent/dmg/objecten
+actor-init-ldes-client --pollingInterval 5000 --mimeType application/ld+json --context context.jsonld --fromTime 2021-02-03T15:48:12.309Z --emitMemberOnce true --disablePolling true https://lodi.ilabt.imec.be/coghent/dmg/objecten
 ```
 
 
@@ -57,11 +58,12 @@ import { newEngine } from '@treecg/actor-init-ldes-client';
              "mimeType": "application/ld+json",
              "fromTime": new Date("2021-02-03T15:46:12.307Z"),
              "emitMemberOnce": true,
+             "disablePolling": true,
              "jsonLdContext": {
                  "@context": [
                      "https://data.vlaanderen.be/doc/applicatieprofiel/cultureel-erfgoed-object/kandidaatstandaard/2020-07-17/context/cultureel-erfgoed-object-ap.jsonld",
                      "https://data.vlaanderen.be/context/persoon-basis.jsonld",
-                     "https://brechtvdv.github.io/demo-data/cultureel-erfgoed-event-ap.jsonld",
+                     "https://data.vlaanderen.be/doc/applicatieprofiel/cultureel-erfgoed-event/erkendestandaard/2021-04-22/context/cultureel-erfgoed-event-ap.jsonld",
                      {
                          "dcterms:isVersionOf": {
                              "@type": "@id"

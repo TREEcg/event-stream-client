@@ -13,6 +13,7 @@
       "jsonLdPath": "ldes:jsonLdPath",
       "mimeType": "ldes:mimeType",
       "fromGeneratedAtTime": "ldes:fromGeneratedAtTime",
+      "disablePolling": "ldes:disablePolling",
 
       "mediatorRdfMetadataExtractTree": "ldes:mediatorRdfMetadataExtractTree",
       "mediatorRdfParse": "ldes:mediatorRdfParse",

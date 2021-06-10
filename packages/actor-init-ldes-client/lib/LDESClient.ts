@@ -67,6 +67,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     --pollingInterval            Number of milliseconds before refetching uncacheable fragments (e.g., 5000)
     --mimeType                   the MIME type of the output (e.g., application/ld+json)
     --context                    path to a file with the JSON-LD context you want to use when MIME type is application/ld+json (e.g., ./context.jsonld)
+    --disablePolling             whether to disable polling or not (by default set to "false", polling is enabled). Value can be set to "true" or "false"
     --fromTime                   datetime to prune relations that have a lower datetime value (e.g., 2020-01-01T00:00:00)
     --emitMemberOnce             whether to emit a member only once, because collection contains immutable version objects. Value can be set to "true" or "false"
     --help                       print this help message
@@ -94,6 +95,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     public jsonLdContext: ContextDefinition;
     public emitMemberOnce: boolean;
     public fromTime: Date;
+    public disablePolling: boolean;
 
     private emitMemberOnceHasBeenConfigured: boolean = false;
 
@@ -156,14 +158,20 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             super.logDebug(undefined, message);
             console.error(message)
 
+            // Add to LRU cache that the fragment has been retrieved
+            LRUcache.set(pageUrl, true);
+            LRUcache.set(page.url, true); // can be a redirected response <> pageUrl
+
             // Retrieve media type
             // TODO: Fetch mediaType by using response and comunica actor
             const mediaType = page.headers['content-type'].indexOf(';') > 0 ? page.headers['content-type'].substr(0, page.headers['content-type'].indexOf(';')) : page.headers['content-type'];
 
-            // Based on the HTTP Caching headers, poll this fragment
-            const policy = new CachePolicy(page.request, page.response);
-            const ttl = policy.storable() ? policy.timeToLive() : this.pollingInterval; // pollingInterval is fallback
-            bk.addFragment(page.url, ttl);
+            if (!this.disablePolling) {
+                // Based on the HTTP Caching headers, poll this fragment
+                const policy = new CachePolicy(page.request, page.response);
+                const ttl = policy.storable() ? policy.timeToLive() : this.pollingInterval; // pollingInterval is fallback
+                bk.addFragment(page.url, ttl);
+            }
 
             // Parse into RDF Stream to retrieve TREE metadata
             const quadsForMetadata = await this.stringToQuadStream(page.data.toString(), '', mediaType);
@@ -234,7 +242,10 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
                     // Prune - do nothing
                 } else {
                     // Add node to book keeper with ttl 0 (as soon as possible)
-                    for (const node of relation.node) bk.addFragment(node['@id'], 0);
+                    for (const node of relation.node) {
+                        // do not add when polling is disabled and node has already been processed
+                        if (!this.disablePolling || (this.disablePolling && !LRUcache.has(node['@id']))) bk.addFragment(node['@id'], 0);
+                    }
                 }
             }
 
@@ -372,5 +383,6 @@ export interface ILDESClientArgs extends IActorArgs<IActionInit, IActorTest, IAc
     jsonLdContextPath: string;
     jsonLdContextString: string;
     emitMemberOnce: boolean;
+    disablePolling: boolean;
     fromTime: Date;
 }

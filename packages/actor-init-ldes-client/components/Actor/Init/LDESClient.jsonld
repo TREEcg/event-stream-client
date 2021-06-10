@@ -51,6 +51,14 @@
           "unique": true
         },
         {
+          "@id": "ldes:disablePolling",
+          "comment": "Disable polling or not (by default set to 'false'; polling is enabled).",
+          "range": "xsd:boolean",
+          "default": "false",
+          "required": true,
+          "unique": true
+        },
+        {
           "@id": "ldes:emitMemberOnce",
           "comment": "Only emit members once as the tree:Collection only contains immutable version objects",
           "range": "xsd:boolean",
@@ -117,6 +125,10 @@
             {
               "keyRaw": "fromTime",
               "value": "ldes:fromGeneratedAtTime"
+            },
+            {
+              "keyRaw": "disablePolling",
+              "value": "ldes:disablePolling"
             },
             {
               "keyRaw": "emitMemberOnce",
