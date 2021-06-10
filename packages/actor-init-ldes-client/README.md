@@ -46,6 +46,7 @@ With the engine or client created, you can now use it to call te async ```create
 Here is an example synchronizing with a TREE root node of an Event Stream with polling interval of 5 seconds:
 
 ```javascript
+import { newEngine } from '@treecg/actor-init-ldes-client';
  main()
  
  function main() {
@@ -70,13 +71,14 @@ Here is an example synchronizing with a TREE root node of an Event Stream with p
                  ]
              }
          };
+         let LDESClient = new newEngine();
          let eventstreamSync = LDESClient.createReadStream(url, options);
          eventstreamSync.on('data', (data) => {
-             let obj = JSON.parse(data)
-             console.log(obj)
+             let obj = JSON.parse(data);
+             console.log(obj);
          });
          eventstreamSync.on('end', () => {
-             console.log("No more data!")
+             console.log("No more data!");
          });
      } catch (e) {
          console.error(e);
