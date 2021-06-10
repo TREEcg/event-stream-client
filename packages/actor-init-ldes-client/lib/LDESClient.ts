@@ -241,6 +241,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             this.retrieveRecursively();
         } catch (e) {
             super.logError(undefined, 'Failed to retrieve ' + pageUrl + ': ' + e);
+            console.error('Failed to retrieve ' + pageUrl + ': ' + e);
             this.retrieveRecursively();
         }
     }
