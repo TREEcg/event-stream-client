@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.0.9"></a>
+## [v2.0.9](https://github.com/TREEcg/event-stream-client/compare/v2.0.8...v2.0.9) - 2021-06-10
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Merge branch 'main' of github.com:TREEcg/event-stream-client into main](https://github.com/TREEcg/event-stream-client/commit/772582bc5a6044a2691094980b23f6ca83570647)
+* [Update JSON-LD parser to latest](https://github.com/TREEcg/event-stream-client/commit/8ae302db6c05f6ddbad22264220bb1a1de1e56b2)
+* [Merge pull request #14 from nvdk/patch-2](https://github.com/TREEcg/event-stream-client/commit/f0a9f9b58aed34e81916c7a7f07d68c1d7f49de2)
+* [small corrections to readme](https://github.com/TREEcg/event-stream-client/commit/aa34ffafd28b73c09fcf0e6ba693c446bcdcef13)
+
 <a name="v2.0.8"></a>
 ## [v2.0.8](https://github.com/TREEcg/event-stream-client/compare/v2.0.7...v2.0.8) - 2021-05-25
 

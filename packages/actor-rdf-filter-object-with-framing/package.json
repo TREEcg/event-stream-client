@@ -1,6 +1,6 @@
 {
   "name": "@treecg/actor-rdf-filter-object-with-framing",
-  "version": "2.0.5",
+  "version": "2.0.9",
   "description": "A rdf-filter-object-with-framing actor",
   "lsd:module": true,
   "main": "index.js",
