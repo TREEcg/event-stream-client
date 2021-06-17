@@ -61,9 +61,9 @@ import { newEngine } from '@treecg/actor-init-ldes-client';
              "disablePolling": true,
              "jsonLdContext": {
                  "@context": [
-                     "https://data.vlaanderen.be/doc/applicatieprofiel/cultureel-erfgoed-object/kandidaatstandaard/2020-07-17/context/cultureel-erfgoed-object-ap.jsonld",
-                     "https://data.vlaanderen.be/context/persoon-basis.jsonld",
-                     "https://data.vlaanderen.be/doc/applicatieprofiel/cultureel-erfgoed-event/erkendestandaard/2021-04-22/context/cultureel-erfgoed-event-ap.jsonld",
+                     "https://apidg.gent.be/opendata/adlib2eventstream/v1/context/cultureel-erfgoed-object-ap.jsonld",
+                     "https://apidg.gent.be/opendata/adlib2eventstream/v1/context/persoon-basis.jsonld",
+                     "https://apidg.gent.be/opendata/adlib2eventstream/v1/context/cultureel-erfgoed-event-ap.jsonld",
                      {
                          "dcterms:isVersionOf": {
                              "@type": "@id"
