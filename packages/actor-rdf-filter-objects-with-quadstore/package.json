@@ -1,0 +1,69 @@
+{
+  "name": "@treecg/actor-rdf-filter-objects-with-quadstore",
+  "version": "2.2.0",
+  "description": "A rdf-filter-objects-with-quadstore actor",
+  "lsd:module": true,
+  "main": "index.js",
+  "typings": "index",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/treecg/event-stream-client.git",
+    "directory": "packages/actor-rdf-filter-objects-with-quadstore"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "comunica",
+    "actor",
+    "rdf-filter-objects-with-quadstore"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/comunica/comunica/issues"
+  },
+  "homepage": "https://comunica.dev/",
+  "files": [
+    "components",
+    "lib/**/*.d.ts",
+    "lib/**/*.js",
+    "index.d.ts",
+    "index.js"
+  ],
+  "peerDependencies": {
+    "@comunica/core": "^1.19.2",
+    "@treecg/bus-rdf-filter-object": "^2.0.4"
+  },
+  "devDependencies": {
+    "@comunica/core": "^1.19.2",
+    "@treecg/bus-rdf-filter-object": "^2.2.0",
+    "@types/rdf-js": "^4.0.1"
+  },
+  "dependencies": {
+    "n3": "^1.10.0",
+    "rdf-store-stream": "^1.2.0"
+  },
+  "jest": {
+    "globals": {
+      "ts-jest": {
+        "tsConfig": "../../tsconfig.json"
+      }
+    },
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "testRegex": "(/test/.*|(\\.|/)(test|spec))\\.ts$",
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "collectCoverage": true
+  },
+  "scripts": {
+    "test": "node \"../../node_modules/jest/bin/jest.js\" ${1}",
+    "test-watch": "node \"../../node_modules/jest/bin/jest.js\" ${1} --watch",
+    "build": "node \"../../node_modules/typescript/bin/tsc\"",
+    "validate": "npm ls"
+  },
+  "gitHead": "7e3418ef6a15a38e973f5651d6e67a83bd5cf421"
+}

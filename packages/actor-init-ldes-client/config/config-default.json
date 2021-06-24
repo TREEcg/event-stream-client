@@ -2,6 +2,7 @@
   "@context": [
     "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/actor-init-ldes-client/^2.0.0/components/context.jsonld",
     "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/actor-rdf-filter-object-with-framing/^2.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/actor-rdf-filter-objects-with-quadstore/^2.0.0/components/context.jsonld",
     "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/actor-rdf-frame-with-json-ld-js/^2.0.0/components/context.jsonld",
     "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/bus-rdf-filter-object/^2.0.0/components/context.jsonld",
     "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/bus-rdf-frame/^2.0.0/components/context.jsonld",
@@ -124,18 +125,9 @@
           "@type": "ActorRdfParseHtmlRdfa"
         },
         {
-          "@id": "urn:comunica:myRdfFilterObjectWithFraming",
-          "@type": "ActorRdfFilterObjectWithFraming",
-          "carfowf:mediatorRdfFrame": {
-            "@id": "urn:comunica:mediatorRdfFrame2",
-            "@type": "MediatorRace",
-            "cc:Mediator/bus": { "@id": "cbrf:Bus/RdfFrame" }
-          },
-          "carfowf:mediatorRdfParse": {
-            "@id": "urn:comunica:mediatorRdfParse2",
-            "@type": "MediatorRace",
-            "cc:Mediator/bus": { "@id": "cbrp:Bus/RdfParse" }
-          }
+          "@id": "urn:comunica:myRdfFilterObjectsWithQuadstore",
+          "@type": "ActorRdfFilterObjectsWithQuadstore",
+          "priorityScale": 0.2
         },
         {
           "@id": "urn:comunica:myActorRdfFrameWithJSONLDjs",

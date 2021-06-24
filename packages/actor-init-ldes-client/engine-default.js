@@ -79,20 +79,16 @@ const urn_comunica_myRdfParserXmlRdfa = new (require('@comunica/actor-rdf-parse-
   'name': 'urn:comunica:myRdfParserXmlRdfa',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__comunica_bus_rdf_parse_Bus_RdfParse
 });
-const urn_comunica_mediatorRdfParse2 = new (require('@comunica/mediator-race').MediatorRace)({
-  'name': 'urn:comunica:mediatorRdfParse2',
-  'bus': https___linkedsoftwaredependencies_org_bundles_npm__comunica_bus_rdf_parse_Bus_RdfParse
-});
 const urn_comunica_mediatorRdfFilterObject = new (require('@comunica/mediator-race').MediatorRace)({
   'name': 'urn:comunica:mediatorRdfFilterObject',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__treecg_bus_rdf_filter_object_Bus_RdfFilterObject
 });
+const urn_comunica_myRdfFilterObjectsWithQuadstore = new (require('@treecg/actor-rdf-filter-objects-with-quadstore').ActorRdfFilterObjectsWithQuadstore)({
+  'name': 'urn:comunica:myRdfFilterObjectsWithQuadstore',
+  'bus': https___linkedsoftwaredependencies_org_bundles_npm__treecg_bus_rdf_filter_object_Bus_RdfFilterObject
+});
 const urn_comunica_mediatorRdfFrame = new (require('@comunica/mediator-race').MediatorRace)({
   'name': 'urn:comunica:mediatorRdfFrame',
-  'bus': https___linkedsoftwaredependencies_org_bundles_npm__treecg_bus_rdf_frame_Bus_RdfFrame
-});
-const urn_comunica_mediatorRdfFrame2 = new (require('@comunica/mediator-race').MediatorRace)({
-  'name': 'urn:comunica:mediatorRdfFrame2',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__treecg_bus_rdf_frame_Bus_RdfFrame
 });
 const urn_comunica_mediatorRdfSerialize = new (require('@comunica/mediator-race').MediatorRace)({
@@ -167,13 +163,6 @@ const urn_comunica_myRdfParserHtmlRdfa = new (require('@comunica/actor-rdf-parse
   'name': 'urn:comunica:myRdfParserHtmlRdfa',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__comunica_bus_rdf_parse_html_Bus_RdfParseHtml
 });
-const urn_comunica_myRdfFilterObjectWithFraming = new (require('@treecg/actor-rdf-filter-object-with-framing').ActorRdfFilterObjectWithFraming)({
-  'context': '',
-  'mediatorRdfFrame': urn_comunica_mediatorRdfFrame2,
-  'mediatorRdfParse': urn_comunica_mediatorRdfParse2,
-  'name': 'urn:comunica:myRdfFilterObjectWithFraming',
-  'bus': https___linkedsoftwaredependencies_org_bundles_npm__treecg_bus_rdf_filter_object_Bus_RdfFilterObject
-});
 const urn_comunica_myLDESClient = new (require('./index.js').LDESClient)({
   'pollingInterval': 5000,
   'mimeType': 'application/ld+json',
@@ -221,7 +210,7 @@ const urn_comunica_my = ({
   urn_comunica_myRdfParserHtml,
   urn_comunica_myRdfParserHtmlMicrodata,
   urn_comunica_myRdfParserHtmlRdfa,
-  urn_comunica_myRdfFilterObjectWithFraming,
+  urn_comunica_myRdfFilterObjectsWithQuadstore,
   urn_comunica_myActorRdfFrameWithJSONLDjs,
   https___linkedsoftwaredependencies_org_bundles_npm__comunica_actor_init_sparql__1_0_0_config_sets_rdf_serializers_json_myRdfSerializerN3,
   https___linkedsoftwaredependencies_org_bundles_npm__comunica_actor_init_sparql__1_0_0_config_sets_rdf_serializers_json_myRdfSerializeJsonLd
