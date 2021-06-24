@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.2.1"></a>
+## [v2.2.1](https://github.com/TREEcg/event-stream-client/compare/v2.2.0...v2.2.1) - 2021-06-24
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Fix disablePolling & apply caching when cache-control on private](https://github.com/TREEcg/event-stream-client/commit/ba2a5799dbf102e5001d1555fe1ba988df6341bb)
+
 <a name="v2.2.0"></a>
 ## [v2.2.0](https://github.com/TREEcg/event-stream-client/compare/v2.1.0...v2.2.0) - 2021-06-24
 
