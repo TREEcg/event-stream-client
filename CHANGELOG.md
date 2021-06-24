@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.2.0"></a>
+## [v2.2.0](https://github.com/TREEcg/event-stream-client/compare/v2.1.0...v2.2.0) - 2021-06-24
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Fix #11: use less streams, optimize code](https://github.com/TREEcg/event-stream-client/commit/ef2e7a0e820a7e5f2ca2cdbaa58d07a8825958cb)
+* [Update README with other JSON-LD context files](https://github.com/TREEcg/event-stream-client/commit/b030087d4e12a4a185221df9c7a7c81b94063b1f)
+
 <a name="v2.1.0"></a>
 ## [v2.1.0](https://github.com/TREEcg/event-stream-client/compare/v2.0.9...v2.1.0) - 2021-06-10
 
