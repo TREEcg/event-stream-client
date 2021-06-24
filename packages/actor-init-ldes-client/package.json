@@ -57,6 +57,7 @@
     "@comunica/mediator-race": "^1.19.2",
     "@comunica/runner": "^1.19.2",
     "@comunica/runner-cli": "^1.19.2",
+    "@dexagod/rdf-retrieval": "^1.0.2",
     "@rdfjs/data-model": "^1.2.0",
     "@treecg/actor-rdf-filter-object-with-framing": "^2.0.9",
     "@treecg/actor-rdf-frame-with-json-ld-js": "^2.0.5",
@@ -95,7 +96,8 @@
     "test": "node \"../../node_modules/jest/bin/jest.js\" ${1}",
     "test-watch": "node \"../../node_modules/jest/bin/jest.js\" ${1} --watch",
     "prepare": "comunica-compile-config config/config-default.json urn:comunica:myLDESClient > engine-default.js",
-    "build": "node \"../../node_modules/typescript/bin/tsc\""
+    "build": "node \"../../node_modules/typescript/bin/tsc\"",
+    "start": "yarn build | node ./bin/run.js"
   },
   "author": "",
   "license": "ISC",

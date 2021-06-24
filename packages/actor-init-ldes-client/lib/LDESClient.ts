@@ -12,7 +12,7 @@ import type * as RDF from 'rdf-js';
 
 const DF: RDF.DataFactory = new DataFactory();
 
-import { Readable } from 'stream';
+import { Readable, Writable } from 'stream';
 const readStream = new Readable({objectMode: true});
  readStream._read = () => {
      // Do nothing
@@ -28,15 +28,14 @@ const cacheableRequestHttp = new CacheableRequest(http.request);
 const cacheableRequestHttps = new CacheableRequest(https.request);
 const CachePolicy = require('http-cache-semantics');
 
-import {ContextDefinition} from "jsonld";
+import {ContextDefinition, JsonLdDocument} from "jsonld";
 
 import minimist = require("minimist");
 
 const stringifyStream = require('stream-to-string');
 const streamifyString = require('streamify-string');
 
-const LRU = require("lru-cache");
-const LRUcache = new LRU({});
+const LRUcache = new Set();
 import { existsSync, readFileSync } from 'fs';
 
 import {Bookkeeper} from './Bookkeeper';
@@ -55,6 +54,10 @@ import {
 } from "@comunica/bus-sparql-serialize";
 import {IActorQueryOperationOutputQuads} from "@comunica/bus-query-operation";
 import {Quad, Stream} from "rdf-js";
+
+import * as f from "@dexagod/rdf-retrieval";
+import {AsyncIterator} from "asynciterator";
+import {Frame} from "jsonld/jsonld-spec";
 
 let bk = new Bookkeeper();
 
@@ -159,8 +162,8 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             console.error(message)
 
             // Add to LRU cache that the fragment has been retrieved
-            LRUcache.set(pageUrl, true);
-            LRUcache.set(page.url, true); // can be a redirected response <> pageUrl
+            LRUcache.add(pageUrl);
+            LRUcache.add(page.url); // can be a redirected response <> pageUrl
 
             // Retrieve media type
             // TODO: Fetch mediaType by using response and comunica actor
@@ -173,19 +176,20 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
                 bk.addFragment(page.url, ttl);
             }
 
+            const quadsArrayOfPage = await this.stringToQuadArray(page.data.toString(), '', mediaType);
+
             // Parse into RDF Stream to retrieve TREE metadata
-            const quadsForMetadata = await this.stringToQuadStream(page.data.toString(), '', mediaType);
             const treeMetadata = await this.mediatorRdfMetadataExtractTree.mediate({
-                metadata: quadsForMetadata,
+                metadata: await this.quadArrayToQuadStream(quadsArrayOfPage),
                 url: page['url']
             });
 
             const members : string[] = this.getMembers(treeMetadata);
 
             // Get prov:generatedAtTime of members
-            const quadsToFetchGeneratedAtTimes = await this.stringToQuadStream(page.data.toString(), '', mediaType);
-            const memberToGeneratedAtTime = await this.mapMemberToGeneratedAtTime(quadsToFetchGeneratedAtTimes, members);
+            const memberToGeneratedAtTime = await this.mapMembersToGeneratedAtTime(quadsArrayOfPage, members);
 
+            let membersToProcess: string[] = [];
             for (let member of members) {
                 // Only process member when its prov:generatedAtTime is higher
                 if (!this.fromTime || (moment(this.fromTime).isValid() && memberToGeneratedAtTime[member].getTime() >= this.fromTime.getTime())) {
@@ -193,44 +197,49 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
                     // Or when it is configured that members may be emitted multiple times
                     // Otherwise don't process the member
                     if (!LRUcache.has(member) || !this.emitMemberOnce) {
-                        LRUcache.set(member, true);
-
-                        // A stream can be read only once, so we need to create a new one
-                        const quadsForFilteringOnObject = await this.stringToQuadStream(page.data.toString(), '', mediaType);
-                        // Filter the quads that are relevant for this member
-                        const memberQuads = (await this.mediatorRdfFilterObject.mediate({
-                            data: quadsForFilteringOnObject,
-                            objectURI: member,
-                            constraints: undefined
-                        })).data;
-
-                        // Serialize back into string
-                        let outputString;
-                        if (this.mimeType != "application/ld+json") {
-                            const handle: IActorQueryOperationOutputQuads = {
-                                type: "quads",
-                                quadStream: memberQuads
-                            };
-                            outputString = await stringifyStream((await this.mediatorRdfSerialize.mediate({
-                                handle: handle,
-                                handleMediaType: this.mimeType
-                            })).handle.data);
-                        } else {
-                            // Create framed JSON-LD output
-                            const frame = {
-                                "@id": member
-                            };
-                            const framedObject: object = (await this.mediatorRdfFrame.mediate({
-                                data: memberQuads,
-                                frame: frame,
-                                jsonLdContext: this.jsonLdContext
-                            })).data;
-                            outputString = JSON.stringify(framedObject);
-                        }
-                        readStream.push(`${outputString}\n`);
+                        LRUcache.add(member);
+                        membersToProcess.push(member);
                     }
                 }
             }
+
+            // Filter the quads that are relevant for each member
+            const quadstreamPerMember = (await this.mediatorRdfFilterObject.mediate({
+                data: await this.quadArrayToQuadStream(quadsArrayOfPage),
+                objectURIs: membersToProcess,
+                constraints: undefined
+            })).data; // Map<string, RDF.Stream>
+
+            // Serialize back into string
+            for(let member of Array.from( quadstreamPerMember.keys()) ) {
+                const memberQuadstream = quadstreamPerMember.get(member);
+                if (memberQuadstream) {
+                    let outputString;
+                    if (this.mimeType != "application/ld+json") {
+                        const handle: IActorQueryOperationOutputQuads = {
+                            type: "quads",
+                            quadStream: <RDF.Stream & AsyncIterator<RDF.Quad>> memberQuadstream
+                        };
+                        outputString = await stringifyStream((await this.mediatorRdfSerialize.mediate({
+                            handle: handle,
+                            handleMediaType: this.mimeType
+                        })).handle.data);
+                    } else {
+                        // Create framed JSON-LD output
+                        const frame = {
+                            "@id": member
+                        };
+                        const framedObjects: Map<Frame, JsonLdDocument> = (await this.mediatorRdfFrame.mediate({
+                            data: memberQuadstream,
+                            frames: [frame],
+                            jsonLdContext: this.jsonLdContext
+                        })).data;
+                        outputString = JSON.stringify(framedObjects.get(frame));
+                    }
+                    readStream.push(`${outputString}\n`);
+                }
+            };
+
 
             // Retrieve TREE relations towards other nodes
             for (const [_, relation] of treeMetadata.metadata.treeMetadata.relations) {
@@ -324,6 +333,30 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
         })).handle.quads
     }
 
+    protected async stringToQuadArray(data: string, baseIRI: string, mediaType: string): Promise<RDF.Quad[]> {
+        return new Promise(async (resolve, reject) => {
+            let quadArray: RDF.Quad[] = [];
+            const stream = (await this.mediatorRdfParse.mediate({
+                handle: {
+                    input: streamifyString(data),
+                    baseIRI: baseIRI
+                }, handleMediaType: mediaType
+            })).handle.quads;
+            stream.on('data', (quad) => {
+                quadArray.push(quad);
+            });
+            stream.on('end', () => {
+                resolve(quadArray);
+            });
+        });
+    }
+
+    protected async quadArrayToQuadStream(data: RDF.Quad[]): Promise<RDF.Stream> {
+        return new Promise(async (resolve, reject) => {
+            resolve(f.quadArrayToQuadStream(data.slice()));
+        });
+    }
+
     // Returns array of memberURI (string) -> immutable (boolean)
     protected getMembers(treeMetadata: any) : string[] {
         let members : string[] = [];
@@ -338,22 +371,18 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
         return members;
     }
 
-    private mapMemberToGeneratedAtTime(quadsToFetchGeneratedAtTimes: Stream<Quad>, members: string[]): Promise<Record<string, Date>> {
-        return new Promise(resolve => {
-            const memberToGeneratedAtTime: Record<string, Date> = {};
+    private mapMembersToGeneratedAtTime(quadArrayToFetchGeneratedAtTimes: RDF.Quad[], members: string[]): Record<string, Date> {
+        const memberToGeneratedAtTime: Record<string, Date> = {};
 
-            quadsToFetchGeneratedAtTimes.on('data', (quad: RDF.Quad) => {
-                    if (quad.subject.termType === 'NamedNode') {
-                        const potentialMember = quad.subject.value;
-                        const predicate = quad.predicate.value;
-                        if (members.indexOf(potentialMember) != -1 && predicate === "http://www.w3.org/ns/prov#generatedAtTime")
-                            memberToGeneratedAtTime[potentialMember] = new Date(quad.object.value);
-                    }
-                })
-                .on('end', () => {
-                    resolve(memberToGeneratedAtTime)
-                });
-        });
+        for (let quad of quadArrayToFetchGeneratedAtTimes) {
+            if (quad.subject.termType === 'NamedNode') {
+                const potentialMember = quad.subject.value;
+                const predicate = quad.predicate.value;
+                if (members.indexOf(potentialMember) != -1 && predicate === "http://www.w3.org/ns/prov#generatedAtTime")
+                    memberToGeneratedAtTime[potentialMember] = new Date(quad.object.value);
+            }
+        }
+        return memberToGeneratedAtTime;
     }
 }
 

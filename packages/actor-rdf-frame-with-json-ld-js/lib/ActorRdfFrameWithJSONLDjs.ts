@@ -13,6 +13,9 @@ import type {
 
 import * as jsonld from 'jsonld';
 import {ContextDefinition, JsonLdDocument} from "jsonld/jsonld";
+import { Frame, Url, JsonLdProcessor, RemoteDocument, JsonLdObj, JsonLdArray } from 'jsonld/jsonld-spec';
+import * as RDF from "rdf-js";
+import {AsyncIterator} from "asynciterator";
 const stringifyStream = require('stream-to-string');
 
 /**
@@ -35,22 +38,30 @@ export class ActorRdfFrameWithJSONLDjs extends ActorRdfFrame {
     // Serialize quad stream into JSON-LD object
     const handle: IActorQueryOperationOutputQuads = {
         type: "quads",
-        quadStream: action.data
+        quadStream: <RDF.Stream & AsyncIterator<RDF.Quad>> action.data
      };
-    let obj: JsonLdDocument = JSON.parse(await stringifyStream((await this.mediatorRdfSerialize.mediate({handle: handle, handleMediaType: "application/ld+json"})).handle.data));
 
-    // Frame the JSON-LD object
-    const framed = await jsonld.frame(obj, action.frame);
+    const obj: JsonLdDocument = JSON.parse(await stringifyStream((await this.mediatorRdfSerialize.mediate({handle: handle, handleMediaType: "application/ld+json"})).handle.data));
 
-    // Fetch JSON-LD context for compaction
-    const context : ContextDefinition = action.jsonLdContext ? action.jsonLdContext : {"@context": {}};
-    const compacted = await jsonld.compact(framed, context);
+    let result: Map<Frame, JsonLdDocument> = new Map();
+    for (let frame of action.frames) {
+      // Frame the JSON-LD object
+      const framed = await jsonld.frame(obj, frame);
 
-    const output : IActorRdfFrameOutput = {
-      data: compacted
+      // Fetch JSON-LD context for compaction
+      const context : ContextDefinition = action.jsonLdContext ? action.jsonLdContext : {"@context": {}};
+      const compacted = await jsonld.compact(framed, context);
+
+      //const output : IActorRdfFrameOutput = {
+      //  data: compacted
+      //}
+
+      result.set(frame, compacted);
     }
 
-    return output;
+    return {
+      data: result
+    };
   }
 }
 

@@ -31,7 +31,7 @@ Possible parameters:
 
 Example commando with parameters:
 ```
-actor-init-ldes-client --pollingInterval 5000 --mimeType application/ld+json --context context.jsonld --fromTime 2021-02-03T15:48:12.309Z --emitMemberOnce true --disablePolling true https://lodi.ilabt.imec.be/coghent/dmg/objecten
+actor-init-ldes-client --pollingInterval 5000 --mimeType application/ld+json --context context.jsonld --fromTime 2021-02-03T15:48:12.309Z --emitMemberOnce true --disablePolling true https://apidg.gent.be/opendata/adlib2eventstream/v1/dmg/objecten
 ```
 
 
@@ -52,7 +52,7 @@ import { newEngine } from '@treecg/actor-init-ldes-client';
  
  function main() {
      try {
-         let url = "https://lodi.ilabt.imec.be/coghent/dmg/objecten";
+         let url = "https://apidg.gent.be/opendata/adlib2eventstream/v1/dmg/objecten    ";
          let options = {
              "pollingInterval": 5000, // millis
              "mimeType": "application/ld+json",

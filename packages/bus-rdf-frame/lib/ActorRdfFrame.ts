@@ -1,6 +1,8 @@
 import { Actor, IAction, IActorArgs, IActorOutput, IActorTest } from '@comunica/core';
 import * as RDF from "rdf-js";
-import {ContextDefinition} from "jsonld";
+import {ContextDefinition, JsonLdDocument} from "jsonld";
+import { Frame, Url, JsonLdProcessor, RemoteDocument, JsonLdObj, JsonLdArray } from 'jsonld/jsonld-spec';
+import {AsyncIterator} from "asynciterator";
 
 /**
  * A Comunica actor that frames a stream of quads
@@ -23,11 +25,11 @@ export interface IActionRdfFrame extends IAction {
   /**
    * The quad data stream
    */
-  data: any; // RDF.Stream
+  data: RDF.Stream; // RDF.Stream
   /**
-   * The JSON-LD frame
+   * The JSON-LD frames
    */
-  frame: any;
+  frames: Frame[];
   /**
    * Optional JSON-LD context
    */
@@ -36,7 +38,7 @@ export interface IActionRdfFrame extends IAction {
 
 export interface IActorRdfFrameOutput extends IActorOutput {
   /**
-   * The framed JSON-LD object
+   * The framed JSON-LD object for every frame
    */
-  data: object;
+  data: Map<Frame, JsonLdDocument>;
 }
