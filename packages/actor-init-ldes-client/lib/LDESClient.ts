@@ -126,6 +126,9 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             this.emitMemberOnce = args.emitMemberOnce;
             this.emitMemberOnceHasBeenConfigured = true;
         }
+        if (args.disablePolling) {
+            this.disablePolling = args.disablePolling;
+        }
 
         if (args["_"].length) {
             const url = args._[args._.length - 1];
@@ -171,7 +174,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
 
             if (!this.disablePolling) {
                 // Based on the HTTP Caching headers, poll this fragment
-                const policy = new CachePolicy(page.request, page.response);
+                const policy = new CachePolicy(page.request, page.response, {shared: false}); // If options.shared is false, then the response is evaluated from a perspective of a single-user cache (i.e. private is cacheable and s-maxage is ignored)
                 const ttl = policy.storable() ? policy.timeToLive() : this.pollingInterval; // pollingInterval is fallback
                 bk.addFragment(page.url, ttl);
             }
@@ -267,7 +270,6 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     }
 
     private async retrieveRecursively() {
-        await this.sleep(FETCH_PAUSE);
         if (bk.nextFragmentExists()) {
             let next = bk.getNextFragmentToFetch();
             let now = new Date();

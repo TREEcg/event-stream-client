@@ -174,7 +174,7 @@ const urn_comunica_myRdfFilterObjectWithFraming = new (require('@treecg/actor-rd
   'name': 'urn:comunica:myRdfFilterObjectWithFraming',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__treecg_bus_rdf_filter_object_Bus_RdfFilterObject
 });
-const urn_comunica_myLDESClient = new (require('@treecg/actor-init-ldes-client').LDESClient)({
+const urn_comunica_myLDESClient = new (require('./index.js').LDESClient)({
   'pollingInterval': 5000,
   'mimeType': 'application/ld+json',
   'jsonLdContextString': '{"@context":  {}}',
