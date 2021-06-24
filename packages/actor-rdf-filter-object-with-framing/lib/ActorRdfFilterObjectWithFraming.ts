@@ -12,6 +12,8 @@ import {
 } from "@comunica/bus-rdf-parse";
 
 import * as f from "@dexagod/rdf-retrieval"
+import { Store, Quad } from "n3"
+import { storeStream } from 'rdf-store-stream';
 
 /**
  * An RDF Filter Object actor that extracts quads related to a specific object using JSON-LD framing.
@@ -34,30 +36,35 @@ export class ActorRdfFilterObjectWithFraming extends ActorRdfFilterObject {
 
   public async run(action: IActionRdfFilterObject): Promise<IActorRdfFilterObjectOutput> {
     // We apply a JSON-LD frame on the quad stream to filter on a certain object
-    let result: Map<string, RDF.Stream> = new Map();
-    let frames = [];
-    for (let objectURI of action.objectURIs) {
-      const frame: Frame = {
-        "@id": objectURI
-      };
-      frames.push(frame);
-    }
-      // Retrieve JSON-LD of object
-      //let test = await f.quadStreamToString(action.data);
-      const frameMapping : Map<Frame, JsonLdDocument> = (await this.mediatorRdfFrame.mediate({data: action.data, frames: frames})).data;
 
-    for (let framedObject of frameMapping.values()) {
-      // Convert back into RDF Stream
-      const objectURI = (framedObject as any)['@id'];
-      let framedObjectAsStream = require('streamify-string')(JSON.stringify(framedObject));
-      const filteredDataStream : RDF.Stream = (await this.mediatorRdfParse.mediate({handle: {input: framedObjectAsStream, baseIRI: ''}, handleMediaType: "application/ld+json"})).handle.quads;
-      result.set(objectURI, filteredDataStream);
+    const results = new Map<string, RDF.Quad[]>();
+    const store: Store = (await storeStream(action.data)) as Store
+
+    for (let id of action.objectURIs) {
+      const quads = this.retrieveMember(store, id)
+      results.set(id, quads)
     }
 
     return {
-      data: result
+      data: results
     };
   }
+
+  private retrieveMember(store: Store, id: string) {
+    const ids : string[] = []
+    function retrieveId(id: string) : Quad[] {
+      if (ids.indexOf(id) !== -1) return [];
+      ids.push(id)
+      let quads : Quad[] = store.getQuads(id, null, null, null) || []
+      for (let quad of quads) {
+        quads = quads.concat(retrieveId(quad.object.id))
+      }
+      return quads
+    }
+    return retrieveId(id)
+  }
+
+
 }
 
 export interface IActorRdfFilterObjectWithFramingArgs extends IActorArgs<IActionRdfFilterObject, IActorTest, IActorRdfFilterObjectOutput> {

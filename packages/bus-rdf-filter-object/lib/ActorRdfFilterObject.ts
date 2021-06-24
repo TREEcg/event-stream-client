@@ -42,5 +42,5 @@ export interface IActorRdfFilterObjectOutput extends IActorOutput {
   *     The object identifier from which the quads were filtered.
   *     The filtered quad data stream related to the object
   **/
-  data: Map<string, RDF.Stream>;
+  data: Map<string, RDF.Quad[]>;
 }
