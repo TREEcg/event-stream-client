@@ -127,7 +127,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             this.emitMemberOnceHasBeenConfigured = true;
         }
         if (args.disablePolling) {
-            this.disablePolling = args.disablePolling;
+            this.disablePolling = args.disablePolling.toLowerCase() == 'true' ? true : false;
         }
 
         if (args["_"].length) {
@@ -187,63 +187,6 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
                 url: page['url']
             });
 
-            const members : string[] = this.getMembers(treeMetadata);
-
-            // Get prov:generatedAtTime of members
-            const memberToGeneratedAtTime = await this.mapMembersToGeneratedAtTime(quadsArrayOfPage, members);
-
-            let membersToProcess: string[] = [];
-            for (let member of members) {
-                // Only process member when its prov:generatedAtTime is higher
-                if (!this.fromTime || (moment(this.fromTime).isValid() && memberToGeneratedAtTime[member].getTime() >= this.fromTime.getTime())) {
-                    // Process if LRU Cache doesn't recognize
-                    // Or when it is configured that members may be emitted multiple times
-                    // Otherwise don't process the member
-                    if (!LRUcache.has(member) || !this.emitMemberOnce) {
-                        LRUcache.add(member);
-                        membersToProcess.push(member);
-                    }
-                }
-            }
-
-            // Filter the quads that are relevant for each member
-            const quadstreamPerMember = (await this.mediatorRdfFilterObject.mediate({
-                data: await this.quadArrayToQuadStream(quadsArrayOfPage),
-                objectURIs: membersToProcess,
-                constraints: undefined
-            })).data; // Map<string, RDF.Stream>
-
-            // Serialize back into string
-            for(let member of Array.from( quadstreamPerMember.keys()) ) {
-                const memberQuadstream = quadstreamPerMember.get(member);
-                if (memberQuadstream) {
-                    let outputString;
-                    if (this.mimeType != "application/ld+json") {
-                        const handle: IActorQueryOperationOutputQuads = {
-                            type: "quads",
-                            quadStream: <RDF.Stream & AsyncIterator<RDF.Quad>> memberQuadstream
-                        };
-                        outputString = await stringifyStream((await this.mediatorRdfSerialize.mediate({
-                            handle: handle,
-                            handleMediaType: this.mimeType
-                        })).handle.data);
-                    } else {
-                        // Create framed JSON-LD output
-                        const frame = {
-                            "@id": member
-                        };
-                        const framedObjects: Map<Frame, JsonLdDocument> = (await this.mediatorRdfFrame.mediate({
-                            data: memberQuadstream,
-                            frames: [frame],
-                            jsonLdContext: this.jsonLdContext
-                        })).data;
-                        outputString = JSON.stringify(framedObjects.get(frame));
-                    }
-                    readStream.push(`${outputString}\n`);
-                }
-            };
-
-
             // Retrieve TREE relations towards other nodes
             for (const [_, relation] of treeMetadata.metadata.treeMetadata.relations) {
                 // Prune when the value of the relation is a datetime and less than what we need
@@ -261,12 +204,70 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
                 }
             }
 
+            const members : string[] = this.getMembers(treeMetadata);
+
+            this.processMembers(members, quadsArrayOfPage);
+
             this.retrieveRecursively();
         } catch (e) {
             super.logError(undefined, 'Failed to retrieve ' + pageUrl + ': ' + e);
             console.error('Failed to retrieve ' + pageUrl + ': ' + e);
             this.retrieveRecursively();
         }
+    }
+
+    private async processMembers(members: string[], quadsArrayOfPage: RDF.Quad[]) {
+        // Get prov:generatedAtTime of members
+        const memberToGeneratedAtTime = await this.mapMembersToGeneratedAtTime(quadsArrayOfPage, members);
+
+        let membersToProcess: string[] = [];
+        for (let member of members) {
+            // Only process member when its prov:generatedAtTime is higher
+            if (!this.fromTime || (moment(this.fromTime).isValid() && memberToGeneratedAtTime[member].getTime() >= this.fromTime.getTime())) {
+                // Process if LRU Cache doesn't recognize
+                // Or when it is configured that members may be emitted multiple times
+                // Otherwise don't process the member
+                if (!LRUcache.has(member) || !this.emitMemberOnce) {
+                    LRUcache.add(member);
+                    membersToProcess.push(member);
+                }
+            }
+        }
+
+        // Filter the quads that are relevant for each member
+        const quadstreamPerMember = (await this.mediatorRdfFilterObject.mediate({
+            data: await this.quadArrayToQuadStream(quadsArrayOfPage),
+            objectURIs: membersToProcess,
+            constraints: undefined
+        })).data; // Map<string, RDF.Stream>
+
+        // Serialize back into string
+        for(let [id, memberQuadStream] of quadstreamPerMember.entries() ) {
+            let outputString;
+            if (this.mimeType != "application/ld+json") {
+                const handle: IActorQueryOperationOutputQuads = {
+                    type: "quads",
+                    quadStream: memberQuadStream as RDF.Stream & AsyncIterator<RDF.Quad>
+                };
+                outputString = await stringifyStream((await this.mediatorRdfSerialize.mediate({
+                    handle: handle,
+                    handleMediaType: this.mimeType
+                })).handle.data);
+            } else {
+                // Create framed JSON-LD output
+                const frame = {
+                    "@id": id
+                };
+                const framedObjects: Map<Frame, JsonLdDocument> = (await this.mediatorRdfFrame.mediate({
+                    data: memberQuadStream,
+                    frames: [frame],
+                    jsonLdContext: this.jsonLdContext
+                })).data;
+                outputString = JSON.stringify(framedObjects.get(frame));
+            }
+            readStream.push(`${outputString}\n`);
+        };
+
     }
 
     private async retrieveRecursively() {
