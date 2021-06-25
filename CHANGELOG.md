@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.3.0"></a>
+## [v2.3.0](https://github.com/TREEcg/event-stream-client/compare/v2.2.1...v2.3.0) - 2021-06-25
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Process members async](https://github.com/TREEcg/event-stream-client/commit/e8f94f084944e63cdc581db4f6198c98b2ad7ba9)
+* [Don't use priority scale](https://github.com/TREEcg/event-stream-client/commit/037dcc27eb7f6324984c428b8ede83b820773536)
+* [Use quadstore instead of framing to filter objects](https://github.com/TREEcg/event-stream-client/commit/adb67f09bd1c7a6f8485f1bd1e7ff090a753cd9e)
+
 <a name="v2.2.1"></a>
 ## [v2.2.1](https://github.com/TREEcg/event-stream-client/compare/v2.2.0...v2.2.1) - 2021-06-24
 
