@@ -126,8 +126,7 @@
         },
         {
           "@id": "urn:comunica:myRdfFilterObjectsWithQuadstore",
-          "@type": "ActorRdfFilterObjectsWithQuadstore",
-          "priorityScale": 0.2
+          "@type": "ActorRdfFilterObjectsWithQuadstore"
         },
         {
           "@id": "urn:comunica:myActorRdfFrameWithJSONLDjs",
