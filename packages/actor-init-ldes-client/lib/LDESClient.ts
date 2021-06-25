@@ -123,11 +123,13 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             this.fromTime = new Date(args.fromTime);
 
         if (args.emitMemberOnce) {
-            this.emitMemberOnce = args.emitMemberOnce;
+            if (typeof args.emitMemberOnce == "boolean") this.emitMemberOnce = args.emitMemberOnce;
+            else this.emitMemberOnce = args.emitMemberOnce.toLowerCase() == 'true' ? true : false;
             this.emitMemberOnceHasBeenConfigured = true;
         }
         if (args.disablePolling) {
-            this.disablePolling = args.disablePolling.toLowerCase() == 'true' ? true : false;
+            if (typeof args.disablePolling == "boolean") this.disablePolling = args.disablePolling;
+            else this.disablePolling = args.disablePolling.toLowerCase() == 'true' ? true : false;
         }
 
         if (args["_"].length) {
@@ -138,7 +140,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
         } else return {stderr: require('streamify-string')(<Error>new Error(LDESClient.HELP_MESSAGE))};
     }
 
-    public createReadStream(url: string, options: { pollingInterval?: number; mimeType?: string, jsonLdContext?: ContextDefinition, fromTime?: Date, emitMemberOnce?: boolean}) {
+    public createReadStream(url: string, options: { pollingInterval?: number; mimeType?: string, jsonLdContext?: ContextDefinition, fromTime?: Date, emitMemberOnce?: boolean, disablePolling?: boolean}) {
         if (options.pollingInterval) this.pollingInterval = options.pollingInterval;
         if (options.mimeType) this.mimeType = options.mimeType;
         this.jsonLdContext = options.jsonLdContext ? options.jsonLdContext : JSON.parse(this.jsonLdContextString);
@@ -147,6 +149,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             this.emitMemberOnce = options.emitMemberOnce;
             this.emitMemberOnceHasBeenConfigured = true;
         }
+        if (options.disablePolling) this.disablePolling = options.disablePolling;
 
         this.retrieve(url);
         return readStream;

@@ -52,7 +52,7 @@ import { newEngine } from '@treecg/actor-init-ldes-client';
  
  function main() {
      try {
-         let url = "https://apidg.gent.be/opendata/adlib2eventstream/v1/dmg/objecten    ";
+         let url = "https://apidg.gent.be/opendata/adlib2eventstream/v1/dmg/objecten";
          let options = {
              "pollingInterval": 5000, // millis
              "mimeType": "application/ld+json",
