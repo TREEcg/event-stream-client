@@ -78,16 +78,16 @@ export interface IEventStreamMediators {
 export class EventStream extends Readable {
     protected readonly mediators: IEventStreamMediators;
 
-    protected pollingInterval?: number;
-    protected mimeType?: string;
-    protected jsonLdContext?: ContextDefinition;
-    protected emitMemberOnce: boolean;
-    protected fromTime?: Date;
-    protected disablePolling?: boolean;
-    protected accessUrl: string;
+    protected readonly pollingInterval?: number;
+    protected readonly mimeType?: string;
+    protected readonly jsonLdContext?: ContextDefinition;
+    protected readonly emitMemberOnce: boolean;
+    protected readonly fromTime?: Date;
+    protected readonly disablePolling?: boolean;
+    protected readonly accessUrl: string;
 
-    protected processedURIs: Set<string>;
-    protected bookie: Bookkeeper;
+    protected readonly processedURIs: Set<string>;
+    protected readonly bookie: Bookkeeper;
 
     public constructor(
         url: string,
@@ -109,6 +109,12 @@ export class EventStream extends Readable {
 
         this.bookie.addFragment(this.accessUrl, 0);
         this.start();
+    }
+
+    public ignorePages(urls: string[]) {
+        for (const url of urls) {
+            this.processedURIs.add(url);
+        }
     }
 
     public _read() {
@@ -252,7 +258,7 @@ export class EventStream extends Readable {
 
     }
 
-    public getPage(pageUrl: string): Promise<PageMetadata> {
+    protected getPage(pageUrl: string): Promise<PageMetadata> {
         return new Promise((resolve, reject) => {
             const protocol = new URL(pageUrl).protocol;
             let r = protocol === 'https:' ? cacheableRequestHttps : cacheableRequestHttp;
@@ -340,7 +346,7 @@ export class EventStream extends Readable {
         return members;
     }
 
-    private mapMembersToGeneratedAtTime(quadArrayToFetchGeneratedAtTimes: RDF.Quad[], members: string[]): Record<string, Date> {
+    protected mapMembersToGeneratedAtTime(quadArrayToFetchGeneratedAtTimes: RDF.Quad[], members: string[]): Record<string, Date> {
         const memberToGeneratedAtTime: Record<string, Date> = {};
 
         for (let quad of quadArrayToFetchGeneratedAtTimes) {
