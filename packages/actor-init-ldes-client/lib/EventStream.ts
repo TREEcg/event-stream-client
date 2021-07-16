@@ -148,8 +148,9 @@ export class EventStream extends Readable {
             // Parse into RDF Stream to retrieve TREE metadata
             const treeMetadata = await this.mediators.mediatorRdfMetadataExtractTree.mediate({
                 metadata: await this.quadArrayToQuadStream(quadsArrayOfPage),
-                url: page['url']
+                url: page.url
             });
+            this.emit("metadata", {...treeMetadata, url: page.url});
 
             // Retrieve TREE relations towards other nodes
             for (const [_, relation] of treeMetadata.metadata.treeMetadata.relations) {
