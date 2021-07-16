@@ -12,7 +12,7 @@ import type * as RDF from 'rdf-js';
 
 const DF: RDF.DataFactory = new DataFactory();
 
-import { Readable, Writable } from 'stream';
+import { Readable } from 'stream';
 
 const FETCH_PAUSE = 2000; // in milliseconds; pause before fetching the next fragment
 
@@ -28,8 +28,6 @@ import { ContextDefinition, JsonLdDocument } from "jsonld";
 
 const stringifyStream = require('stream-to-string');
 const streamifyString = require('streamify-string');
-
-const LRUcache = new Set();
 
 import { Bookkeeper } from './Bookkeeper';
 import { ActorRdfMetadataExtract } from "@comunica/bus-rdf-metadata-extract/lib/ActorRdfMetadataExtract";
@@ -87,6 +85,8 @@ export class EventStream extends Readable {
     protected fromTime?: Date;
     protected disablePolling?: boolean;
     protected accessUrl: string;
+
+    protected processedURIs: Set<string>;
     protected bookie: Bookkeeper;
 
     public constructor(
@@ -104,6 +104,7 @@ export class EventStream extends Readable {
         this.mimeType = args.mimeType;
         this.jsonLdContext = args.jsonLdContext;
 
+        this.processedURIs = new Set();
         this.bookie = new Bookkeeper();
 
         this.retrieve(this.accessUrl);
@@ -127,9 +128,9 @@ export class EventStream extends Readable {
             const message = `${page.statusCode} ${page.url} (${new Date().getTime() - startTime.getTime()}) ms`;
             this.log(message);
 
-            // Add to LRU cache that the fragment has been retrieved
-            LRUcache.add(pageUrl);
-            LRUcache.add(page.url); // can be a redirected response <> pageUrl
+            // Remember that the fragment has been retrieved
+            this.processedURIs.add(pageUrl);
+            this.processedURIs.add(page.url); // can be a redirected response <> pageUrl
 
             // Retrieve media type
             // TODO: Fetch mediaType by using response and comunica actor
@@ -162,7 +163,7 @@ export class EventStream extends Readable {
                     // Add node to book keeper with ttl 0 (as soon as possible)
                     for (const node of relation.node) {
                         // do not add when polling is disabled and node has already been processed
-                        if (!this.disablePolling || (this.disablePolling && !LRUcache.has(node['@id']))) {
+                        if (!this.disablePolling || (this.disablePolling && !this.processedURIs.has(node['@id']))) {
                             this.bookie.addFragment(node['@id'], 0);
                         }
                     }
@@ -190,8 +191,8 @@ export class EventStream extends Readable {
                 // Process if LRU Cache doesn't recognize
                 // Or when it is configured that members may be emitted multiple times
                 // Otherwise don't process the member
-                if (!LRUcache.has(member) || !this.emitMemberOnce) {
-                    LRUcache.add(member);
+                if (!this.processedURIs.has(member) || !this.emitMemberOnce) {
+                    this.processedURIs.add(member);
                     membersToProcess.push(member);
                 }
             }

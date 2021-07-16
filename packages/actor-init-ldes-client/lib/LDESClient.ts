@@ -1,23 +1,11 @@
 import { ActorInit, IActionInit, IActorOutputInit } from "@comunica/bus-init/lib/ActorInit";
-import { Actor, IAction, IActorArgs, IActorTest, Mediator } from "@comunica/core";
+import { Actor, IActorArgs, IActorTest, Mediator } from "@comunica/core";
 import type {
     IActionRdfMetadataExtract,
     IActorRdfMetadataExtractOutput,
 } from '@comunica/bus-rdf-metadata-extract/lib/ActorRdfMetadataExtract';
 
 import * as moment from 'moment';
-
-import { DataFactory } from 'rdf-data-factory';
-import type * as RDF from 'rdf-js';
-
-const DF: RDF.DataFactory = new DataFactory();
-
-import { Readable } from 'stream';
-
-const followRedirects = require('follow-redirects');
-followRedirects.maxRedirects = 10;
-
-import { ContextDefinition } from "jsonld";
 
 import minimist = require("minimist");
 
@@ -151,7 +139,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             mediatorRdfFrame: this.mediatorRdfFrame,
             mediatorRdfSerialize: this.mediatorRdfSerialize,
         };
-        
+
         return new EventStream(url, mediators, options);
     }
 }
