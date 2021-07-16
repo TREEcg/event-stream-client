@@ -107,7 +107,8 @@ export class EventStream extends Readable {
         this.processedURIs = new Set();
         this.bookie = new Bookkeeper();
 
-        this.retrieve(this.accessUrl);
+        this.bookie.addFragment(this.accessUrl, 0);
+        this.start();
     }
 
     public _read() {
@@ -117,6 +118,24 @@ export class EventStream extends Readable {
     protected log(msg: string) {
         // Fixme: use normal logging library
         console.info(msg);
+    }
+
+    protected async start() {
+        while (this.bookie.nextFragmentExists()) {
+            let next = this.bookie.getNextFragmentToFetch();
+            let now = new Date();
+            // Do not refetch too soon
+            while (next.refetchTime.getTime() > now.getTime()) {
+                await this.sleep(FETCH_PAUSE);
+                this.log("Waiting " + (next.refetchTime - now.getTime()) / 1000 + "s before refetching: " + next.url);
+                now = new Date();
+            }
+            await this.retrieve(next.url);
+        } 
+
+        // We're done
+        this.log("done")
+        this.push(null);
     }
 
     protected async retrieve(pageUrl: string) {
@@ -174,14 +193,12 @@ export class EventStream extends Readable {
             const members: string[] = this.getMembers(treeMetadata);
 
             this.processMembers(members, quadsArrayOfPage);
-            this.retrieveRecursively();
         } catch (e) {
             this.log('Failed to retrieve ' + pageUrl + ': ' + e);
-            this.retrieveRecursively();
         }
     }
 
-    private async processMembers(members: string[], quadsArrayOfPage: RDF.Quad[]) {
+    protected async processMembers(members: string[], quadsArrayOfPage: RDF.Quad[]) {
         // Get prov:generatedAtTime of members
         const memberToGeneratedAtTime = await this.mapMembersToGeneratedAtTime(quadsArrayOfPage, members);
 
@@ -233,24 +250,6 @@ export class EventStream extends Readable {
             this.push(`${outputString}\n`);
         };
 
-    }
-
-    private async retrieveRecursively() {
-        if (this.bookie.nextFragmentExists()) {
-            let next = this.bookie.getNextFragmentToFetch();
-            let now = new Date();
-            // Do not refetch too soon
-            while (next.refetchTime.getTime() > now.getTime()) {
-                await this.sleep(FETCH_PAUSE);
-                this.log("Waiting " + (next.refetchTime - now.getTime()) / 1000 + "s before refetching: " + next.url);
-                now = new Date();
-            }
-            this.retrieve(next.url);
-        } else {
-            this.log("done")
-            // We're done
-            this.push(null);
-        }
     }
 
     public getPage(pageUrl: string): Promise<PageMetadata> {
