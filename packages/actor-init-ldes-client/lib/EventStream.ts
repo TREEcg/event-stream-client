@@ -125,7 +125,7 @@ export class EventStream extends Readable {
 
     protected log(msg: string) {
         // Fixme: use normal logging library
-        console.info(msg);
+        console.error(msg);
     }
 
     protected async start() {
