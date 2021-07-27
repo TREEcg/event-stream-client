@@ -88,7 +88,7 @@ export class EventStream extends Readable {
 
     protected readonly processedURIs: Set<string>;
     protected readonly bookie: Bookkeeper;
-    protected readonly done: boolean;
+    protected done: boolean;
 
     public constructor(
         url: string,
