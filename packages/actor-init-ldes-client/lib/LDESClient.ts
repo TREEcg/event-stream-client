@@ -74,7 +74,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
 
     public async run(action: IActionInit): Promise<IActorOutputInit> {
         const args = minimist(action.argv);
-        if (args["_"].length) {
+        if (!args["_"].length) {
             return { stderr: require('streamify-string')(<Error>new Error(LDESClient.HELP_MESSAGE)) }
         }
 
