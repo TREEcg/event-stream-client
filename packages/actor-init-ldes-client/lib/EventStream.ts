@@ -1,5 +1,4 @@
-import { ActorInit, IActionInit, IActorOutputInit } from "@comunica/bus-init/lib/ActorInit";
-import { Actor, IAction, IActorArgs, IActorTest, Mediator } from "@comunica/core";
+import { Actor, IActorTest, Mediator } from "@comunica/core";
 import type {
     IActionRdfMetadataExtract,
     IActorRdfMetadataExtractOutput,
@@ -36,7 +35,6 @@ import {
     IActorOutputHandleRdfParse,
     IActorTestHandleRdfParse
 } from "@comunica/bus-rdf-parse";
-import { IActionRdfFilterObject, IActorRdfFilterObjectOutput } from "../../bus-rdf-filter-object";
 import { IActionRdfFrame, IActorRdfFrameOutput } from "../../bus-rdf-frame";
 import {
     IActionSparqlSerializeHandle,
@@ -48,6 +46,8 @@ import { IActorQueryOperationOutputQuads } from "@comunica/bus-query-operation";
 import * as f from "@dexagod/rdf-retrieval";
 import { ArrayIterator } from "asynciterator";
 import { Frame } from "jsonld/jsonld-spec";
+
+const urlLib = require('url');
 
 export interface IEventStreamArgs {
     pollingInterval?: number,
@@ -306,7 +306,14 @@ export class EventStream extends Readable {
             const protocol = new URL(pageUrl).protocol;
             let r = protocol === 'https:' ? cacheableRequestHttps : cacheableRequestHttp;
 
-            const cacheReq = r(pageUrl, (res: any) => {
+            const options = {
+                ...urlLib.parse(pageUrl),
+                headers: {
+                    Accept: 'text/turtle;application/ld+json',
+                }
+            };
+
+            const cacheReq = r(options, (res: any) => {
                 let data = '';
 
                 // A chunk of data has been recieved.
