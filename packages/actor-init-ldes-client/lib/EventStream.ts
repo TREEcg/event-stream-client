@@ -46,7 +46,7 @@ import {
 import { IActorQueryOperationOutputQuads } from "@comunica/bus-query-operation";
 
 import * as f from "@dexagod/rdf-retrieval";
-import { AsyncIterator } from "asynciterator";
+import { ArrayIterator } from "asynciterator";
 import { Frame } from "jsonld/jsonld-spec";
 
 export interface IEventStreamArgs {
@@ -64,9 +64,6 @@ export interface IEventStreamMediators {
 
     mediatorRdfParse: Mediator<Actor<IActionHandleRdfParse, IActorTestHandleRdfParse, IActorOutputHandleRdfParse>,
         IActionHandleRdfParse, IActorTestHandleRdfParse, IActorOutputHandleRdfParse>;
-
-    mediatorRdfFilterObject: Mediator<Actor<IActionRdfFilterObject, IActorTest, IActorRdfFilterObjectOutput>,
-        IActionRdfFilterObject, IActorTest, IActorRdfFilterObjectOutput>;
 
     mediatorRdfFrame: Mediator<Actor<IActionRdfFrame, IActorTest, IActorRdfFrameOutput>,
         IActionRdfFrame, IActorTest, IActorRdfFrameOutput>;
@@ -196,20 +193,72 @@ export class EventStream extends Readable {
                 }
             }
 
-            const members: string[] = this.getMembers(treeMetadata);
+            const memberUris: string[] = this.getMemberUris(treeMetadata);
+            const members = this.getMembers(quadsArrayOfPage, memberUris);
 
-            this.processMembers(members, quadsArrayOfPage);
+            this.processMembers(members, memberUris, quadsArrayOfPage);
         } catch (e) {
             this.log('Failed to retrieve ' + pageUrl + ': ' + e);
         }
     }
 
-    protected async processMembers(members: string[], quadsArrayOfPage: RDF.Quad[]) {
-        // Get prov:generatedAtTime of members
-        const memberToGeneratedAtTime = await this.mapMembersToGeneratedAtTime(quadsArrayOfPage, members);
+    protected getMembers(quads: RDF.Quad[], memberUris: string[]): Record<string, RDF.Quad[]> {
+        const subjectIndex: Record<string, RDF.Quad[]> = {};
+        for (const quad of quads) {
+            const subject = quad.subject.value;
+            if (!subjectIndex[subject]) {
+                subjectIndex[subject] = [ quad ];        
+            } else {
+                subjectIndex[subject].push(quad);
+            }
+        }
 
-        let membersToProcess: string[] = [];
-        for (let member of members) {
+        const result: Record<string, RDF.Quad[]> = {};
+        for (const memberUri of memberUris) {
+            const done = new Set(memberUris);
+            result[memberUri] = this.getMember(memberUri, subjectIndex, done);
+        }
+        return result;
+    }
+
+    protected getMember(memberUri: string, subjectIndex: Record<string, RDF.Quad[]>, done: Set<string>): RDF.Quad[] {
+        const queue: string[] = [ memberUri ];
+        const result: RDF.Quad[] = [];
+
+        while (queue.length > 0) {
+            const subject = queue.pop();
+
+            if (!subject) {
+                // Type coercion, should never happen
+                break;
+            }
+
+            if (!subjectIndex[subject]) {
+                // Nothing is known about this resource
+                continue;
+            }
+
+            for (const quad of subjectIndex[subject]) {
+                result.push(quad);
+
+                if (quad.object.termType === 'NamedNode' || quad.object.termType === 'BlankNode') {
+                    if (!done.has(quad.object.value)) {
+                        done.add(quad.object.value);
+                        queue.push(quad.object.value);
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    protected async processMembers(members: Record<string, RDF.Quad[]>, memberUris: string[], quadsArrayOfPage: RDF.Quad[]) {
+        // Get prov:generatedAtTime of members
+        const memberToGeneratedAtTime = await this.mapMembersToGeneratedAtTime(quadsArrayOfPage, memberUris);
+
+        const membersToProcess: string[] = [];
+        for (let member of memberUris) {
             // Only process member when its prov:generatedAtTime is higher
             if (!this.fromTime || (memberToGeneratedAtTime[member].getTime() >= this.fromTime.getTime())) {
                 // Process if LRU Cache doesn't recognize
@@ -222,20 +271,15 @@ export class EventStream extends Readable {
             }
         }
 
-        // Filter the quads that are relevant for each member
-        const quadstreamPerMember = (await this.mediators.mediatorRdfFilterObject.mediate({
-            data: await this.quadArrayToQuadStream(quadsArrayOfPage),
-            objectURIs: membersToProcess,
-            constraints: undefined
-        })).data; // Map<string, RDF.Stream>
-
         // Serialize back into string
-        for (let [id, memberQuadStream] of quadstreamPerMember.entries()) {
+        for (const [id, quads] of Object.entries(members)) {
+            const quadStream = new ArrayIterator(quads);
+
             let outputString;
             if (this.mimeType != "application/ld+json") {
                 const handle: IActorQueryOperationOutputQuads = {
                     type: "quads",
-                    quadStream: memberQuadStream as RDF.Stream & AsyncIterator<RDF.Quad>
+                    quadStream: quadStream,
                 };
                 outputString = await stringifyStream((await this.mediators.mediatorRdfSerialize.mediate({
                     handle: handle,
@@ -247,7 +291,7 @@ export class EventStream extends Readable {
                     "@id": id
                 };
                 const framedObjects: Map<Frame, JsonLdDocument> = (await this.mediators.mediatorRdfFrame.mediate({
-                    data: memberQuadStream,
+                    data: quadStream,
                     frames: [frame],
                     jsonLdContext: this.jsonLdContext
                 })).data;
@@ -255,7 +299,6 @@ export class EventStream extends Readable {
             }
             this.push(`${outputString}\n`);
         };
-
     }
 
     protected getPage(pageUrl: string): Promise<PageMetadata> {
@@ -333,7 +376,7 @@ export class EventStream extends Readable {
     }
 
     // Returns array of memberURI (string) -> immutable (boolean)
-    protected getMembers(treeMetadata: any): string[] {
+    protected getMemberUris(treeMetadata: any): string[] {
         let members: string[] = [];
         // Retrieve members from all collections found in the fragment
         const collections = treeMetadata.metadata.treeMetadata.collections;

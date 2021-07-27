@@ -135,7 +135,6 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
         const mediators = {
             mediatorRdfMetadataExtractTree: this.mediatorRdfMetadataExtractTree,
             mediatorRdfParse: this.mediatorRdfParse,
-            mediatorRdfFilterObject: this.mediatorRdfFilterObject,
             mediatorRdfFrame: this.mediatorRdfFrame,
             mediatorRdfSerialize: this.mediatorRdfSerialize,
         };
