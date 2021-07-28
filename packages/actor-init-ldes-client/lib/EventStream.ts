@@ -83,7 +83,7 @@ interface IMember {
 export class EventStream extends Readable {
     protected readonly mediators: IEventStreamMediators;
 
-    protected readonly pollingInterval?: number;
+    protected readonly pollingInterval: number;
     protected readonly mimeType?: string;
     protected readonly jsonLdContext?: ContextDefinition;
     protected readonly emitMemberOnce?: boolean;
@@ -106,7 +106,7 @@ export class EventStream extends Readable {
         this.accessUrl = url;
         this.fromTime = args.fromTime;
         this.disablePolling = args.disablePolling;
-        this.pollingInterval = args.pollingInterval;
+        this.pollingInterval = args.pollingInterval || 0;
         this.mimeType = args.mimeType;
         this.jsonLdContext = args.jsonLdContext;
         this.dereferenceMembers = args.dereferenceMembers;
@@ -172,7 +172,7 @@ export class EventStream extends Readable {
             if (!this.disablePolling) {
                 // Based on the HTTP Caching headers, poll this fragment
                 const policy = new CachePolicy(page.request, page.response, { shared: false }); // If options.shared is false, then the response is evaluated from a perspective of a single-user cache (i.e. private is cacheable and s-maxage is ignored)
-                const ttl = policy.storable() ? policy.timeToLive() : this.pollingInterval; // pollingInterval is fallback
+                const ttl = Math.max(this.pollingInterval, policy.storable() ? policy.timeToLive() : 0); // pollingInterval is fallback
                 this.bookie.addFragment(page.url, ttl);
             }
 
