@@ -170,6 +170,7 @@ const urn_comunica_myLDESClient = new (require('./index.js').LDESClient)({
   'jsonLdContextPath': '',
   'disablePolling': false,
   'emitMemberOnce': true,
+  'dereferenceMembers': false,
   'mediatorRdfMetadataExtractTree': urn_comunica_mediatorRdfMetadataExtractTree,
   'mediatorRdfParse': urn_comunica_mediatorRdfParse,
   'mediatorRdfFilterObject': urn_comunica_mediatorRdfFilterObject,

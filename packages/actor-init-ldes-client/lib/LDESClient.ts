@@ -38,6 +38,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     --disablePolling             whether to disable polling or not (by default set to "false", polling is enabled). Value can be set to "true" or "false"
     --fromTime                   datetime to prune relations that have a lower datetime value (e.g., 2020-01-01T00:00:00)
     --emitMemberOnce             whether to emit a member only once, because collection contains immutable version objects. Value can be set to "true" or "false"
+    --dereferenceMembers         whether to dereference members, because the collection pages do not contain all information. Value can be set to "true" or "false", defaults to "false"
     --help                       print this help message
   `;
 
@@ -63,6 +64,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     public emitMemberOnce: boolean;
     public fromTime?: Date;
     public disablePolling: boolean;
+    public dereferenceMembers: boolean;
 
     public constructor(args: ILDESClientArgs) {
         super(args);
@@ -94,12 +96,27 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             options.fromTime = new Date(args.fromTime);
         }
 
+        if (args.emitMemberOnce) {
+            if (typeof args.emitMemberOnce == "boolean") {
+                options.emitMemberOnce = args.emitMemberOnce;
+            } else {
+                options.emitMemberOnce = args.emitMemberOnce.toLowerCase() == 'true' ? true : false;
+            }
+        } 
+
         if (args.disablePolling) {
             if (typeof args.disablePolling == "boolean") {
                 options.disablePolling = args.disablePolling;
-            }
-            else {
+            } else {
                 options.disablePolling = args.disablePolling.toLowerCase() == 'true' ? true : false;
+            }
+        } 
+
+        if (args.dereferenceMembers) {
+            if (typeof args.dereferenceMembers == "boolean") {
+                options.dereferenceMembers = args.dereferenceMembers;
+            } else {
+                options.dereferenceMembers = args.dereferenceMembers.toLowerCase() == 'true' ? true : false;
             }
         }
 
@@ -131,6 +148,9 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
         if (typeof options.disablePolling != "boolean") {
             options.disablePolling = this.disablePolling;
         }
+        if (typeof options.dereferenceMembers != "boolean") {
+            options.dereferenceMembers = this.dereferenceMembers;
+        }
 
         const mediators = {
             mediatorRdfMetadataExtractTree: this.mediatorRdfMetadataExtractTree,
@@ -160,5 +180,6 @@ export interface ILDESClientArgs extends IActorArgs<IActionInit, IActorTest, IAc
     jsonLdContextString: string;
     emitMemberOnce: boolean;
     disablePolling: boolean;
+    dereferenceMembers: boolean;
     fromTime?: Date;
 }

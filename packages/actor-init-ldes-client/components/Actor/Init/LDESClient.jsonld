@@ -67,6 +67,14 @@
           "unique": true
         },
         {
+          "@id": "ldes:dereferenceMembers",
+          "comment": "Dereference members,because the collection pages do not contain all information.",
+          "range": "xsd:boolean",
+          "default": "false",
+          "required": true,
+          "unique": true
+        },
+        {
           "@id": "ldes:mediatorRdfMetadataExtractTree",
           "comment": "The RDF Metadata Extract TREE mediator",
           "required": true,
@@ -133,6 +141,10 @@
             {
               "keyRaw": "emitMemberOnce",
               "value": "ldes:emitMemberOnce"
+            },
+            {
+              "keyRaw": "dereferenceMembers",
+              "value": "ldes:dereferenceMembers"
             },
             {
               "keyRaw": "mediatorRdfMetadataExtractTree",

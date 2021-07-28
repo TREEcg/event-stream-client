@@ -44,10 +44,12 @@ import {
 import { IActorQueryOperationOutputQuads } from "@comunica/bus-query-operation";
 
 import * as f from "@dexagod/rdf-retrieval";
-import { ArrayIterator } from "asynciterator";
+import { AsyncIterator, ArrayIterator } from "asynciterator";
 import { Frame } from "jsonld/jsonld-spec";
 
 const urlLib = require('url');
+
+import rdfDereferencer from "rdf-dereference";
 
 export interface IEventStreamArgs {
     pollingInterval?: number,
@@ -56,6 +58,7 @@ export interface IEventStreamArgs {
     fromTime?: Date,
     emitMemberOnce?: boolean,
     disablePolling?: boolean,
+    dereferenceMembers?: boolean,
 }
 
 export interface IEventStreamMediators {
@@ -72,15 +75,21 @@ export interface IEventStreamMediators {
         IActionSparqlSerializeHandle, IActorTestSparqlSerializeHandle, IActorOutputSparqlSerializeHandle>;
 }
 
+interface IMember {
+    uri: string,
+    quads: RDF.Stream<RDF.Quad> & AsyncIterator<RDF.Quad>,
+}
+
 export class EventStream extends Readable {
     protected readonly mediators: IEventStreamMediators;
 
     protected readonly pollingInterval?: number;
     protected readonly mimeType?: string;
     protected readonly jsonLdContext?: ContextDefinition;
-    protected readonly emitMemberOnce: boolean;
+    protected readonly emitMemberOnce?: boolean;
     protected readonly fromTime?: Date;
     protected readonly disablePolling?: boolean;
+    protected readonly dereferenceMembers?: boolean;
     protected readonly accessUrl: string;
 
     protected readonly processedURIs: Set<string>;
@@ -100,6 +109,8 @@ export class EventStream extends Readable {
         this.pollingInterval = args.pollingInterval;
         this.mimeType = args.mimeType;
         this.jsonLdContext = args.jsonLdContext;
+        this.dereferenceMembers = args.dereferenceMembers;
+        this.emitMemberOnce = args.emitMemberOnce;
 
         this.processedURIs = new Set();
         this.bookie = new Bookkeeper();
@@ -196,13 +207,13 @@ export class EventStream extends Readable {
             const memberUris: string[] = this.getMemberUris(treeMetadata);
             const members = this.getMembers(quadsArrayOfPage, memberUris);
 
-            this.processMembers(members, memberUris, quadsArrayOfPage);
+            this.processMembers(members);
         } catch (e) {
             this.log('Failed to retrieve ' + pageUrl + ': ' + e);
         }
     }
 
-    protected getMembers(quads: RDF.Quad[], memberUris: string[]): Record<string, RDF.Quad[]> {
+    protected async* getMembers(quads: RDF.Quad[], memberUris: string[]): AsyncGenerator<IMember> {
         const subjectIndex: Record<string, RDF.Quad[]> = {};
         for (const quad of quads) {
             const subject = quad.subject.value;
@@ -213,15 +224,38 @@ export class EventStream extends Readable {
             }
         }
 
-        const result: Record<string, RDF.Quad[]> = {};
+        const result: Record<string, AsyncIterator<RDF.Quad>> = {};
         for (const memberUri of memberUris) {
+            if (this.fromTime) {
+                // Check the event time; skip if needed
+                const eventTime = this.extractEventTime(subjectIndex[memberUri]);
+                if (!eventTime || eventTime < this.fromTime) {
+                    continue;
+                }
+            }
+
+            if (this.emitMemberOnce && this.processedURIs.has(memberUri)) {
+                // This event has already been emitted
+                continue;
+            }
+
+            this.processedURIs.add(memberUri);
+
             const done = new Set(memberUris);
-            result[memberUri] = this.getMember(memberUri, subjectIndex, done);
+            if (!this.dereferenceMembers) {
+                yield this.getMember(memberUri, subjectIndex, done);
+            } else {
+                const { quads } = await rdfDereferencer.dereference(memberUri);
+                yield {
+                    uri: memberUri,
+                    quads,
+                } as IMember;
+            }
         }
         return result;
     }
 
-    protected getMember(memberUri: string, subjectIndex: Record<string, RDF.Quad[]>, done: Set<string>): RDF.Quad[] {
+    protected getMember(memberUri: string, subjectIndex: Record<string, RDF.Quad[]>, done: Set<string>): IMember {
         const queue: string[] = [ memberUri ];
         const result: RDF.Quad[] = [];
 
@@ -250,30 +284,17 @@ export class EventStream extends Readable {
             }
         }
 
-        return result;
+        return {
+            uri: memberUri,
+            quads: new ArrayIterator(result),
+        };
     }
 
-    protected async processMembers(members: Record<string, RDF.Quad[]>, memberUris: string[], quadsArrayOfPage: RDF.Quad[]) {
-        // Get prov:generatedAtTime of members
-        const memberToGeneratedAtTime = await this.mapMembersToGeneratedAtTime(quadsArrayOfPage, memberUris);
-
-        const membersToProcess: string[] = [];
-        for (let member of memberUris) {
-            // Only process member when its prov:generatedAtTime is higher
-            if (!this.fromTime || (memberToGeneratedAtTime[member].getTime() >= this.fromTime.getTime())) {
-                // Process if LRU Cache doesn't recognize
-                // Or when it is configured that members may be emitted multiple times
-                // Otherwise don't process the member
-                if (!this.processedURIs.has(member) || !this.emitMemberOnce) {
-                    this.processedURIs.add(member);
-                    membersToProcess.push(member);
-                }
-            }
-        }
-
+    protected async processMembers(members: AsyncGenerator<IMember>) {
         // Serialize back into string
-        for (const [id, quads] of Object.entries(members)) {
-            const quadStream = new ArrayIterator(quads);
+        for await (const member of members) {
+            const id = member.uri;
+            const quadStream = member.quads;
 
             let outputString;
             if (this.mimeType != "application/ld+json") {
@@ -396,18 +417,18 @@ export class EventStream extends Readable {
         return members;
     }
 
-    protected mapMembersToGeneratedAtTime(quadArrayToFetchGeneratedAtTimes: RDF.Quad[], members: string[]): Record<string, Date> {
-        const memberToGeneratedAtTime: Record<string, Date> = {};
-
-        for (let quad of quadArrayToFetchGeneratedAtTimes) {
+    protected extractEventTime(quads: RDF.Quad[]): Date | undefined {
+        for (const quad of quads) {
             if (quad.subject.termType === 'NamedNode') {
-                const potentialMember = quad.subject.value;
                 const predicate = quad.predicate.value;
-                if (members.indexOf(potentialMember) != -1 && predicate === "http://www.w3.org/ns/prov#generatedAtTime")
-                    memberToGeneratedAtTime[potentialMember] = new Date(quad.object.value);
+                if (predicate === "http://www.w3.org/ns/prov#generatedAtTime") {
+                    // Todo: make predicate configurable OR read from stream metadata
+                    return new Date(quad.object.value);
+                }
             }
         }
-        return memberToGeneratedAtTime;
+
+        return undefined;
     }
 }
 
