@@ -18,7 +18,9 @@ In order to use it as a library, you can leave out the `-g`.
 actor-init-ldes-client --parameter ${PARAMETER} ${URL}
 ```
 
-Possible parameters:
+URL can be a `tree:Node` from where relations will be followed OR the URI of a `tree:Collection`. For the latter, the collection's URI will be dereferenced and one `tree:view` will be followed. 
+
+Possible parameters are:
 
 | Parameter  | Description | Possible values |
 | ------------- | ------------- | ------------- |
