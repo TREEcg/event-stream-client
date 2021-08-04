@@ -33,7 +33,9 @@
       "ts",
       "js"
     ],
-    "setupFilesAfterEnv": [ "./setup-jest.js" ],
+    "setupFilesAfterEnv": [
+      "./setup-jest.js"
+    ],
     "collectCoverage": true,
     "coveragePathIgnorePatterns": [
       "/node_modules/",
@@ -79,9 +81,9 @@
     "@types/rdf-js": "*",
     "jest": "^26.6.3",
     "jest-rdf": "^1.6.0",
-    "ts-jest": "^26.5.2",
     "manual-git-changelog": "^1.0.1",
-    "webpack": "^5.11.1",
+    "ts-jest": "^26.5.2",
+    "webpack": "^5.48.0",
     "webpack-cli": "^4.3.1"
   }
 }

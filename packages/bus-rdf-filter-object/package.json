@@ -31,10 +31,10 @@
     "index.js"
   ],
   "peerDependencies": {
-    "@comunica/core": "^1.19.2"
+    "@comunica/core": "1.21.1"
   },
   "devDependencies": {
-    "@comunica/core": "^1.19.2"
+    "@comunica/core": "1.21.1"
   },
   "scripts": {
     "build": "node \"../../node_modules/typescript/bin/tsc\"",

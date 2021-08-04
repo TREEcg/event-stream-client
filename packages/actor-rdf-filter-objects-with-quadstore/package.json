@@ -31,12 +31,12 @@
     "index.js"
   ],
   "peerDependencies": {
-    "@comunica/core": "^1.19.2",
-    "@treecg/bus-rdf-filter-object": "^2.0.4"
+    "@comunica/core": "1.21.1",
+    "@treecg/bus-rdf-filter-object": "2.3.4"
   },
   "devDependencies": {
-    "@comunica/core": "^1.19.2",
-    "@treecg/bus-rdf-filter-object": "^2.2.0",
+    "@comunica/core": "1.21.1",
+    "@treecg/bus-rdf-filter-object": "2.3.4",
     "@types/rdf-js": "^4.0.1"
   },
   "dependencies": {
