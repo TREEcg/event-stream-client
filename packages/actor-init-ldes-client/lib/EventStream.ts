@@ -6,10 +6,7 @@ import type {
 
 import * as moment from 'moment';
 
-import { DataFactory } from 'rdf-data-factory';
 import type * as RDF from 'rdf-js';
-
-const DF: RDF.DataFactory = new DataFactory();
 
 import { Readable } from 'stream';
 
@@ -48,6 +45,7 @@ import { AsyncIterator, ArrayIterator } from "asynciterator";
 import { Frame } from "jsonld/jsonld-spec";
 
 const urlLib = require('url');
+import { inspect } from 'util';
 
 import RateLimiter from "./RateLimiter";
 import MemberIterator from "./MemberIterator";
@@ -121,7 +119,7 @@ export class EventStream extends Readable {
         } else {
             this.rateLimiter = new RateLimiter(0);
         }
-        
+
         this.processedURIs = new Set();
         this.bookie = new Bookkeeper();
         this.done = false;
@@ -140,9 +138,11 @@ export class EventStream extends Readable {
         // Do nothing
     }
 
-    protected log(msg: string) {
-        // Fixme: use normal logging library
-        console.error(msg);
+    protected log(level: string, message: string, data?: any) {
+        process.stderr.write(`[${new Date().toISOString()}]  ${level.toUpperCase()}: ${message}\n`);
+        if (data) {
+            process.stderr.write(`[${new Date().toISOString()}]  ${level.toUpperCase()}: ${inspect(data)}\n`);
+        }
     }
 
     protected async start() {
@@ -152,18 +152,18 @@ export class EventStream extends Readable {
             // Do not refetch too soon
             while (next.refetchTime.getTime() > now.getTime()) {
                 await this.sleep(FETCH_PAUSE);
-                this.log("Waiting " + (next.refetchTime - now.getTime()) / 1000 + "s before refetching: " + next.url);
+                this.log('info', `Waiting ${(next.refetchTime - now.getTime()) / 1000}s before refetching: ${next.url}`);
                 now = new Date();
             }
             await this.retrieve(next.url);
-        } 
+        }
 
         // We're done
         this.done = true;
     }
 
     protected async retrieve(pageUrl: string) {
-        this.log('GET ' + pageUrl);
+        this.log('info', `GET ${pageUrl}`);
         const startTime = new Date();
 
         await this.rateLimiter.planRequest(pageUrl);
@@ -171,7 +171,7 @@ export class EventStream extends Readable {
         try {
             const page = await this.getPage(pageUrl);
             const message = `${page.statusCode} ${page.url} (${new Date().getTime() - startTime.getTime()}) ms`;
-            this.log(message);
+            this.log('info', message);
 
             // Remember that the fragment has been retrieved
             this.processedURIs.add(pageUrl);
@@ -195,7 +195,7 @@ export class EventStream extends Readable {
                 metadata: await this.quadArrayToQuadStream(quadsArrayOfPage),
                 url: page.url
             });
-            this.emit("metadata", {...treeMetadata, url: page.url});
+            this.emit("metadata", { ...treeMetadata, url: page.url });
 
             // Retrieve TREE relations towards other nodes
             for (const [_, relation] of treeMetadata.metadata.treeMetadata.relations) {
@@ -221,7 +221,7 @@ export class EventStream extends Readable {
 
             await this.processMembers(members);
         } catch (e) {
-            this.log('Failed to retrieve ' + pageUrl + ': ' + e);
+            this.log('error', `Failed to retrieve ${pageUrl}`, e);
         }
     }
 
@@ -230,7 +230,7 @@ export class EventStream extends Readable {
         for (const quad of quads) {
             const subject = quad.subject.value;
             if (!subjectIndex[subject]) {
-                subjectIndex[subject] = [ quad ];        
+                subjectIndex[subject] = [quad];
             } else {
                 subjectIndex[subject].push(quad);
             }
@@ -257,9 +257,13 @@ export class EventStream extends Readable {
                 const done = new Set(memberUris);
                 yield this.extractMember(memberUri, subjectIndex, done);
             } else {
+                const quads = new MemberIterator(memberUri, this.rateLimiter);
+                quads.on('error', (msg, e) => {
+                    this.log('error', msg, e);
+                })
                 yield {
                     uri: memberUri,
-                    quads: new MemberIterator(memberUri, this.rateLimiter),
+                    quads: quads,
                 } as IMember;
             }
         }
@@ -267,7 +271,7 @@ export class EventStream extends Readable {
     }
 
     protected extractMember(memberUri: string, subjectIndex: Record<string, RDF.Quad[]>, done: Set<string>): IMember {
-        const queue: string[] = [ memberUri ];
+        const queue: string[] = [memberUri];
         const result: RDF.Quad[] = [];
 
         while (queue.length > 0) {
@@ -307,34 +311,38 @@ export class EventStream extends Readable {
             const id = member.uri;
             const quadStream = member.quads;
 
-            let outputString;
-            if (this.mimeType != "application/ld+json") {
-                const handle: IActorQueryOperationOutputQuads = {
-                    type: "quads",
-                    quadStream: quadStream,
-                };
-                outputString = await stringifyStream((await this.mediators.mediatorRdfSerialize.mediate({
-                    handle: handle,
-                    handleMediaType: this.mimeType
-                })).handle.data);
-            } else {
-                // Create framed JSON-LD output
-                const frame = {
-                    "@id": id
-                };
-                const framedObjects: Map<Frame, JsonLdDocument> = (await this.mediators.mediatorRdfFrame.mediate({
-                    data: quadStream,
-                    frames: [frame],
-                    jsonLdContext: this.jsonLdContext
-                })).data;
-                outputString = JSON.stringify(framedObjects.get(frame));
+            try {
+                let outputString;
+                if (this.mimeType != "application/ld+json") {
+                    const handle: IActorQueryOperationOutputQuads = {
+                        type: "quads",
+                        quadStream: quadStream,
+                    };
+                    outputString = await stringifyStream((await this.mediators.mediatorRdfSerialize.mediate({
+                        handle: handle,
+                        handleMediaType: this.mimeType
+                    })).handle.data);
+                } else {
+                    // Create framed JSON-LD output
+                    const frame = {
+                        "@id": id
+                    };
+                    const framedObjects: Map<Frame, JsonLdDocument> = (await this.mediators.mediatorRdfFrame.mediate({
+                        data: quadStream,
+                        frames: [frame],
+                        jsonLdContext: this.jsonLdContext
+                    })).data;
+                    outputString = JSON.stringify(framedObjects.get(frame));
+                }
+                this.push(`${outputString}\n`);
+            } catch (error) {
+                this.log("error", `Failed to process member ${id}`, error);
             }
-            this.push(`${outputString}\n`);
         };
 
         // We're done
         if (this.done) {
-            this.log("done")
+            this.log('info', "done")
             this.push(null);
         }
     }

@@ -61,7 +61,6 @@ export default class MemberIterator extends AsyncIterator<Quad> {
     }
 
     protected async fetchPage(url: string) {
-        console.log("fetching", url);
         if (!this.waiting) {
             // start fetching a page
             this.readable = false;
@@ -80,12 +79,14 @@ export default class MemberIterator extends AsyncIterator<Quad> {
 
         try {
             const { quads } = await rdfDereferencer.dereference(url);
-            return f.quadStreamToQuadArray(quads);
+            return await f.quadStreamToQuadArray(quads);
         } catch (error) {
             if (attempts > 0) {
                 return this.fetchPageRetry(url, attempts - 1);
             } else {
-                throw error;
+                this.emit('error', `Cannot fetch ${url}`, error);
+                this.close();
+                return [];
             }
         }
     }
