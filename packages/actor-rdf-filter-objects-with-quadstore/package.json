@@ -1,6 +1,6 @@
 {
   "name": "@treecg/actor-rdf-filter-objects-with-quadstore",
-  "version": "2.3.0",
+  "version": "2.3.4",
   "description": "A rdf-filter-objects-with-quadstore actor",
   "lsd:module": true,
   "main": "index.js",
@@ -36,7 +36,7 @@
   },
   "devDependencies": {
     "@comunica/core": "1.21.1",
-    "@treecg/bus-rdf-filter-object": "2.3.4",
+    "@treecg/bus-rdf-filter-object": "^2.3.4",
     "@types/rdf-js": "^4.0.1"
   },
   "dependencies": {

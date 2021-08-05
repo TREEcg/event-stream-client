@@ -1,6 +1,32 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.3.5"></a>
+## [v2.3.5](https://github.com/TREEcg/event-stream-client/compare/v2.3.4...v2.3.5) - 2021-07-27
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Print log messages to stderr](https://github.com/TREEcg/event-stream-client/commit/7d931207aeec56dd7dd278025ac13753e9780081)
+
+<a name="v2.3.4"></a>
+## [v2.3.4](https://github.com/TREEcg/event-stream-client/compare/v2.3.3...v2.3.4) - 2021-07-27
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+
+
+<a name="v2.3.3"></a>
+## [v2.3.3](https://github.com/TREEcg/event-stream-client/compare/v2.3.2...v2.3.3) - 2021-07-27
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Don't make readonly](https://github.com/TREEcg/event-stream-client/commit/6842e2d34ae0e4c9e3d78144d6600a9809fd81d0)
+* [Fix ending too soon when not polling](https://github.com/TREEcg/event-stream-client/commit/5284a9d7c291d2dca916c8c9a2350c909bb71bac)
+* [Merge pull request #17 from hdelva/main](https://github.com/TREEcg/event-stream-client/commit/79a54673c4f8b148a7fa2dc7b68c4d7cc79d945b)
+* [Fix broken CLI interface](https://github.com/TREEcg/event-stream-client/commit/96b6ff6e3dedf51a6d2cd32dfd99a1f10958f4ca)
+* [Add method to ignore certain pages Because they have already been processed for example](https://github.com/TREEcg/event-stream-client/commit/1ca558724f7e298e1fa570b51ec2a493a4417966)
+* [Remove recursion](https://github.com/TREEcg/event-stream-client/commit/4b9c489258b2859a7dacb5b003f2edc5134725db)
+* [Emit metadata](https://github.com/TREEcg/event-stream-client/commit/a634f4af030ef556c866b379b37ac1a523773823)
+* [Make the LRU cache not a singleton](https://github.com/TREEcg/event-stream-client/commit/5abc885df988985bb78a26260fbd99e1be4e0dbc)
+* [Make the init actor stateless](https://github.com/TREEcg/event-stream-client/commit/0857fe98ae1aeeddafba8925c7befacbd327fe6e)
+
 <a name="v2.3.2"></a>
 ## [v2.3.2](https://github.com/TREEcg/event-stream-client/compare/v2.3.1...v2.3.2) - 2021-06-25
 

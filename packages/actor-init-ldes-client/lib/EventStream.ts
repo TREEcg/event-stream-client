@@ -97,6 +97,7 @@ export class EventStream extends Readable {
     protected readonly processedURIs: Set<string>;
     protected readonly bookie: Bookkeeper;
     protected readonly rateLimiter: RateLimiter;
+    protected done: boolean;
 
     public constructor(
         url: string,
@@ -123,6 +124,7 @@ export class EventStream extends Readable {
         
         this.processedURIs = new Set();
         this.bookie = new Bookkeeper();
+        this.done = false;
 
         this.bookie.addFragment(this.accessUrl, 0);
         this.start();
@@ -140,7 +142,7 @@ export class EventStream extends Readable {
 
     protected log(msg: string) {
         // Fixme: use normal logging library
-        console.info(msg);
+        console.error(msg);
     }
 
     protected async start() {
@@ -157,8 +159,7 @@ export class EventStream extends Readable {
         } 
 
         // We're done
-        this.log("done")
-        this.push(null);
+        this.done = true;
     }
 
     protected async retrieve(pageUrl: string) {
@@ -332,6 +333,12 @@ export class EventStream extends Readable {
             }
             this.push(`${outputString}\n`);
         };
+
+        // We're done
+        if (this.done) {
+            this.log("done")
+            this.push(null);
+        }
     }
 
     protected getPage(pageUrl: string): Promise<PageMetadata> {
