@@ -83,7 +83,7 @@ interface IMember {
 export class EventStream extends Readable {
     protected readonly mediators: IEventStreamMediators;
 
-    protected readonly pollingInterval: number;
+    protected readonly pollingInterval?: number;
     protected readonly mimeType?: string;
     protected readonly jsonLdContext?: ContextDefinition;
     protected readonly emitMemberOnce?: boolean;
@@ -108,7 +108,7 @@ export class EventStream extends Readable {
         this.accessUrl = url;
         this.fromTime = args.fromTime;
         this.disablePolling = args.disablePolling;
-        this.pollingInterval = args.pollingInterval || 0;
+        this.pollingInterval = args.pollingInterval;
         this.mimeType = args.mimeType;
         this.jsonLdContext = args.jsonLdContext;
         this.dereferenceMembers = args.dereferenceMembers;
@@ -181,7 +181,7 @@ export class EventStream extends Readable {
             // TODO: Fetch mediaType by using response and comunica actor
             const mediaType = page.headers['content-type'].indexOf(';') > 0 ? page.headers['content-type'].substr(0, page.headers['content-type'].indexOf(';')) : page.headers['content-type'];
 
-            if (!this.disablePolling) {
+            if (!this.disablePolling && this.pollingInterval) {
                 // Based on the HTTP Caching headers, poll this fragment
                 const policy = new CachePolicy(page.request, page.response, { shared: false }); // If options.shared is false, then the response is evaluated from a perspective of a single-user cache (i.e. private is cacheable and s-maxage is ignored)
                 const ttl = Math.max(this.pollingInterval, policy.storable() ? policy.timeToLive() : 0); // pollingInterval is fallback

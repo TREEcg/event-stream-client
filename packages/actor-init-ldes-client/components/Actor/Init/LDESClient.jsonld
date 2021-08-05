@@ -153,6 +153,10 @@
               "value": "ldes:dereferenceMembers"
             },
             {
+              "keyRaw": "requestsPerMinute",
+              "value": "ldes:requestsPerMinute"
+            },
+            {
               "keyRaw": "mediatorRdfMetadataExtractTree",
               "value": "ldes:mediatorRdfMetadataExtractTree"
             },

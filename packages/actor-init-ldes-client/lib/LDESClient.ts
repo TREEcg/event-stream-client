@@ -39,6 +39,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     --fromTime                   datetime to prune relations that have a lower datetime value (e.g., 2020-01-01T00:00:00)
     --emitMemberOnce             whether to emit a member only once, because collection contains immutable version objects. Value can be set to "true" or "false"
     --dereferenceMembers         whether to dereference members, because the collection pages do not contain all information. Value can be set to "true" or "false", defaults to "false"
+    --requestsPerMinute          How many requests per minutes may be sent to the same host
     --help                       print this help message
   `;
 
