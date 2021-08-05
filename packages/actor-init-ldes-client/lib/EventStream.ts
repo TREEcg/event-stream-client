@@ -207,7 +207,7 @@ export class EventStream extends Readable {
             const memberUris: string[] = this.getMemberUris(treeMetadata);
             const members = this.getMembers(quadsArrayOfPage, memberUris);
 
-            this.processMembers(members);
+            await this.processMembers(members);
         } catch (e) {
             this.log('Failed to retrieve ' + pageUrl + ': ' + e);
         }
