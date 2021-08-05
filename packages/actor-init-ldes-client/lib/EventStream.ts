@@ -50,6 +50,7 @@ import { Frame } from "jsonld/jsonld-spec";
 const urlLib = require('url');
 
 import rdfDereferencer from "rdf-dereference";
+import RateLimiter from "./RateLimiter";
 
 export interface IEventStreamArgs {
     pollingInterval?: number,
@@ -59,10 +60,11 @@ export interface IEventStreamArgs {
     emitMemberOnce?: boolean,
     disablePolling?: boolean,
     dereferenceMembers?: boolean,
+    requestsPerMinute?: number,
 }
 
 export interface IEventStreamMediators {
-    mediatorRdfMetadataExtractTree: Mediator<ActorRdfMetadataExtract,
+    mediatorRdfMetadataExtract: Mediator<ActorRdfMetadataExtract,
         IActionRdfMetadataExtract, IActorTest, IActorRdfMetadataExtractOutput>;
 
     mediatorRdfParse: Mediator<Actor<IActionHandleRdfParse, IActorTestHandleRdfParse, IActorOutputHandleRdfParse>,
@@ -94,6 +96,7 @@ export class EventStream extends Readable {
 
     protected readonly processedURIs: Set<string>;
     protected readonly bookie: Bookkeeper;
+    protected readonly rateLimiter: RateLimiter;
 
     public constructor(
         url: string,
@@ -112,6 +115,12 @@ export class EventStream extends Readable {
         this.dereferenceMembers = args.dereferenceMembers;
         this.emitMemberOnce = args.emitMemberOnce;
 
+        if (args.requestsPerMinute) {
+            this.rateLimiter = new RateLimiter(60000. / args.requestsPerMinute);
+        } else {
+            this.rateLimiter = new RateLimiter(0);
+        }
+        
         this.processedURIs = new Set();
         this.bookie = new Bookkeeper();
 
@@ -156,6 +165,8 @@ export class EventStream extends Readable {
         this.log('GET ' + pageUrl);
         const startTime = new Date();
 
+        await this.rateLimiter.planRequest(pageUrl);
+
         try {
             const page = await this.getPage(pageUrl);
             const message = `${page.statusCode} ${page.url} (${new Date().getTime() - startTime.getTime()}) ms`;
@@ -179,7 +190,7 @@ export class EventStream extends Readable {
             const quadsArrayOfPage = await this.stringToQuadArray(page.data.toString(), '', mediaType);
 
             // Parse into RDF Stream to retrieve TREE metadata
-            const treeMetadata = await this.mediators.mediatorRdfMetadataExtractTree.mediate({
+            const treeMetadata = await this.mediators.mediatorRdfMetadataExtract.mediate({
                 metadata: await this.quadArrayToQuadStream(quadsArrayOfPage),
                 url: page.url
             });
@@ -241,10 +252,11 @@ export class EventStream extends Readable {
 
             this.processedURIs.add(memberUri);
 
-            const done = new Set(memberUris);
             if (!this.dereferenceMembers) {
-                yield this.getMember(memberUri, subjectIndex, done);
+                const done = new Set(memberUris);
+                yield this.extractMember(memberUri, subjectIndex, done);
             } else {
+                await this.rateLimiter.planRequest(memberUri);
                 const { quads } = await rdfDereferencer.dereference(memberUri);
                 yield {
                     uri: memberUri,
@@ -255,7 +267,7 @@ export class EventStream extends Readable {
         return result;
     }
 
-    protected getMember(memberUri: string, subjectIndex: Record<string, RDF.Quad[]>, done: Set<string>): IMember {
+    protected extractMember(memberUri: string, subjectIndex: Record<string, RDF.Quad[]>, done: Set<string>): IMember {
         const queue: string[] = [ memberUri ];
         const result: RDF.Quad[] = [];
 
@@ -330,7 +342,7 @@ export class EventStream extends Readable {
             const options = {
                 ...urlLib.parse(pageUrl),
                 headers: {
-                    Accept: 'text/turtle;application/ld+json',
+                    Accept: 'application/ld+json', // TODO: make configurable
                 }
             };
 

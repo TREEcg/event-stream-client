@@ -15,6 +15,7 @@
       "fromGeneratedAtTime": "ldes:fromGeneratedAtTime",
       "disablePolling": "ldes:disablePolling",
       "dereferenceMembers": "ldes:dereferenceMembers",
+      "requestsPerMinute": "ldes:requestsPerMinute",
 
       "mediatorRdfMetadataExtractTree": "ldes:mediatorRdfMetadataExtractTree",
       "mediatorRdfParse": "ldes:mediatorRdfParse",

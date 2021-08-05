@@ -65,6 +65,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     public fromTime?: Date;
     public disablePolling: boolean;
     public dereferenceMembers: boolean;
+    public requestsPerMinute?: number;
 
     public constructor(args: ILDESClientArgs) {
         super(args);
@@ -120,6 +121,10 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             }
         }
 
+        if (args.requestsPerMinute) {
+            options.requestsPerMinute = Number.parseInt(args.requestsPerMinute);
+        }
+
         const url = args._[args._.length - 1];
         const eventStream = this.createReadStream(url, options);
         return { 'stdout': eventStream };
@@ -151,9 +156,12 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
         if (typeof options.dereferenceMembers != "boolean") {
             options.dereferenceMembers = this.dereferenceMembers;
         }
+        if (!options.requestsPerMinute) {
+            options.requestsPerMinute = this.requestsPerMinute;
+        }
 
         const mediators = {
-            mediatorRdfMetadataExtractTree: this.mediatorRdfMetadataExtractTree,
+            mediatorRdfMetadataExtract: this.mediatorRdfMetadataExtractTree,
             mediatorRdfParse: this.mediatorRdfParse,
             mediatorRdfFrame: this.mediatorRdfFrame,
             mediatorRdfSerialize: this.mediatorRdfSerialize,
@@ -182,4 +190,5 @@ export interface ILDESClientArgs extends IActorArgs<IActionInit, IActorTest, IAc
     disablePolling: boolean;
     dereferenceMembers: boolean;
     fromTime?: Date;
+    requestsPerMinute?: number;
 }
