@@ -49,8 +49,8 @@ import { Frame } from "jsonld/jsonld-spec";
 
 const urlLib = require('url');
 
-import rdfDereferencer from "rdf-dereference";
 import RateLimiter from "./RateLimiter";
+import MemberIterator from "./MemberIterator";
 
 export interface IEventStreamArgs {
     pollingInterval?: number,
@@ -225,7 +225,7 @@ export class EventStream extends Readable {
         }
     }
 
-    protected async* getMembers(quads: RDF.Quad[], memberUris: string[]): AsyncGenerator<IMember> {
+    protected * getMembers(quads: RDF.Quad[], memberUris: string[]): Generator<IMember> {
         const subjectIndex: Record<string, RDF.Quad[]> = {};
         for (const quad of quads) {
             const subject = quad.subject.value;
@@ -257,11 +257,9 @@ export class EventStream extends Readable {
                 const done = new Set(memberUris);
                 yield this.extractMember(memberUri, subjectIndex, done);
             } else {
-                await this.rateLimiter.planRequest(memberUri);
-                const { quads } = await rdfDereferencer.dereference(memberUri);
                 yield {
                     uri: memberUri,
-                    quads,
+                    quads: new MemberIterator(memberUri, this.rateLimiter),
                 } as IMember;
             }
         }
@@ -303,9 +301,9 @@ export class EventStream extends Readable {
         };
     }
 
-    protected async processMembers(members: AsyncGenerator<IMember>) {
+    protected async processMembers(members: Generator<IMember>) {
         // Serialize back into string
-        for await (const member of members) {
+        for (const member of members) {
             const id = member.uri;
             const quadStream = member.quads;
 
