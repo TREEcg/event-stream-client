@@ -7,6 +7,7 @@ export class Bookkeeper {
         max: 500,
         maxAge: 1000 * 60 * 60 * 24
     }); // to know whether a fragment URL is already added to the priority queue
+    protected readonly blacklist: Set<string> = new Set();
 
     public constructor() {
 
@@ -16,8 +17,16 @@ export class Bookkeeper {
         return this.queued.has(url);
     }
 
+    public fragmentIsBlacklisted(url: string) {
+        return this.blacklist.has(url);
+    }
+
+    public blacklistFragment(url: string) {
+        this.blacklist.add(url);
+    }
+
     public addFragment(url: string, ttl: number) {
-        if (!this.fragmentAlreadyAdded(url)) {
+        if (!this.fragmentAlreadyAdded(url) && !this.fragmentIsBlacklisted(url)) {
             let fragmentInfo = {
                 "url": url,
                 "refetchTime": new Date(new Date().getTime() + ttl) // now

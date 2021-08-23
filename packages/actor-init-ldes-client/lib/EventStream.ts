@@ -130,7 +130,7 @@ export class EventStream extends Readable {
 
     public ignorePages(urls: string[]) {
         for (const url of urls) {
-            this.processedURIs.add(url);
+            this.bookie.blacklistFragment(url);
         }
     }
 
