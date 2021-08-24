@@ -28,6 +28,8 @@ Possible parameters:
 | fromTime  | datetime to prune relations that have a lower datetime value | for example: 2020-01-01T00:00:00 |
 | emitMemberOnce  | whether to emit a member only once, because collection contains immutable version objects.  | true / false |
 | disablePolling  | whether to disable polling (by default: false).  | true / false |
+| dereferenceMembers | whether to dereference members, because the collection pages do not contain all information (by default: false). | true / false |
+| requestsPerMinute | how many requests per minutes may be sent to the same host (optional) | any number |
 
 Example commando with parameters:
 ```
