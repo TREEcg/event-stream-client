@@ -1,6 +1,24 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.3.6"></a>
+## [v2.3.6](https://github.com/TREEcg/event-stream-client/compare/v2.3.5...v2.3.6) - 2021-08-26
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Update README.md](https://github.com/TREEcg/event-stream-client/commit/1970e4d4adb786286f1852a6c095b0282f407870)
+* [Fix ignoring of pages](https://github.com/TREEcg/event-stream-client/commit/6427bb5701526c771a6b583614052d3b623f7389)
+* [Clean up some code](https://github.com/TREEcg/event-stream-client/commit/614915581d362e434ed4dce3beb3b7b7c28a2d67)
+* [Fail graciously when a dereferencing a member failed](https://github.com/TREEcg/event-stream-client/commit/d499d5d4aa128db7462d13ffbf67327924a74073)
+* [Add link following to member dereferencing](https://github.com/TREEcg/event-stream-client/commit/1a4ed729c8f0dcede1bfab65f9477faf573e1b6b)
+* [Merge branch 'main' of github.com:TREEcg/event-stream-client](https://github.com/TREEcg/event-stream-client/commit/03310bc059dd970b3fde07648cfae70afbeabae2)
+* [Add optional rate limiting](https://github.com/TREEcg/event-stream-client/commit/8c0e5b8ece4a14a4410d52da8366e4f16428d4de)
+* [Wait on the processing of members](https://github.com/TREEcg/event-stream-client/commit/00db84dab4ba923ff35a4327c627fbc725772cb2)
+* [Update dependencies](https://github.com/TREEcg/event-stream-client/commit/c4b3bf1f5e19128466d96e2fd38d10e04f11f485)
+* [Use polling interval as minimum time between repolling](https://github.com/TREEcg/event-stream-client/commit/89d060b0ff764045009d6ab1de151b8af09d9ba4)
+* [Dereference external members](https://github.com/TREEcg/event-stream-client/commit/a32a2defca1f75006aa5442f75fe933e87d47a3f)
+* [Add simple content type negotiation](https://github.com/TREEcg/event-stream-client/commit/03784cc860798d465d192dc4f2a11bd6c3bfc979)
+* [Add non-cyclic member extraction](https://github.com/TREEcg/event-stream-client/commit/3f8f1a80aca4d8314a3aa8563e948a7778967c73)
+
 <a name="v2.3.5"></a>
 ## [v2.3.5](https://github.com/TREEcg/event-stream-client/compare/v2.3.4...v2.3.5) - 2021-07-27
 

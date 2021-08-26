@@ -1,6 +1,6 @@
 {
   "name": "@treecg/actor-init-ldes-client",
-  "version": "2.3.5",
+  "version": "2.3.6",
   "description": "An init actor that fetches members from an Event Stream API",
   "publishConfig": {
     "access": "public"
@@ -59,12 +59,12 @@
     "@comunica/runner-cli": "1.21.1",
     "@dexagod/rdf-retrieval": "^1.0.2",
     "@rdfjs/data-model": "1.3.3",
-    "@treecg/actor-rdf-filter-object-with-framing": "^2.3.4",
-    "@treecg/actor-rdf-filter-objects-with-quadstore": "^2.3.4",
-    "@treecg/actor-rdf-frame-with-json-ld-js": "^2.3.4",
+    "@treecg/actor-rdf-filter-object-with-framing": "^2.3.6",
+    "@treecg/actor-rdf-filter-objects-with-quadstore": "^2.3.6",
+    "@treecg/actor-rdf-frame-with-json-ld-js": "^2.3.6",
     "@treecg/actor-rdf-metadata-extract-tree": "^1.20.0",
-    "@treecg/bus-rdf-filter-object": "^2.3.4",
-    "@treecg/bus-rdf-frame": "^2.3.4",
+    "@treecg/bus-rdf-filter-object": "^2.3.6",
+    "@treecg/bus-rdf-frame": "^2.3.6",
     "awesome-typescript-loader": "^5.2.1",
     "cacheable-request": "^7.0.1",
     "follow-redirects": "^1.13.0",
