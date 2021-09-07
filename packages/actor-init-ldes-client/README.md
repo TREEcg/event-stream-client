@@ -50,42 +50,38 @@ Here is an example synchronizing with a TREE root node of an Event Stream with p
 
 ```javascript
 import { newEngine } from '@treecg/actor-init-ldes-client';
- main()
- 
- function main() {
-     try {
-         let url = "https://apidg.gent.be/opendata/adlib2eventstream/v1/dmg/objecten";
-         let options = {
-             "pollingInterval": 5000, // millis
-             "mimeType": "application/ld+json",
-             "fromTime": new Date("2021-02-03T15:46:12.307Z"),
-             "emitMemberOnce": true,
-             "disablePolling": true,
-             "jsonLdContext": {
-                 "@context": [
-                     "https://apidg.gent.be/opendata/adlib2eventstream/v1/context/cultureel-erfgoed-object-ap.jsonld",
-                     "https://apidg.gent.be/opendata/adlib2eventstream/v1/context/persoon-basis.jsonld",
-                     "https://apidg.gent.be/opendata/adlib2eventstream/v1/context/cultureel-erfgoed-event-ap.jsonld",
-                     {
-                         "dcterms:isVersionOf": {
-                             "@type": "@id"
-                         },
-                         "prov": "http://www.w3.org/ns/prov#"
-                     }
-                 ]
-             }
-         };
-         let LDESClient = new newEngine();
-         let eventstreamSync = LDESClient.createReadStream(url, options);
-         eventstreamSync.on('data', (data) => {
-             let obj = JSON.parse(data);
-             console.log(obj);
-         });
-         eventstreamSync.on('end', () => {
-             console.log("No more data!");
-         });
-     } catch (e) {
-         console.error(e);
-     }
- }
+try {
+    let url = "https://apidg.gent.be/opendata/adlib2eventstream/v1/dmg/objecten";
+    let options = {
+        "pollingInterval": 5000, // millis
+        "representation": "Object", //Object or Quads
+        "fromTime": new Date("2021-02-03T15:46:12.307Z"),
+        "emitMemberOnce": true,
+        "disablePolling": true,
+        "jsonLdContext": { //Only necessary for Object representation
+            "@context": [
+                "https://apidg.gent.be/opendata/adlib2eventstream/v1/context/cultureel-erfgoed-object-ap.jsonld",
+                "https://apidg.gent.be/opendata/adlib2eventstream/v1/context/persoon-basis.jsonld",
+                "https://apidg.gent.be/opendata/adlib2eventstream/v1/context/cultureel-erfgoed-event-ap.jsonld",
+                {
+                     "dcterms:isVersionOf": {
+                         "@type": "@id"
+                    },
+                    "prov": "http://www.w3.org/ns/prov#"
+                }
+            ]
+        }
+    };
+    let LDESClient = new newEngine();
+    let eventstreamSync = LDESClient.createReadStream(url, options);
+    eventstreamSync.on('data', (data) => {
+        let obj = JSON.parse(data);
+        console.log(obj);
+    });
+    eventstreamSync.on('end', () => {
+        console.log("No more data!");
+    });
+} catch (e) {
+    console.error(e);
+}
 ```

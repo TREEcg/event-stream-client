@@ -52,6 +52,7 @@ import MemberIterator from "./MemberIterator";
 
 export interface IEventStreamArgs {
     pollingInterval?: number,
+    representation?:string,
     mimeType?: string,
     jsonLdContext?: ContextDefinition,
     fromTime?: Date,
@@ -84,6 +85,7 @@ export class EventStream extends Readable {
     protected readonly mediators: IEventStreamMediators;
 
     protected readonly pollingInterval?: number;
+    protected readonly representation?: string;
     protected readonly mimeType?: string;
     protected readonly jsonLdContext?: ContextDefinition;
     protected readonly emitMemberOnce?: boolean;
@@ -109,6 +111,8 @@ export class EventStream extends Readable {
         this.fromTime = args.fromTime;
         this.disablePolling = args.disablePolling;
         this.pollingInterval = args.pollingInterval;
+        this.representation = args.representation;
+
         this.mimeType = args.mimeType;
         this.jsonLdContext = args.jsonLdContext;
         this.dereferenceMembers = args.dereferenceMembers;
@@ -306,35 +310,50 @@ export class EventStream extends Readable {
     }
 
     protected async processMembers(members: Generator<IMember>) {
-        // Serialize back into string
+
         for (const member of members) {
             const id = member.uri;
             const quadStream = member.quads;
 
             try {
-                let outputString;
-                if (this.mimeType != "application/ld+json") {
-                    const handle: IActorQueryOperationOutputQuads = {
-                        type: "quads",
-                        quadStream: quadStream,
-                    };
-                    outputString = await stringifyStream((await this.mediators.mediatorRdfSerialize.mediate({
-                        handle: handle,
-                        handleMediaType: this.mimeType
-                    })).handle.data);
+                //If representation is set, let’s return the data without serialization, but in the requested representation (Object or Quads)
+                if (this.representation) {
+                    //Can be "Object" or "Quads"
+                    if (this.representation === 'Object') {
+                        this.push((await this.mediators.mediatorRdfFrame.mediate({
+                            data: quadStream,
+                            frames: [{"@id": id}],
+                            jsonLdContext: this.jsonLdContext
+                        })).data);
+                    } else {
+                        this.push(quadStream);
+                    }
                 } else {
-                    // Create framed JSON-LD output
-                    const frame = {
-                        "@id": id
-                    };
-                    const framedObjects: Map<Frame, JsonLdDocument> = (await this.mediators.mediatorRdfFrame.mediate({
-                        data: quadStream,
-                        frames: [frame],
-                        jsonLdContext: this.jsonLdContext
-                    })).data;
-                    outputString = JSON.stringify(framedObjects.get(frame));
+                    let outputString;
+                    if (this.mimeType != "application/ld+json") {
+                        const handle: IActorQueryOperationOutputQuads = {
+                            type: "quads",
+                            quadStream: quadStream,
+                        };
+                        
+                        outputString = await stringifyStream((await this.mediators.mediatorRdfSerialize.mediate({
+                            handle: handle,
+                            handleMediaType: this.mimeType
+                        })).handle.data);
+                    } else {
+                        // Create framed JSON-LD output
+                        const frame = {
+                            "@id": id
+                        };
+                        const framedObjects: Map<Frame, JsonLdDocument> = (await this.mediators.mediatorRdfFrame.mediate({
+                            data: quadStream,
+                            frames: [frame],
+                            jsonLdContext: this.jsonLdContext
+                        })).data;
+                        outputString = JSON.stringify(framedObjects.get(frame));
+                    }
+                    this.push(`${outputString}\n`);
                 }
-                this.push(`${outputString}\n`);
             } catch (error) {
                 this.log("error", `Failed to process member ${id}`, error);
             }
