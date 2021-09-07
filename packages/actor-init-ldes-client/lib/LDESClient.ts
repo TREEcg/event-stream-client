@@ -139,10 +139,12 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             options.mimeType = this.mimeType;
         }
         if (!options.jsonLdContext) {
-            if (this.jsonLdContextPath.length > 0) {
+            if (this.jsonLdContextPath && this.jsonLdContextPath.length > 0) {
                 options.jsonLdContext = JSON.parse(readFileSync(this.jsonLdContextPath, 'utf8'));
-            } else {
+            } else if (this.jsonLdContextString) {
                 options.jsonLdContext = JSON.parse(this.jsonLdContextString);
+            } else {
+                options.jsonLdContext = {"@context":{}};
             }
         }
         if (typeof options.emitMemberOnce != "boolean") {
