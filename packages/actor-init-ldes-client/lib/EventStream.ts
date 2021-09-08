@@ -49,6 +49,7 @@ import { inspect } from 'util';
 
 import RateLimiter from "./RateLimiter";
 import MemberIterator from "./MemberIterator";
+import { createNoSubstitutionTemplateLiteral } from "typescript";
 
 export interface IEventStreamArgs {
     pollingInterval?: number,
@@ -81,6 +82,7 @@ interface IMember {
 }
 
 export class EventStream extends Readable {
+    protected memberBuffer: Array<string>;
     protected readonly mediators: IEventStreamMediators;
 
     protected readonly pollingInterval?: number;
@@ -113,6 +115,7 @@ export class EventStream extends Readable {
         this.jsonLdContext = args.jsonLdContext;
         this.dereferenceMembers = args.dereferenceMembers;
         this.emitMemberOnce = args.emitMemberOnce;
+        this.memberBuffer = [];
 
         if (args.requestsPerMinute) {
             this.rateLimiter = new RateLimiter(60000. / args.requestsPerMinute);
@@ -125,7 +128,8 @@ export class EventStream extends Readable {
         this.done = false;
 
         this.bookie.addFragment(this.accessUrl, 0);
-        this.start();
+        this.buffering = true;
+        this.bufferPromise = this.bufferMembers();
     }
 
     public ignorePages(urls: string[]) {
@@ -134,8 +138,45 @@ export class EventStream extends Readable {
         }
     }
 
-    public _read() {
-        // Do nothing
+    private async bufferMembers() {
+        this.buffering = true;
+        let next = this.bookie.getNextFragmentToFetch();
+        let now = new Date();
+        // Do not refetch too soon
+        while (next.refetchTime.getTime() > now.getTime()) {
+            await this.sleep(FETCH_PAUSE);
+            this.log('info', `Waiting ${(next.refetchTime - now.getTime()) / 1000}s before refetching: ${next.url}`);
+            now = new Date();
+        }
+        
+        return await this.retrieve(next.url).then(() => {
+            this.buffering = false;
+        });
+    }
+
+    private buffering:boolean;
+    private bufferPromise:Promise<void>;
+
+    public async _read() {
+        try {
+            if (this.memberBuffer.length > 0) {
+                this.push(this.memberBuffer.pop());
+                // Do we still have enough elements buffered? Check for 1000 members (PC: not sure what the best amount would be and whether this should be dynamically chosen somehow)
+                if (this.memberBuffer.length < 1000 && this.bookie.nextFragmentExists() && !this.buffering) {
+                    this.bufferPromise = this.bufferMembers();
+                }
+            } else if (this.memberBuffer.length === 0 && !this.bookie.nextFragmentExists() && !this.buffering) {
+                //end of the stream
+                this.log('info', "done")
+                this.push(null);
+            } else {
+                // while we’re buffering and there are no members, but read was called again, it should wait until the buffer is full again
+                await this.bufferPromise;
+                this.push(this.memberBuffer.pop());
+            }
+        } catch (e) {
+            console.error(e);
+        }
     }
 
     protected log(level: string, message: string, data?: any) {
@@ -143,23 +184,6 @@ export class EventStream extends Readable {
         if (data) {
             process.stderr.write(`[${new Date().toISOString()}]  ${level.toUpperCase()}: ${inspect(data)}\n`);
         }
-    }
-
-    protected async start() {
-        while (this.bookie.nextFragmentExists()) {
-            let next = this.bookie.getNextFragmentToFetch();
-            let now = new Date();
-            // Do not refetch too soon
-            while (next.refetchTime.getTime() > now.getTime()) {
-                await this.sleep(FETCH_PAUSE);
-                this.log('info', `Waiting ${(next.refetchTime - now.getTime()) / 1000}s before refetching: ${next.url}`);
-                now = new Date();
-            }
-            await this.retrieve(next.url);
-        }
-
-        // We're done
-        this.done = true;
     }
 
     protected async retrieve(pageUrl: string) {
@@ -334,17 +358,11 @@ export class EventStream extends Readable {
                     })).data;
                     outputString = JSON.stringify(framedObjects.get(frame));
                 }
-                this.push(`${outputString}\n`);
+                this.memberBuffer.push(`${outputString}\n`);
             } catch (error) {
                 this.log("error", `Failed to process member ${id}`, error);
             }
         };
-
-        // We're done
-        if (this.done) {
-            this.log('info', "done")
-            this.push(null);
-        }
     }
 
     protected getPage(pageUrl: string): Promise<PageMetadata> {
