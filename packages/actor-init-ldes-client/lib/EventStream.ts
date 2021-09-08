@@ -1,4 +1,5 @@
 import { Actor, IActorTest, Mediator } from "@comunica/core";
+import { Quad, NamedNode } from "@rdfjs/types";
 import type {
     IActionRdfMetadataExtract,
     IActorRdfMetadataExtractOutput,
@@ -222,7 +223,7 @@ export class EventStream extends Readable {
 
             const memberUris: string[] = this.getMemberUris(treeMetadata);
             const members = this.getMembers(quadsArrayOfPage, memberUris);
-
+            
             await this.processMembers(members);
         } catch (e) {
             this.log('error', `Failed to retrieve ${pageUrl}`, e);
@@ -326,7 +327,14 @@ export class EventStream extends Readable {
                             jsonLdContext: this.jsonLdContext
                         })).data);
                     } else {
-                        this.push(quadStream);
+                        //Build an array from the quads iterator
+                        let quadArray : Array<Quad> = [];
+                        quadStream.forEach((item) => {
+                            quadArray.push(item); 
+                        });
+                        quadStream.on('end', () => {
+                            this.push({ "@id": member.uri, quads: quadArray});
+                        });
                     }
                 } else {
                     let outputString;
