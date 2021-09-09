@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.3.7"></a>
+## [v2.3.7](https://github.com/TREEcg/event-stream-client/compare/v2.3.6...v2.3.7) - 2021-09-09
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Merge pull request #23 from TREEcg/fix-22](https://github.com/TREEcg/event-stream-client/commit/ca6d57b960454388414d03d689aad03f499b30d9)
+* [Update representation interface of Object](https://github.com/TREEcg/event-stream-client/commit/c093a5f21ada7b55299804f2f45bfc84ae0b807b)
+* [Add test-case and change output quads to Array<Quad> instead of asynciterator](https://github.com/TREEcg/event-stream-client/commit/3b284dedf57985d35836a4bb3b11771c93b622a3)
+* [Allow a representation to be passed and make mimetype optional](https://github.com/TREEcg/event-stream-client/commit/a0e466caad15a346b776f6fb77e460f53e1f5c83)
+
 <a name="v2.3.6"></a>
 ## [v2.3.6](https://github.com/TREEcg/event-stream-client/compare/v2.3.5...v2.3.6) - 2021-08-26
 
