@@ -1,4 +1,5 @@
 import { Actor, IActorTest, Mediator } from "@comunica/core";
+import { Quad, NamedNode } from "@rdfjs/types";
 import type {
     IActionRdfMetadataExtract,
     IActorRdfMetadataExtractOutput,
@@ -53,6 +54,7 @@ import { createNoSubstitutionTemplateLiteral } from "typescript";
 
 export interface IEventStreamArgs {
     pollingInterval?: number,
+    representation?:string,
     mimeType?: string,
     jsonLdContext?: ContextDefinition,
     fromTime?: Date,
@@ -86,6 +88,7 @@ export class EventStream extends Readable {
     protected readonly mediators: IEventStreamMediators;
 
     protected readonly pollingInterval?: number;
+    protected readonly representation?: string;
     protected readonly mimeType?: string;
     protected readonly jsonLdContext?: ContextDefinition;
     protected readonly emitMemberOnce?: boolean;
@@ -111,6 +114,8 @@ export class EventStream extends Readable {
         this.fromTime = args.fromTime;
         this.disablePolling = args.disablePolling;
         this.pollingInterval = args.pollingInterval;
+        this.representation = args.representation;
+
         this.mimeType = args.mimeType;
         this.jsonLdContext = args.jsonLdContext;
         this.dereferenceMembers = args.dereferenceMembers;
@@ -242,7 +247,7 @@ export class EventStream extends Readable {
 
             const memberUris: string[] = this.getMemberUris(treeMetadata);
             const members = this.getMembers(quadsArrayOfPage, memberUris);
-
+            
             await this.processMembers(members);
         } catch (e) {
             this.log('error', `Failed to retrieve ${pageUrl}`, e);
@@ -330,35 +335,60 @@ export class EventStream extends Readable {
     }
 
     protected async processMembers(members: Generator<IMember>) {
-        // Serialize back into string
+
         for (const member of members) {
             const id = member.uri;
             const quadStream = member.quads;
 
             try {
-                let outputString;
-                if (this.mimeType != "application/ld+json") {
-                    const handle: IActorQueryOperationOutputQuads = {
-                        type: "quads",
-                        quadStream: quadStream,
-                    };
-                    outputString = await stringifyStream((await this.mediators.mediatorRdfSerialize.mediate({
-                        handle: handle,
-                        handleMediaType: this.mimeType
-                    })).handle.data);
+                //If representation is set, let’s return the data without serialization, but in the requested representation (Object or Quads)
+                if (this.representation) {
+                    //Can be "Object" or "Quads"
+                    if (this.representation === 'Object') {
+                        let framedResult = (await this.mediators.mediatorRdfFrame.mediate({
+                            data: quadStream,
+                            frames: [{"@id": id}],
+                            jsonLdContext: this.jsonLdContext
+                        })).data;
+                        let firstEntry = framedResult.entries().next();
+                        this.push({ "id": firstEntry.value[0]["@id"], object: firstEntry.value[1]});
+                    } else {
+                        //Build an array from the quads iterator
+                        let quadArray : Array<Quad> = [];
+                        quadStream.forEach((item) => {
+                            quadArray.push(item); 
+                        });
+                        quadStream.on('end', () => {
+                            this.push({ "id": member.uri, quads: quadArray});
+                        });
+                    }
                 } else {
-                    // Create framed JSON-LD output
-                    const frame = {
-                        "@id": id
-                    };
-                    const framedObjects: Map<Frame, JsonLdDocument> = (await this.mediators.mediatorRdfFrame.mediate({
-                        data: quadStream,
-                        frames: [frame],
-                        jsonLdContext: this.jsonLdContext
-                    })).data;
-                    outputString = JSON.stringify(framedObjects.get(frame));
+                    let outputString;
+                    if (this.mimeType != "application/ld+json") {
+                        const handle: IActorQueryOperationOutputQuads = {
+                            type: "quads",
+                            quadStream: quadStream,
+                        };
+                        
+                        outputString = await stringifyStream((await this.mediators.mediatorRdfSerialize.mediate({
+                            handle: handle,
+                            handleMediaType: this.mimeType
+                        })).handle.data);
+                    } else {
+                        // Create framed JSON-LD output
+                        const frame = {
+                            "@id": id
+                        };
+                        const framedObjects: Map<Frame, JsonLdDocument> = (await this.mediators.mediatorRdfFrame.mediate({
+                            data: quadStream,
+                            frames: [frame],
+                            jsonLdContext: this.jsonLdContext
+                        })).data;
+                        outputString = JSON.stringify(framedObjects.get(frame));
+                    }
+                    this.memberBuffer.push(`${outputString}\n`);
                 }
-                this.memberBuffer.push(`${outputString}\n`);
+               
             } catch (error) {
                 this.log("error", `Failed to process member ${id}`, error);
             }
