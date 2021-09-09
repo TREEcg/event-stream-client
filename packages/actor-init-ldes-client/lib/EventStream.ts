@@ -321,11 +321,13 @@ export class EventStream extends Readable {
                 if (this.representation) {
                     //Can be "Object" or "Quads"
                     if (this.representation === 'Object') {
-                        this.push((await this.mediators.mediatorRdfFrame.mediate({
+                        let framedResult = (await this.mediators.mediatorRdfFrame.mediate({
                             data: quadStream,
                             frames: [{"@id": id}],
                             jsonLdContext: this.jsonLdContext
-                        })).data);
+                        })).data;
+                        let firstEntry = framedResult.entries().next();
+                        this.push({ "id": firstEntry.value[0]["@id"], object: firstEntry.value[1]});
                     } else {
                         //Build an array from the quads iterator
                         let quadArray : Array<Quad> = [];
@@ -333,7 +335,7 @@ export class EventStream extends Readable {
                             quadArray.push(item); 
                         });
                         quadStream.on('end', () => {
-                            this.push({ "@id": member.uri, quads: quadArray});
+                            this.push({ "id": member.uri, quads: quadArray});
                         });
                     }
                 } else {

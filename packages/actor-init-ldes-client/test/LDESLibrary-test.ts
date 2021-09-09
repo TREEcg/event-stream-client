@@ -38,7 +38,7 @@ describe('LDESClient as a lib', () => {
         }
     });
 
-    test('Stream should emit Maps when configured with Object', (done) => {
+    test('Stream should emit Object when configured with Object', (done) => {
         try {
             let url = "https://semiceu.github.io/LinkedDataEventStreams/example.ttl";
             let options = {
@@ -47,7 +47,7 @@ describe('LDESClient as a lib', () => {
             let LDESClient = newEngine();
             let eventstreamSync = LDESClient.createReadStream(url, options);
             eventstreamSync.once('data', (member) => {
-                expect(member).toBeInstanceOf(Map);
+                expect(member.object).toBeInstanceOf(Object);
                 done();
             });
         } catch (e) {

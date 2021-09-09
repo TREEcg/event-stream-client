@@ -45,7 +45,9 @@ const newEngine = require('@treecg/actor-init-ldes-client').newEngine;
 const LDESClient = new newEngine();
 ```
 
-With the engine or client created, you can now use it to call te async ```createReadStream(url, options)``` method.
+With the engine or client created, you can now use it to call the async ```createReadStream(url, options)``` method.
+Note that next to retrieving a serialized string (`mimeType` option) of member data, an `Object` (JSON-LD) or `Quads` representation is also possible with the Javascript API using the `representation` option. 
+ 
 Here is an example synchronizing with a TREE root node of an Event Stream with polling interval of 5 seconds:
 
 ```javascript
@@ -74,9 +76,20 @@ try {
     };
     let LDESClient = new newEngine();
     let eventstreamSync = LDESClient.createReadStream(url, options);
-    eventstreamSync.on('data', (data) => {
-        let obj = JSON.parse(data);
-        console.log(obj);
+    eventstreamSync.on('data', (member) => {
+        if (options.representation) {
+            const memberURI = member.id;
+            console.log(memberURI);
+            if (options.representation === "Object") {
+                const object = member.object;
+                console.log(object);
+            } else if (options.representation === "Quads") {
+                const quads = member.quads;
+                console.log(quads);
+            }
+        } else {
+            console.log(member);
+        }
     });
     eventstreamSync.on('end', () => {
         console.log("No more data!");
