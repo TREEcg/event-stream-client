@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.3.8"></a>
+## [v2.3.8](https://github.com/TREEcg/event-stream-client/compare/v2.3.7...v2.3.8) - 2021-09-10
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Merge branch 'development' into main](https://github.com/TREEcg/event-stream-client/commit/aedb75d7b1c432ea35a8fe62855f84ebab1324dc)
+* [Move end event](https://github.com/TREEcg/event-stream-client/commit/d4db082c1af9f94aef07776141a1f60865bfa693)
+
 <a name="v2.3.7"></a>
 ## [v2.3.7](https://github.com/TREEcg/event-stream-client/compare/v2.3.6...v2.3.7) - 2021-09-09
 
