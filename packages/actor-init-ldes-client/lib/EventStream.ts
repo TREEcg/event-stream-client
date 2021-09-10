@@ -165,6 +165,8 @@ export class EventStream extends Readable {
 
         // We're done
         this.done = true;
+        this.log('info', "done")
+        this.push(null);
     }
 
     protected async retrieve(pageUrl: string) {
@@ -368,12 +370,6 @@ export class EventStream extends Readable {
                 this.log("error", `Failed to process member ${id}`, error);
             }
         };
-
-        // We're done
-        if (this.done) {
-            this.log('info', "done")
-            this.push(null);
-        }
     }
 
     protected getPage(pageUrl: string): Promise<PageMetadata> {
