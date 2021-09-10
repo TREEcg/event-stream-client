@@ -33,7 +33,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
 
   Options:
     --pollingInterval            Number of milliseconds before refetching uncacheable fragments (e.g., 5000)
-    --mimeType                   the MIME type of the output (e.g., application/ld+json)
+    --mimeType                   the MIME type of the output (application/ld+json or text/turtle)
     --context                    path to a file with the JSON-LD context you want to use when MIME type is application/ld+json (e.g., ./context.jsonld)
     --disablePolling             whether to disable polling or not (by default set to "false", polling is enabled). Value can be set to "true" or "false"
     --fromTime                   datetime to prune relations that have a lower datetime value (e.g., 2020-01-01T00:00:00)
@@ -60,6 +60,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
 
     public pollingInterval: number;
     public mimeType: string;
+    public representation: string;
     public jsonLdContextPath: string;
     public jsonLdContextString: string;
     public emitMemberOnce: boolean;
@@ -104,7 +105,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             } else {
                 options.emitMemberOnce = args.emitMemberOnce.toLowerCase() == 'true' ? true : false;
             }
-        } 
+        }
 
         if (args.disablePolling) {
             if (typeof args.disablePolling == "boolean") {
@@ -135,7 +136,10 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
         if (!options.pollingInterval) {
             options.pollingInterval = this.pollingInterval;
         }
-        if (!options.mimeType) {
+        //If mimetype is set: output serialized string
+        //If mimetype isn’t set, use the in-mem representation if it is set
+        //If the representation isn’t set, then just fall back to the standard mimetype
+        if (!options.mimeType && !options.representation) {
             options.mimeType = this.mimeType;
         }
         if (!options.jsonLdContext) {
