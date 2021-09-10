@@ -91,17 +91,5 @@ describe('LDESClient', () => {
                 .toHaveProperty('stdout');
         });
 
-        it('should run without argv', () => {
-            return expect(actor.run({ argv: [], env: {}, stdin: input })).resolves
-                .toHaveProperty('stdout');
-        });
-
-        it('should run with valid output', () => {
-            return actor.run({ argv: [ url, '--mimeType=text/turtle' ], env: {}, stdin: input })
-                .then(async output => {
-                    return expect(await arrayifyStream(output.stdout)).toBeTruthy();
-                });
-        });
-
     });
 });
