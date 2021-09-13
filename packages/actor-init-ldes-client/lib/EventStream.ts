@@ -50,7 +50,6 @@ import { inspect } from 'util';
 
 import RateLimiter from "./RateLimiter";
 import MemberIterator from "./MemberIterator";
-import { createNoSubstitutionTemplateLiteral } from "typescript";
 
 export interface IEventStreamArgs {
     pollingInterval?: number,
