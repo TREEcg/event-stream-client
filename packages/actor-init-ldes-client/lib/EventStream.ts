@@ -133,7 +133,7 @@ export class EventStream extends Readable {
 
         this.bookie.addFragment(this.accessUrl, 0);
         this.buffering = true;
-        this.bufferPromise = this.bufferMembers();
+        this.bufferMembers();
     }
 
     public ignorePages(urls: string[]) {
@@ -167,11 +167,9 @@ export class EventStream extends Readable {
             await this.fetchNextPage();
         }
         this.buffering = false;
-        return ;
     }
 
     private buffering:boolean;
-    private bufferPromise:Promise<void>;
 
     public async _read() {
         try {
