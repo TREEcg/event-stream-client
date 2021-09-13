@@ -143,8 +143,7 @@ export class EventStream extends Readable {
         }
     }
 
-    private async bufferMembers() {
-        this.buffering = true;
+    private async fetchNextPage() {
         let next = this.bookie.getNextFragmentToFetch();
         let now = new Date();
         // Do not refetch too soon
@@ -154,9 +153,21 @@ export class EventStream extends Readable {
             now = new Date();
         }
         
-        return await this.retrieve(next.url).then(() => {
-            this.buffering = false;
-        });
+        return await this.retrieve(next.url);
+    }
+
+    /**
+     * Buffers an amount of members by fetching pages until the buffer is filled sufficiently, or when there are no pages to fetch any more
+     */
+    private async bufferMembers(bufferAtLeast : number = 1000) {
+        this.buffering = true;
+        // Do we still have enough elements buffered? 
+        // Check for 1000 members by default → PC: not sure what the best amount would be and whether this should be dynamically chosen somehow
+        while (this.memberBuffer.length < bufferAtLeast && this.bookie.nextFragmentExists()) {
+            await this.fetchNextPage();
+        }
+        this.buffering = false;
+        return;
     }
 
     private buffering:boolean;
@@ -166,19 +177,18 @@ export class EventStream extends Readable {
         try {
             if (this.memberBuffer.length > 0) {
                 this.push(this.memberBuffer.pop());
-                // Do we still have enough elements buffered? Check for 1000 members (PC: not sure what the best amount would be and whether this should be dynamically chosen somehow)
-                if (this.memberBuffer.length < 1000 && this.bookie.nextFragmentExists() && !this.buffering) {
-                    this.bufferPromise = this.bufferMembers();
-                }
             } else if (this.memberBuffer.length === 0 && !this.bookie.nextFragmentExists() && !this.buffering) {
                 //end of the stream
-                this.log('info', "done")
+                this.log('info', "done");
                 this.push(null);
             } else {
                 // while we’re buffering and there are no members, but read was called again, it should wait until the buffer is full again
                 await this.bufferPromise;
-                this.push(this.memberBuffer.pop());
+                this._read();
             }
+            //Check whether the buffer still contains enough members, and if not, fetch more
+            if (!this.buffering)
+                this.bufferPromise = this.bufferMembers();
         } catch (e) {
             console.error(e);
         }
