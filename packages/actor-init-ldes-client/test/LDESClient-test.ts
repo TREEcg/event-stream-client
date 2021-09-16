@@ -1,19 +1,19 @@
 import type { Readable } from 'stream';
 import { ActorRdfParseN3 } from '@comunica/actor-rdf-parse-n3';
+import { ActorRdfParseJsonLd } from '@comunica/actor-rdf-parse-jsonld';
+
 import { ActorInit } from '@comunica/bus-init';
 import { Bus } from '@comunica/core';
 import { MediatorRace } from '@comunica/mediator-race';
 import { LDESClient } from '../lib/LDESClient';
-const arrayifyStream = require('arrayify-stream');
-const stringToStream = require('streamify-string');
 
 describe('LDESClient', () => {
-    let bus: any;
     let busInit: any;
     let busRdfMetadataExtractTree: any;
     let busRdfParse: any;
     let mediatorRdfMetadataExtractTree: any;
     let mediatorRdfParse: any;
+    let input: Readable;
 
     beforeEach(() => {
         busInit = new Bus({name: 'bus-init'})
@@ -21,6 +21,7 @@ describe('LDESClient', () => {
         busRdfParse = new Bus({ name: 'bus-RdfParse' });
         mediatorRdfMetadataExtractTree = new MediatorRace({ name: 'mediator', bus: busRdfMetadataExtractTree });
         mediatorRdfParse = new MediatorRace({ name: 'mediator', bus: busRdfParse });
+        input = <any> {};
     });
 
     describe('The LDESClient module', () => {
@@ -40,17 +41,17 @@ describe('LDESClient', () => {
         });
 
         it('should store the \'mediatorRdfMetadataExtractTree\' parameter', () => {
-            expect(new LDESClient({ name: 'actor', bus: busInit, mediatorRdfMetadataExtractTree: mediatorRdfMetadataExtractTree, mediatorRdfParse: mediatorRdfParse, pollingInterval: 1000 })
+            expect(new (<any> LDESClient)({ name: 'actor', bus: busInit, mediatorRdfMetadataExtractTree: mediatorRdfMetadataExtractTree, mediatorRdfParse: mediatorRdfParse, pollingInterval: 1000 })
                 .mediatorRdfMetadataExtractTree).toEqual(mediatorRdfMetadataExtractTree);
         });
 
         it('should store the \'mediatorRdfParse\' parameter', () => {
-            expect(new LDESClient({ name: 'actor', bus: busInit, mediatorRdfMetadataExtractTree: mediatorRdfMetadataExtractTree, mediatorRdfParse: mediatorRdfParse, pollingInterval: 1000 })
+            expect(new (<any> LDESClient)({ name: 'actor', bus: busInit, mediatorRdfMetadataExtractTree: mediatorRdfMetadataExtractTree, mediatorRdfParse: mediatorRdfParse, pollingInterval: 1000 })
                 .mediatorRdfParse).toEqual(mediatorRdfParse);
         });
 
         it('should store the \'pollingInterval\' parameter', () => {
-            expect(new LDESClient({ name: 'actor', bus: busInit, mediatorRdfMetadataExtractTree: mediatorRdfMetadataExtractTree, mediatorRdfParse: mediatorRdfParse, pollingInterval: 1000 })
+            expect(new (<any> LDESClient)({ name: 'actor', bus: busInit, mediatorRdfMetadataExtractTree: mediatorRdfMetadataExtractTree, mediatorRdfParse: mediatorRdfParse, pollingInterval: 1000 })
                 .pollingInterval).toEqual(1000);
         });
     });
@@ -58,11 +59,17 @@ describe('LDESClient', () => {
     describe('An LDESClient instance', () => {
         let actor: LDESClient;
         let url: string;
-        let input: Readable;
 
         beforeEach(() => {
-            actor = new LDESClient({ name: 'actor', bus: busInit, mediatorRdfMetadataExtractTree: mediatorRdfMetadataExtractTree, mediatorRdfParse: mediatorRdfParse, pollingInterval: 1000 });
-            busRdfParse.subscribe(new ActorRdfParseN3({ bus: busRdfParse,
+            actor = new (<any>LDESClient)({
+                name: 'actor',
+                bus: busInit,
+                mediatorRdfMetadataExtractTree: mediatorRdfMetadataExtractTree,
+                mediatorRdfParse: mediatorRdfParse,
+                pollingInterval: 1000
+            });
+            busRdfParse.subscribe(new ActorRdfParseN3({
+                bus: busRdfParse,
                 mediaTypes: {
                     'application/trig': 1,
                     'application/n-quads': 0.7,
@@ -70,14 +77,11 @@ describe('LDESClient', () => {
                     'application/n-triples': 0.3,
                     'text/n3': 0.2,
                 },
-                name: 'actor-rdf-parse' }));
-                url: 'https://lodi.ilabt.imec.be/coghent/dmg/objecten';
-                input = stringToStream(``);
-      //       input = stringToStream(`
-      // <a> <b> <c>.
-      // <d> <e> <f> <g>.
-      // `);
-            });
+                name: 'actor-rdf-parse-n3'
+            }));
+
+            url = 'https://semiceu.github.io/LinkedDataEventStreams/example.ttl';
+        });
 
         it('should test', () => {
             return expect(actor.test({ argv: [], env: {}, stdin: input })).resolves.toBe(true);
@@ -88,26 +92,5 @@ describe('LDESClient', () => {
                 .toHaveProperty('stdout');
         });
 
-        it('should run without argv', () => {
-            return expect(actor.run({ argv: [], env: {}, stdin: input })).resolves
-                .toHaveProperty('stdout');
-        });
-
-        it('should run with valid output', () => {
-            return actor.run({ argv: [ 'text/turtle' ], env: {}, stdin: input })
-                .then(async output => {
-                    return expect(await arrayifyStream(output.stdout)).toBeTruthy();
-                });
-        });
-
-        it('should run with two params', () => {
-            return actor.run({ argv: [ 'text/turtle', 'x:' ], env: {}, stdin: input })
-                .then(async output => {
-                    return expect((await arrayifyStream(output.stdout)).map((b: any) => JSON.parse(b.toString()))).toEqual([
-                        { subject: 'x:a', predicate: 'x:b', object: 'x:c', graph: '' },
-                        { subject: 'x:d', predicate: 'x:e', object: 'x:f', graph: 'x:g' },
-                    ]);
-                });
-        });
     });
 });
