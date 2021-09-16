@@ -234,6 +234,13 @@ export class EventStream extends Readable {
             });
             this.emit("metadata", { ...treeMetadata, url: page.url });
 
+            // When there are no tree:relations found, search for a tree:view to continue
+            // In this case, we expect that the URL parameter provided contains a tree collection's URI
+            if (!treeMetadata.metadata.treeMetadata.relations.size && treeMetadata.metadata.treeMetadata.collections.get(pageUrl) && treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"]) {
+                const view = treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"][0]["@id"]; // take first view encountered
+                this.bookie.addFragment(view, 0);
+            }
+
             // Retrieve TREE relations towards other nodes
             for (const [_, relation] of treeMetadata.metadata.treeMetadata.relations) {
                 // Prune when the value of the relation is a datetime and less than what we need
