@@ -155,13 +155,13 @@ export class EventStream extends Readable {
             this.emit('page processed', next.url);
         });
     }
-    
+
     /**
      * Buffers an amount of members by fetching pages until the buffer is filled sufficiently, or when there are no pages to fetch any more
      */
     private async bufferMembers(bufferAtLeast : number = 1000) {
         this.buffering = true;
-        // Do we still have enough elements buffered? 
+        // Do we still have enough elements buffered?
         // Check for 1000 members by default → PC: not sure what the best amount would be and whether this should be dynamically chosen somehow
         while (this.memberBuffer.length < bufferAtLeast && this.bookie.nextFragmentExists()) {
             await this.fetchNextPage();
@@ -177,6 +177,7 @@ export class EventStream extends Readable {
                 this.push(this.memberBuffer.pop());
             } else if (this.memberBuffer.length === 0 && !this.bookie.nextFragmentExists() && !this.buffering) {
                 //end of the stream
+                this.done = true;
                 this.log('info', "done");
                 this.push(null);
             } else {
@@ -184,7 +185,7 @@ export class EventStream extends Readable {
                 this.once('page processed', this._read);
             }
             //Check whether the buffer still contains enough members, and if not, fetch more
-            if (!this.buffering)
+            if (!this.buffering && !this.done)
                 this.bufferMembers();
         } catch (e) {
             console.error(e);
@@ -254,7 +255,7 @@ export class EventStream extends Readable {
 
             const memberUris: string[] = this.getMemberUris(treeMetadata);
             const members = this.getMembers(quadsArrayOfPage, memberUris);
-            
+
             await this.processMembers(members);
         } catch (e) {
             this.log('error', `Failed to retrieve ${pageUrl}`, e);
@@ -363,7 +364,7 @@ export class EventStream extends Readable {
                         //Build an array from the quads iterator
                         let quadArray : Array<Quad> = [];
                         quadStream.forEach((item) => {
-                            quadArray.push(item); 
+                            quadArray.push(item);
                         });
                         quadStream.on('end', () => {
                             this.push({ "id": member.uri, quads: quadArray});
@@ -376,7 +377,7 @@ export class EventStream extends Readable {
                             type: "quads",
                             quadStream: quadStream,
                         };
-                        
+
                         outputString = await stringifyStream((await this.mediators.mediatorRdfSerialize.mediate({
                             handle: handle,
                             handleMediaType: this.mimeType
