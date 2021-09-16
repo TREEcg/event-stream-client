@@ -20,24 +20,6 @@ describe('LDESClient as a lib', () => {
         }
     });
 
-    test('Stream should emit End event', (done) => {
-        try {
-            let url = "https://semiceu.github.io/LinkedDataEventStreams/example.ttl";
-            let options = {
-                "representation": "Object",
-                "disablePolling": true
-            };
-            let LDESClient = newEngine();
-            let eventstreamSync = LDESClient.createReadStream(url, options);
-            eventstreamSync.once('end', () => {
-                expect(true).toEqual(true);
-                done();
-            });
-        } catch (e) {
-            done(e);
-        }
-    });
-
     test('Stream should emit quads when configured that way', (done) => {
         try {
             let url = "https://semiceu.github.io/LinkedDataEventStreams/example.ttl";

@@ -6,16 +6,14 @@ import { ActorInit } from '@comunica/bus-init';
 import { Bus } from '@comunica/core';
 import { MediatorRace } from '@comunica/mediator-race';
 import { LDESClient } from '../lib/LDESClient';
-const arrayifyStream = require('arrayify-stream');
-const stringToStream = require('streamify-string');
 
 describe('LDESClient', () => {
-    let bus: any;
     let busInit: any;
     let busRdfMetadataExtractTree: any;
     let busRdfParse: any;
     let mediatorRdfMetadataExtractTree: any;
     let mediatorRdfParse: any;
+    let input: Readable;
 
     beforeEach(() => {
         busInit = new Bus({name: 'bus-init'})
@@ -23,6 +21,7 @@ describe('LDESClient', () => {
         busRdfParse = new Bus({ name: 'bus-RdfParse' });
         mediatorRdfMetadataExtractTree = new MediatorRace({ name: 'mediator', bus: busRdfMetadataExtractTree });
         mediatorRdfParse = new MediatorRace({ name: 'mediator', bus: busRdfParse });
+        input = <any> {};
     });
 
     describe('The LDESClient module', () => {
@@ -60,11 +59,17 @@ describe('LDESClient', () => {
     describe('An LDESClient instance', () => {
         let actor: LDESClient;
         let url: string;
-        let input: Readable;
 
         beforeEach(() => {
-            actor = new (<any> LDESClient)({ name: 'actor', bus: busInit, mediatorRdfMetadataExtractTree: mediatorRdfMetadataExtractTree, mediatorRdfParse: mediatorRdfParse, pollingInterval: 1000 });
-            busRdfParse.subscribe(new ActorRdfParseN3({ bus: busRdfParse,
+            actor = new (<any>LDESClient)({
+                name: 'actor',
+                bus: busInit,
+                mediatorRdfMetadataExtractTree: mediatorRdfMetadataExtractTree,
+                mediatorRdfParse: mediatorRdfParse,
+                pollingInterval: 1000
+            });
+            busRdfParse.subscribe(new ActorRdfParseN3({
+                bus: busRdfParse,
                 mediaTypes: {
                     'application/trig': 1,
                     'application/n-quads': 0.7,
@@ -72,14 +77,10 @@ describe('LDESClient', () => {
                     'application/n-triples': 0.3,
                     'text/n3': 0.2,
                 },
-                name: 'actor-rdf-parse-n3' }));
+                name: 'actor-rdf-parse-n3'
+            }));
 
             url = 'https://semiceu.github.io/LinkedDataEventStreams/example.ttl';
-            input = stringToStream(``);
-      //       input = stringToStream(`
-      // <a> <b> <c>.
-      // <d> <e> <f> <g>.
-      // `);
         });
 
         it('should test', () => {
