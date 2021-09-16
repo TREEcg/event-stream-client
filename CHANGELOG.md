@@ -1,6 +1,24 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.3.9"></a>
+## [v2.3.9](https://github.com/TREEcg/event-stream-client/compare/v2.3.8...v2.3.9) - 2021-09-16
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Use done to prevent extra buffering](https://github.com/TREEcg/event-stream-client/commit/510c5b556c9897c4b577ffe8c9eedc48fa2a4653)
+* [Unused variable](https://github.com/TREEcg/event-stream-client/commit/a5e19194b089100247257838be2c9a8b0cd2612a)
+* [Don’t wait until the buffer is full to already continue writing data](https://github.com/TREEcg/event-stream-client/commit/29b5776bb0b194fc46bb8289522db85c1b18f225)
+* [Removed useless import](https://github.com/TREEcg/event-stream-client/commit/00508dd6bd70ec7111e5b7afcf1a86b0a54c85ac)
+* [Also continues buffering when empty pages are being processed](https://github.com/TREEcg/event-stream-client/commit/b6203a0e519b2bf832f64c824d743858678b354a)
+* [Remove faulty and duplicate test-case](https://github.com/TREEcg/event-stream-client/commit/e462631c12c3b1e0f26b66fdc5d907268a5191c9)
+* [merged](https://github.com/TREEcg/event-stream-client/commit/1cad62662734d20d3035b953c42804cc9e6418d6)
+* [Merge branch 'main' into development](https://github.com/TREEcg/event-stream-client/commit/6928bd6279b9fc5fb29e6b826e3e023473f3f82e)
+* [merged](https://github.com/TREEcg/event-stream-client/commit/9dbadc4619de38a8876971eb77b8e6fc580c0cd3)
+* [Merged with development](https://github.com/TREEcg/event-stream-client/commit/308372487f1af398bbf8af64755e455bd02bcc50)
+* [Added test-case to check whether stream ends](https://github.com/TREEcg/event-stream-client/commit/462d8e5b8d30162c74435a2d739cf0687507e83a)
+* [Merge branch 'development' into fix-25](https://github.com/TREEcg/event-stream-client/commit/2303f63adebd741d0db9f32ada9156168ffa3ac3)
+* [Fixed #25](https://github.com/TREEcg/event-stream-client/commit/b92a93be59ef4ec90520552beb39b5f4d3cc7c6f)
+
 <a name="v2.3.8"></a>
 ## [v2.3.8](https://github.com/TREEcg/event-stream-client/compare/v2.3.7...v2.3.8) - 2021-09-10
 
