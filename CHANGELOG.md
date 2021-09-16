@@ -1,6 +1,20 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.3.10"></a>
+## [v2.3.10](https://github.com/TREEcg/event-stream-client/compare/v2.3.9...v2.3.10) - 2021-09-16
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Merge branch 'feat/pickfirstview' into development](https://github.com/TREEcg/event-stream-client/commit/b70c448b71c7f8744e026a1482f95c6b302a46d8)
+* [Merge branch 'fix-tests' into development](https://github.com/TREEcg/event-stream-client/commit/f6c6a34d852573680fb93cdf24510be9f08bca9d)
+* [Clean up tests](https://github.com/TREEcg/event-stream-client/commit/001d45022783b499d12a6c9549101444df578c68)
+* [Merge branch 'development' into fix-tests](https://github.com/TREEcg/event-stream-client/commit/6a508d4bed01aea429bf49979ce6957f31d49622)
+* [Just made LDESClient tests run](https://github.com/TREEcg/event-stream-client/commit/bf35d9b6fe8c606623fa03ecd98fff32ca0cf973)
+* [Merge branch 'development' into fix-tests](https://github.com/TREEcg/event-stream-client/commit/3b22fba8efbe42362bcbe13b61295e6218c2ea29)
+* [First try at cleaning up the tests](https://github.com/TREEcg/event-stream-client/commit/08578a018de2799a0b89236b9d552becf0122434)
+* [Document in readme](https://github.com/TREEcg/event-stream-client/commit/3ea9bb21e09989b91421e89f308df9e2b2c5d8f8)
+* [Fix: URL to tree:collection, pick first view encountered when no relations are found](https://github.com/TREEcg/event-stream-client/commit/bd920102db440f1b313d9f6edccfea45220a9498)
+
 <a name="v2.3.9"></a>
 ## [v2.3.9](https://github.com/TREEcg/event-stream-client/compare/v2.3.8...v2.3.9) - 2021-09-16
 
