@@ -93,6 +93,10 @@ try {
             console.log(member);
         }
     });
+    eventstreamSync.on('metadata', (metadata) => {
+        console.log(metadata.metadata); // TREE metadata
+        console.log(metadata.url); // page from where metadata has been extracted
+    });
     eventstreamSync.on('end', () => {
         console.log("No more data!");
     });

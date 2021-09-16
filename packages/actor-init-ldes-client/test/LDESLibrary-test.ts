@@ -75,4 +75,21 @@ describe('LDESClient as a lib', () => {
             //done(e);
         }
     });
+
+    test('Stream should emit metadata', (done) => {
+        try {
+            let url = "https://semiceu.github.io/LinkedDataEventStreams/example.ttl";
+            let options = {
+                "representation": "Object",
+                "disablePolling" : true
+            };
+            let eventstreamSync = LDESClient.createReadStream(url, options);
+            eventstreamSync.once('metadata', (metadata) => {
+                expect(metadata).toBeInstanceOf(Object);
+                done();
+            });
+        } catch (e) {
+            done(e);
+        }
+    });
 });
