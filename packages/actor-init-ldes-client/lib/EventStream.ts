@@ -232,7 +232,7 @@ export class EventStream extends Readable {
                 metadata: await this.quadArrayToQuadStream(quadsArrayOfPage),
                 url: page.url
             });
-            this.emit("metadata", { ...treeMetadata, url: page.url });
+            this.emit("metadata", { ...treeMetadata.metadata, url: page.url });
 
             // When there are no tree:relations found, search for a tree:view to continue
             // In this case, we expect that the URL parameter provided contains a tree collection's URI
