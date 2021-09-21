@@ -44,6 +44,7 @@
           "@id": "urn:comunica:myLDESClient",
           "@type": "LDESClient",
           "ldes:pollingInterval": 5000,
+          "ldes:disableSynchronization": false,
           "ldes:mimeType": "application/ld+json",
           "ldes:jsonLdContextString": "{\"@context\":  {}}",
           "ldes:mediatorRdfMetadataExtractTree": {
