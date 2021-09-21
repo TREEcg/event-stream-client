@@ -158,7 +158,6 @@ describe('LDESClient', () => {
                         // do nothing
                     });
                     stdout.on('end', () => {
-                        expect(() => true).toBeTruthy();
                         done();
                     });
                 } catch (e) {
@@ -179,7 +178,7 @@ describe('LDESClient', () => {
                     });
                     stdout.on('end', () => {
                         // Should not end
-                        expect(() => true).not.toBeTruthy();
+                        throw Error("Should not end");
                     });
                     // Success when not stopped after 4s
                     setTimeout(() => {
