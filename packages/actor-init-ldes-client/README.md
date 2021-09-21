@@ -94,7 +94,7 @@ try {
         }
     });
     eventstreamSync.on('metadata', (metadata) => {
-        console.log(metadata.metadata); // follows the structure of the TREE metadata extractor (https://github.com/TREEcg/tree-metadata-extraction#extracted-metadata)
+        if (metadata.treeMetadata) console.log(metadata.treeMetadata); // follows the structure of the TREE metadata extractor (https://github.com/TREEcg/tree-metadata-extraction#extracted-metadata)
         console.log(metadata.url); // page from where metadata has been extracted
     });
     eventstreamSync.on('end', () => {
