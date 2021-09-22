@@ -1,6 +1,20 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.3.11"></a>
+## [v2.3.11](https://github.com/TREEcg/event-stream-client/compare/v2.3.10...v2.3.11) - 2021-09-22
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Merge branch 'development' into main](https://github.com/TREEcg/event-stream-client/commit/1d48a79314b4fd1f2b7f11f5b5489751fd996c58)
+* [Add disableSynchronization in README](https://github.com/TREEcg/event-stream-client/commit/4d0456f306052dd3ad88f8b447f1872d700f1c73)
+* [Merge branch 'development' into main](https://github.com/TREEcg/event-stream-client/commit/68d8947ba7d37e4bf5c7d5af07a47f052bd4ef7c)
+* [Merge branch 'fix-28' into development](https://github.com/TREEcg/event-stream-client/commit/7b3349218a0186b8fe7397a98db1645032abccd5)
+* [Update README with tree metadata](https://github.com/TREEcg/event-stream-client/commit/aa6f7598a7dfa1a64623e07485479f28629c9f03)
+* [Link to tree extractor and use treeMetadata.metadata](https://github.com/TREEcg/event-stream-client/commit/41f61b0f9df8c0ea1c63a182a8379ca523eb2a92)
+* [Throw error instead of using expect](https://github.com/TREEcg/event-stream-client/commit/1f41ee4c4d1072d6f809c3b535fc24d6a3343094)
+* [Rename disablePolling with disableSynchronization](https://github.com/TREEcg/event-stream-client/commit/31373ba83a586f3a9ec67192e86bac99804f39ec)
+* [Document and test how the collection's metadata is exposed](https://github.com/TREEcg/event-stream-client/commit/f60d44db968799c0a00dd01f517a6edc25a13551)
+
 <a name="v2.3.10"></a>
 ## [v2.3.10](https://github.com/TREEcg/event-stream-client/compare/v2.3.9...v2.3.10) - 2021-09-16
 
