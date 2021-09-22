@@ -59,6 +59,7 @@ export interface IEventStreamArgs {
     fromTime?: Date,
     emitMemberOnce?: boolean,
     disablePolling?: boolean,
+    disableSynchronization?: boolean,
     dereferenceMembers?: boolean,
     requestsPerMinute?: number,
 }
@@ -92,7 +93,7 @@ export class EventStream extends Readable {
     protected readonly jsonLdContext?: ContextDefinition;
     protected readonly emitMemberOnce?: boolean;
     protected readonly fromTime?: Date;
-    protected readonly disablePolling?: boolean;
+    protected readonly disableSynchronization?: boolean;
     protected readonly dereferenceMembers?: boolean;
     protected readonly accessUrl: string;
 
@@ -111,7 +112,7 @@ export class EventStream extends Readable {
 
         this.accessUrl = url;
         this.fromTime = args.fromTime;
-        this.disablePolling = args.disablePolling;
+        this.disableSynchronization = args.disableSynchronization;
         this.pollingInterval = args.pollingInterval;
         this.representation = args.representation;
 
@@ -218,8 +219,8 @@ export class EventStream extends Readable {
             // TODO: Fetch mediaType by using response and comunica actor
             const mediaType = page.headers['content-type'].indexOf(';') > 0 ? page.headers['content-type'].substr(0, page.headers['content-type'].indexOf(';')) : page.headers['content-type'];
 
-            if (!this.disablePolling && this.pollingInterval) {
-                // Based on the HTTP Caching headers, poll this fragment
+            if (!this.disableSynchronization && this.pollingInterval) {
+                // Based on the HTTP Caching headers, poll this fragment for synchronization
                 const policy = new CachePolicy(page.request, page.response, { shared: false }); // If options.shared is false, then the response is evaluated from a perspective of a single-user cache (i.e. private is cacheable and s-maxage is ignored)
                 const ttl = Math.max(this.pollingInterval, policy.storable() ? policy.timeToLive() : 0); // pollingInterval is fallback
                 this.bookie.addFragment(page.url, ttl);
@@ -252,8 +253,8 @@ export class EventStream extends Readable {
                 } else {
                     // Add node to book keeper with ttl 0 (as soon as possible)
                     for (const node of relation.node) {
-                        // do not add when polling is disabled and node has already been processed
-                        if (!this.disablePolling || (this.disablePolling && !this.processedURIs.has(node['@id']))) {
+                        // do not add when synchronization is disabled and node has already been processed
+                        if (!this.disableSynchronization || (this.disableSynchronization && !this.processedURIs.has(node['@id']))) {
                             this.bookie.addFragment(node['@id'], 0);
                         }
                     }
