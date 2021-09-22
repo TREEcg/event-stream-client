@@ -29,7 +29,7 @@ Possible parameters are:
 | context  | path to a file with the JSON-LD context you want to use when MIME type is application/ld+json  | for example: ./context.jsonld |
 | fromTime  | datetime to prune relations that have a lower datetime value | for example: 2020-01-01T00:00:00 |
 | emitMemberOnce  | whether to emit a member only once, because collection contains immutable version objects.  | true / false |
-| disablePolling  | whether to disable polling (by default: false).  | true / false |
+| disableSynchronization  | whether to disable synchronization or not (by default set to "false", syncing is enabled) | true / false |
 | dereferenceMembers | whether to dereference members, because the collection pages do not contain all information (by default: false). | true / false |
 | requestsPerMinute | how many requests per minutes may be sent to the same host (optional) | any number |
 
@@ -61,7 +61,7 @@ try {
         "representation": "Object", //Object or Quads
         "fromTime": new Date("2021-02-03T15:46:12.307Z"),
         "emitMemberOnce": true,
-        "disablePolling": true,
+        "disableSynchronization": true,
         "jsonLdContext": { //Only necessary for Object representation
             "@context": [
                 "https://apidg.gent.be/opendata/adlib2eventstream/v1/context/cultureel-erfgoed-object-ap.jsonld",
