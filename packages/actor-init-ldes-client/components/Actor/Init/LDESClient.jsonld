@@ -52,7 +52,15 @@
         },
         {
           "@id": "ldes:disablePolling",
-          "comment": "Disable polling or not (by default set to 'false'; polling is enabled).",
+          "comment": "DEPRECATED: see ldes:disableSynchronization.",
+          "range": "xsd:boolean",
+          "default": "false",
+          "required": false,
+          "unique": true
+        },
+        {
+          "@id": "ldes:disableSynchronization",
+          "comment": "Disable synchronization (by default set to 'false').",
           "range": "xsd:boolean",
           "default": "false",
           "required": true,
@@ -143,6 +151,10 @@
             {
               "keyRaw": "disablePolling",
               "value": "ldes:disablePolling"
+            },
+            {
+              "keyRaw": "disableSynchronization",
+              "value": "ldes:disableSynchronization"
             },
             {
               "keyRaw": "emitMemberOnce",

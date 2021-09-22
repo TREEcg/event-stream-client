@@ -14,6 +14,7 @@
       "mimeType": "ldes:mimeType",
       "fromGeneratedAtTime": "ldes:fromGeneratedAtTime",
       "disablePolling": "ldes:disablePolling",
+      "disableSynchronization": "ldes:disableSynchronization",
       "dereferenceMembers": "ldes:dereferenceMembers",
       "requestsPerMinute": "ldes:requestsPerMinute",
 

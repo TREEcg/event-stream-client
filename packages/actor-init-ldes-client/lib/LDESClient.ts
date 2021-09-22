@@ -35,7 +35,8 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     --pollingInterval            Number of milliseconds before refetching uncacheable fragments (e.g., 5000)
     --mimeType                   the MIME type of the output (application/ld+json or text/turtle)
     --context                    path to a file with the JSON-LD context you want to use when MIME type is application/ld+json (e.g., ./context.jsonld)
-    --disablePolling             whether to disable polling or not (by default set to "false", polling is enabled). Value can be set to "true" or "false"
+    --disableSynchronization     whether to disable synchronization or not (by default set to "false", syncing is enabled). Value can be set to "true" or "false"
+    --disablePolling             DEPRECATED: use disableSynchronization
     --fromTime                   datetime to prune relations that have a lower datetime value (e.g., 2020-01-01T00:00:00)
     --emitMemberOnce             whether to emit a member only once, because collection contains immutable version objects. Value can be set to "true" or "false"
     --dereferenceMembers         whether to dereference members, because the collection pages do not contain all information. Value can be set to "true" or "false", defaults to "false"
@@ -66,6 +67,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     public emitMemberOnce: boolean;
     public fromTime?: Date;
     public disablePolling: boolean;
+    public disableSynchronization: boolean;
     public dereferenceMembers: boolean;
     public requestsPerMinute?: number;
 
@@ -87,7 +89,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
         const mimeType: string = args.mimeType ? args.mimeType : this.mimeType;
 
         const options: IEventStreamArgs = {
-            pollingInterval, 
+            pollingInterval,
             mimeType,
         };
 
@@ -107,13 +109,22 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             }
         }
 
+        if (args.disableSynchronization) {
+            if (typeof args.disableSynchronization == "boolean") {
+                options.disableSynchronization = args.disableSynchronization;
+            } else {
+                options.disableSynchronization = args.disableSynchronization.toLowerCase() == 'true' ? true : false;
+            }
+        }
+
+        // disablePolling is saved in disableSynchronization
         if (args.disablePolling) {
             if (typeof args.disablePolling == "boolean") {
-                options.disablePolling = args.disablePolling;
+                options.disableSynchronization = args.disablePolling;
             } else {
-                options.disablePolling = args.disablePolling.toLowerCase() == 'true' ? true : false;
+                options.disableSynchronization = args.disablePolling.toLowerCase() == 'true' ? true : false;
             }
-        } 
+        }
 
         if (args.dereferenceMembers) {
             if (typeof args.dereferenceMembers == "boolean") {
@@ -157,9 +168,14 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
         if (!options.fromTime) {
             options.fromTime = this.fromTime;
         }
-        if (typeof options.disablePolling != "boolean") {
-            options.disablePolling = this.disablePolling;
+        // Copy disablePolling (deprecated) to disableSynchronization when only disablePolling is used
+        if (!options.disableSynchronization && options.disablePolling)
+            options.disableSynchronization = options.disablePolling;
+
+        if (typeof options.disableSynchronization != "boolean") {
+            options.disableSynchronization = this.disableSynchronization;
         }
+
         if (typeof options.dereferenceMembers != "boolean") {
             options.dereferenceMembers = this.dereferenceMembers;
         }
@@ -195,6 +211,7 @@ export interface ILDESClientArgs extends IActorArgs<IActionInit, IActorTest, IAc
     jsonLdContextString: string;
     emitMemberOnce: boolean;
     disablePolling: boolean;
+    disableSynchronization: boolean;
     dereferenceMembers: boolean;
     fromTime?: Date;
     requestsPerMinute?: number;
