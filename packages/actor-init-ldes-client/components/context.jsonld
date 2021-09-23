@@ -15,6 +15,7 @@
       "fromGeneratedAtTime": "ldes:fromGeneratedAtTime",
       "disablePolling": "ldes:disablePolling",
       "disableSynchronization": "ldes:disableSynchronization",
+      "disableFraming": "ldes:disableFraming",
       "dereferenceMembers": "ldes:dereferenceMembers",
       "requestsPerMinute": "ldes:requestsPerMinute",
 

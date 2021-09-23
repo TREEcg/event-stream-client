@@ -65,6 +65,7 @@ export interface IEventStreamArgs {
     emitMemberOnce?: boolean,
     disablePolling?: boolean,
     disableSynchronization?: boolean,
+    disableFraming?: boolean,
     dereferenceMembers?: boolean,
     requestsPerMinute?: number,
     loggingLevel?: string
@@ -99,6 +100,7 @@ export class EventStream extends Readable {
     protected readonly emitMemberOnce?: boolean;
     protected readonly fromTime?: Date;
     protected readonly disableSynchronization?: boolean;
+    protected readonly disableFraming?: boolean;
     protected readonly dereferenceMembers?: boolean;
     protected readonly accessUrl: string;
     protected readonly logger: Logger;
@@ -123,6 +125,7 @@ export class EventStream extends Readable {
         this.accessUrl = url;
         this.fromTime = args.fromTime;
         this.disableSynchronization = args.disableSynchronization;
+        this.disableFraming = args.disableFraming;
         this.pollingInterval = args.pollingInterval;
         this.representation = args.representation;
 
@@ -433,13 +436,25 @@ ${inspect(e)}`);
                 if (this.representation) {
                     //Can be "Object" or "Quads"
                     if (this.representation === 'Object') {
-                        let framedResult = (await this.mediators.mediatorRdfFrame.mediate({
-                            data: quadStream,
-                            frames: [{"@id": id}],
-                            jsonLdContext: this.jsonLdContext
-                        })).data;
-                        let firstEntry = framedResult.entries().next();
-                        this.push({"id": firstEntry.value[0]["@id"], object: firstEntry.value[1]});
+                        if (!this.disableFraming) {
+                            let framedResult = (await this.mediators.mediatorRdfFrame.mediate({
+                                data: quadStream,
+                                frames: [{"@id": id}],
+                                jsonLdContext: this.jsonLdContext
+                            })).data;
+                            let firstEntry = framedResult.entries().next();
+                            this.push({"id": firstEntry.value[0]["@id"], object: firstEntry.value[1]});
+                        } else {
+                            const handle: IActorQueryOperationOutputQuads = {
+                                type: "quads",
+                                quadStream: quadStream,
+                            };
+                            let result = JSON.parse(await stringifyStream((await this.mediators.mediatorRdfSerialize.mediate({
+                                handle: handle,
+                                handleMediaType: "application/ld+json"
+                            })).handle.data));
+                           this.push({"id": result[0]["@id"], object: result});
+                        }
                     } else {
                         //Build an array from the quads iterator
                         await new Promise<void>((resolve, reject) => {
@@ -459,7 +474,7 @@ ${inspect(e)}`);
                     }
                 } else {
                     let outputString;
-                    if (this.mimeType != "application/ld+json") {
+                    if (this.mimeType != "application/ld+json" || this.disableFraming) {
                         const handle: IActorQueryOperationOutputQuads = {
                             type: "quads",
                             quadStream: quadStream,

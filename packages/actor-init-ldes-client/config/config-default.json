@@ -46,6 +46,7 @@
           "ldes:pollingInterval": 5000,
           "ldes:disableSynchronization": false,
           "ldes:mimeType": "application/ld+json",
+          "ldes:disableFraming": false,
           "ldes:jsonLdContextString": "{\"@context\":  {}}",
           "ldes:loggingLevel": "info",
           "ldes:mediatorRdfMetadataExtractTree": {

@@ -30,8 +30,10 @@ Possible parameters are:
 | fromTime  | datetime to prune relations that have a lower datetime value | for example: 2020-01-01T00:00:00 |
 | emitMemberOnce  | whether to emit a member only once, because collection contains immutable version objects.  | true / false |
 | disableSynchronization  | whether to disable synchronization or not (by default set to "false", syncing is enabled) | true / false |
+| disableFraming  | whether to disable JSON-LD framing when mimeType is 'application/ld+json' or when representation is 'Object' (by default set to "false"). Value can be set to "true" or "false" | true / false |
 | dereferenceMembers | whether to dereference members, because the collection pages do not contain all information (by default: false). | true / false |
 | requestsPerMinute | how many requests per minutes may be sent to the same host (optional) | any number |
+| loggingLevel | The detail level of logging; useful for debugging problems. (default: info)| 'error', 'warn', 'info', 'verbose', 'debug', 'silly' |
 
 Example commando with parameters:
 ```
@@ -62,6 +64,7 @@ try {
         "fromTime": new Date("2021-02-03T15:46:12.307Z"),
         "emitMemberOnce": true,
         "disableSynchronization": true,
+        "disableFraming": true,
         "jsonLdContext": { //Only necessary for Object representation
             "@context": [
                 "https://apidg.gent.be/opendata/adlib2eventstream/v1/context/cultureel-erfgoed-object-ap.jsonld",
