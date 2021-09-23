@@ -92,4 +92,30 @@ describe('LDESClient as a lib', () => {
             done(e);
         }
     });
+
+    it('should disable framing with representation \'Object\'', async (done) => {
+        try {
+            let url = 'https://brechtvdv.github.io/demo-data/example.ttl';
+            let options = {
+                "representation": "Object",
+                "disableFraming" : true
+            };
+            let eventstreamSync = LDESClient.createReadStream(url, options);
+            eventstreamSync.once('data', (data) => {
+                try {
+                    const result = data.object;
+                    const members = result.filter((r: any) => r["http://purl.org/dc/terms/isVersionOf"]); // member has a versionOf property
+                    const test = members[0]['http://purl.org/dc/terms/isVersionOf'][0]['@id'];
+                    // Without framing, subjects have a separate entry
+                    // There should be an entry for the non-versioned object
+                    expect((result.filter((r: any) => r["@id"] === test)).length).toEqual(1);
+                    done();
+                } catch (e) {
+                    done(e);
+                }
+            });
+        } catch (e) {
+            done(e);
+        }
+    });
 });

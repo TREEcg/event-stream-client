@@ -37,10 +37,12 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     --context                    path to a file with the JSON-LD context you want to use when MIME type is application/ld+json (e.g., ./context.jsonld)
     --disableSynchronization     whether to disable synchronization or not (by default set to "false", syncing is enabled). Value can be set to "true" or "false"
     --disablePolling             DEPRECATED: use disableSynchronization
+    --disableFraming             whether to disable JSON-LD framing when mimeType is application/ld+json or when representation is 'Object' (by default set to "false"). Value can be set to "true" or "false"
     --fromTime                   datetime to prune relations that have a lower datetime value (e.g., 2020-01-01T00:00:00)
     --emitMemberOnce             whether to emit a member only once, because collection contains immutable version objects. Value can be set to "true" or "false"
     --dereferenceMembers         whether to dereference members, because the collection pages do not contain all information. Value can be set to "true" or "false", defaults to "false"
-    --requestsPerMinute          How many requests per minutes may be sent to the same host
+    --requestsPerMinute          How many requests per minutes may be se352
+    .2nt to the same host
     --help                       print this help message
   `;
 
@@ -68,6 +70,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     public fromTime?: Date;
     public disablePolling: boolean;
     public disableSynchronization: boolean;
+    public disableFraming: boolean;
     public dereferenceMembers: boolean;
     public requestsPerMinute?: number;
 
@@ -126,6 +129,14 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             }
         }
 
+        if (args.disableFraming) {
+            if (typeof args.disableFraming == "boolean") {
+                options.disableFraming = args.disableFraming;
+            } else {
+                options.disableFraming = args.disableFraming.toLowerCase() == 'true' ? true : false;
+            }
+        }
+
         if (args.dereferenceMembers) {
             if (typeof args.dereferenceMembers == "boolean") {
                 options.dereferenceMembers = args.dereferenceMembers;
@@ -175,7 +186,9 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
         if (typeof options.disableSynchronization != "boolean") {
             options.disableSynchronization = this.disableSynchronization;
         }
-
+        if (typeof options.disableFraming != "boolean") {
+            options.disableFraming = this.disableFraming;
+        }
         if (typeof options.dereferenceMembers != "boolean") {
             options.dereferenceMembers = this.dereferenceMembers;
         }

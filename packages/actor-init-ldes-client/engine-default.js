@@ -169,6 +169,8 @@ const urn_comunica_myLDESClient = new (require('./index.js').LDESClient)({
   'jsonLdContextString': '{"@context":  {}}',
   'jsonLdContextPath': '',
   'disablePolling': false,
+  'disableSynchronization': false,
+  'disableFraming': false,
   'emitMemberOnce': true,
   'dereferenceMembers': false,
   'mediatorRdfMetadataExtractTree': urn_comunica_mediatorRdfMetadataExtractTree,

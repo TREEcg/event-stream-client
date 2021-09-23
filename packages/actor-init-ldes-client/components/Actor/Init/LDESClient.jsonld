@@ -33,7 +33,7 @@
           "comment": "Path towards a JSON-LD context for a JSON-LD compacted output",
           "range": "xsd:string",
           "default": "",
-          "required": true,
+          "required": false,
           "unique": true
         },
         {
@@ -41,7 +41,7 @@
           "comment": "A JSON string of a JSON-LD context for a JSON-LD output",
           "default": "{\"@context\":  {}}",
           "range": "xsd:string",
-          "required": true,
+          "required": false,
           "unique": true
         },
         {
@@ -63,7 +63,15 @@
           "comment": "Disable synchronization (by default set to 'false').",
           "range": "xsd:boolean",
           "default": "false",
-          "required": true,
+          "required": false,
+          "unique": true
+        },
+        {
+          "@id": "ldes:disableFraming",
+          "comment": "Do not frame when using mimeType 'application/ld+json' or when representation is 'Object' (by default set to 'false').",
+          "range": "xsd:boolean",
+          "default": "false",
+          "required": false,
           "unique": true
         },
         {
@@ -79,7 +87,7 @@
           "comment": "Dereference members,because the collection pages do not contain all information.",
           "range": "xsd:boolean",
           "default": "false",
-          "required": true,
+          "required": false,
           "unique": true
         },
         {
@@ -155,6 +163,10 @@
             {
               "keyRaw": "disableSynchronization",
               "value": "ldes:disableSynchronization"
+            },
+            {
+              "keyRaw": "disableFraming",
+              "value": "ldes:disableFraming"
             },
             {
               "keyRaw": "emitMemberOnce",
