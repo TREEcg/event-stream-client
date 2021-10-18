@@ -98,7 +98,7 @@ export class EventStream extends Readable {
     protected readonly accessUrl: string;
 
     protected readonly processedURIs: Set<string>;
-    protected readonly bookie: Bookkeeper;
+    protected readonly bookkeeper: Bookkeeper;
     protected readonly rateLimiter: RateLimiter;
     protected done: boolean;
 
@@ -129,22 +129,22 @@ export class EventStream extends Readable {
         }
 
         this.processedURIs = new Set();
-        this.bookie = new Bookkeeper();
+        this.bookkeeper = new Bookkeeper();
         this.done = false;
 
-        this.bookie.addFragment(this.accessUrl, 0);
+        this.bookkeeper.addFragment(this.accessUrl, 0);
         this.buffering = true;
         this.bufferMembers();
     }
 
     public ignorePages(urls: string[]) {
         for (const url of urls) {
-            this.bookie.blacklistFragment(url);
+            this.bookkeeper.blacklistFragment(url);
         }
     }
 
     private async fetchNextPage() {
-        let next = this.bookie.getNextFragmentToFetch();
+        let next = this.bookkeeper.getNextFragmentToFetch();
         let now = new Date();
         // Do not refetch too soon
         while (next.refetchTime.getTime() > now.getTime()) {
@@ -164,7 +164,7 @@ export class EventStream extends Readable {
         this.buffering = true;
         // Do we still have enough elements buffered?
         // Check for 1000 members by default → PC: not sure what the best amount would be and whether this should be dynamically chosen somehow
-        while (this.memberBuffer.length < bufferAtLeast && this.bookie.nextFragmentExists()) {
+        while (this.memberBuffer.length < bufferAtLeast && this.bookkeeper.nextFragmentExists()) {
             await this.fetchNextPage();
         }
         this.buffering = false;
@@ -176,7 +176,7 @@ export class EventStream extends Readable {
         try {
             if (this.memberBuffer.length > 0) {
                 this.push(this.memberBuffer.pop());
-            } else if (this.memberBuffer.length === 0 && !this.bookie.nextFragmentExists() && !this.buffering) {
+            } else if (this.memberBuffer.length === 0 && !this.bookkeeper.nextFragmentExists() && !this.buffering) {
                 //end of the stream
                 this.done = true;
                 this.log('info', "done");
@@ -223,7 +223,7 @@ export class EventStream extends Readable {
                 // Based on the HTTP Caching headers, poll this fragment for synchronization
                 const policy = new CachePolicy(page.request, page.response, { shared: false }); // If options.shared is false, then the response is evaluated from a perspective of a single-user cache (i.e. private is cacheable and s-maxage is ignored)
                 const ttl = Math.max(this.pollingInterval, policy.storable() ? policy.timeToLive() : 0); // pollingInterval is fallback
-                this.bookie.addFragment(page.url, ttl);
+                this.bookkeeper.addFragment(page.url, ttl);
             }
 
             const quadsArrayOfPage = await this.stringToQuadArray(page.data.toString(), '', mediaType);
@@ -239,7 +239,7 @@ export class EventStream extends Readable {
             // In this case, we expect that the URL parameter provided contains a tree collection's URI
             if (!treeMetadata.metadata.treeMetadata.relations.size && treeMetadata.metadata.treeMetadata.collections.get(pageUrl) && treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"]) {
                 const view = treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"][0]["@id"]; // take first view encountered
-                this.bookie.addFragment(view, 0);
+                this.bookkeeper.addFragment(view, 0);
             }
 
             // Retrieve TREE relations towards other nodes
@@ -255,7 +255,7 @@ export class EventStream extends Readable {
                     for (const node of relation.node) {
                         // do not add when synchronization is disabled and node has already been processed
                         if (!this.disableSynchronization || (this.disableSynchronization && !this.processedURIs.has(node['@id']))) {
-                            this.bookie.addFragment(node['@id'], 0);
+                            this.bookkeeper.addFragment(node['@id'], 0);
                         }
                     }
                 }
