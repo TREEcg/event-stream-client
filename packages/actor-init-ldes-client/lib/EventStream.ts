@@ -97,7 +97,7 @@ export class EventStream extends Readable {
     protected readonly dereferenceMembers?: boolean;
     protected readonly accessUrl: string;
 
-    protected readonly processedURIs: Set<string>;
+    protected processedURIs: Set<string>;
     protected readonly bookie: Bookkeeper;
     protected readonly rateLimiter: RateLimiter;
     protected done: boolean;
@@ -149,7 +149,7 @@ export class EventStream extends Readable {
         // Do not refetch too soon
         while (next.refetchTime.getTime() > now.getTime()) {
             await this.sleep(FETCH_PAUSE);
-            this.log('info', `Waiting ${(next.refetchTime - now.getTime()) / 1000}s before refetching: ${next.url}`);
+            this.log('info', `Waiting ${(next.refetchTime.getTime() - now.getTime()) / 1000}s before refetching: ${next.url}`);
             now = new Date();
         }
         return await this.retrieve(next.url).then(() => {
@@ -191,6 +191,20 @@ export class EventStream extends Readable {
         } catch (e) {
             console.error(e);
         }
+    }
+
+    public exportState(): State {
+        return {
+            bookie: this.bookie.serialize(),
+            memberBuffer: JSON.stringify(this.memberBuffer),
+            processedURIs: JSON.stringify([...this.processedURIs]),
+        };
+    }
+
+    public importState(state: State) {
+        this.bookie.deserialize(state.bookie);
+        this.memberBuffer = JSON.parse(state.memberBuffer);
+        this.processedURIs = new Set(JSON.parse(state.processedURIs));
     }
 
     protected log(level: string, message: string, data?: any) {
@@ -528,4 +542,10 @@ class PageMetadata {
     public "data": string;
     public "statusCode": number;
     public "fromCache": boolean;
+}
+
+interface State {
+    bookie: Object;
+    memberBuffer: string;
+    processedURIs: string;
 }
