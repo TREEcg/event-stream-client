@@ -84,7 +84,7 @@ interface IMember {
 }
 
 export class EventStream extends Readable {
-    protected memberBuffer: Array<string>;
+    //protected memberBuffer: Array<string>;
     protected readonly mediators: IEventStreamMediators;
 
     protected readonly pollingInterval?: number;
@@ -121,7 +121,7 @@ export class EventStream extends Readable {
         this.jsonLdContext = args.jsonLdContext;
         this.dereferenceMembers = args.dereferenceMembers;
         this.emitMemberOnce = args.emitMemberOnce;
-        this.memberBuffer = [];
+        //this.memberBuffer = [];
 
         if (args.requestsPerMinute) {
             this.rateLimiter = new RateLimiter(60000. / args.requestsPerMinute);
@@ -133,13 +133,15 @@ export class EventStream extends Readable {
         this.bookie = new Bookkeeper();
         this.done = false;
 
-        this.bookie.addFragment(this.accessUrl, 0);
-        this.buffering = true;
-        this.bufferMembers();
-
         if (state != null) {
             this.importState(state);
         }
+        else {
+            this.bookie.addFragment(this.accessUrl, 0);
+        }
+        this.buffering = true;
+        this.bufferMembers();
+   
     }
 
     public ignorePages(urls: string[]) {
@@ -169,8 +171,12 @@ export class EventStream extends Readable {
         this.buffering = true;
         // Do we still have enough elements buffered?
         // Check for 1000 members by default → PC: not sure what the best amount would be and whether this should be dynamically chosen somehow
-        while (this.memberBuffer.length < bufferAtLeast && this.bookie.nextFragmentExists()) {
+        // TODO: use HighWaterMark to determine the buffer size
+        while (this.readableLength < bufferAtLeast && this.bookie.nextFragmentExists() && !this.isPaused()) {
             await this.fetchNextPage();
+            if (this.paused) {
+                super.pause();
+            }
         }
         this.buffering = false;
     }
@@ -180,22 +186,18 @@ export class EventStream extends Readable {
 
     public async _read() {
         try {
-            if (this.memberBuffer.length > 0) {
-                this.push(this.memberBuffer.pop());
-            } else if (!this.isPaused() && this.paused) {
-            //} else if (!this.isPaused() && this.paused && !this.buffering) {
-                super.pause();
-            } else if (this.memberBuffer.length === 0 && !this.bookie.nextFragmentExists() && !this.buffering && !this.isPaused()) {
+            if (this.readableLength === 0 && !this.bookie.nextFragmentExists() && !this.buffering && !this.isPaused()) {
                 //end of the stream
                 this.done = true;
                 this.log('info', "done");
                 this.push(null);
-            } else {
+            } else if (this.listenerCount('page processed') === 0) {
                 // while we’re buffering and there are no members, but read was called again, it should wait until the buffer is full again
+                // console.log(this.listenerCount('page processed'));
                 this.once('page processed', this._read);
             }
             //Check whether the buffer still contains enough members, and if not, fetch more
-            if (!this.buffering && !this.done && !this.paused) {
+            if (!this.buffering && !this.done && !this.isPaused()) {
                 this.bufferMembers(); 
             }     
         } catch (e) {
@@ -203,29 +205,46 @@ export class EventStream extends Readable {
         }
     }
 
+    
     public pause() : this {
         this.paused = true;
-        return this
+        if (!this.buffering) {
+            super.pause();
+        }
+        return this;
     }
 
+    
     public resume() : this {
         this.paused = false;
         super.resume();
+        //this.bufferMembers();
         return this
     }
+    
 
     public exportState(): State {
+        if (!this.isPaused()) {
+            this.pause();
+        }
         return {
             bookie: this.bookie.serialize(),
-            memberBuffer: JSON.stringify(this.memberBuffer),
+            //memberBuffer: JSON.stringify(this.memberBuffer),
+            memberBuffer: JSON.stringify(this.read()),
             processedURIs: JSON.stringify([...this.processedURIs]),
         };
     }
 
     public importState(state: State) {
+        this.pause();
         this.bookie.deserialize(state.bookie);
-        this.memberBuffer = JSON.parse(state.memberBuffer);
+        //this.memberBuffer = JSON.parse(state.memberBuffer);
+        if (JSON.parse(state.memberBuffer) != null) {
+            // TODO: import Quad Arrays properly
+            this.unshift(JSON.parse(state.memberBuffer));
+        }    
         this.processedURIs = new Set(JSON.parse(state.processedURIs));
+        this.resume();
     }
 
     protected log(level: string, message: string, data?: any) {
@@ -437,7 +456,8 @@ export class EventStream extends Readable {
                         })).data;
                         outputString = JSON.stringify(framedObjects.get(frame));
                     }
-                    this.memberBuffer.push(`${outputString}\n`);
+                    //this.memberBuffer.push(`${outputString}\n`);
+                    this.push(`${outputString}\n`);
                 }
             } catch (error) {
                 this.log("error", `Failed to process member ${id}`, error);
