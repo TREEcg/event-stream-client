@@ -51,7 +51,7 @@ describe('Bookkeeper', () => {
         bookkeeper.addFragment('https://www.test.com/2', 10);
         bookkeeper.blacklistFragment('https://www.test.com/3');
         expect(() => bookkeeper.serialize()).toBeDefined();
-        console.log(bookkeeper.serialize());
+        //console.log(bookkeeper.serialize());
     });
 
     test('Test deserialisation', () => {
@@ -82,6 +82,24 @@ describe('Bookkeeper', () => {
         expect(bookkeeper.nextFragmentExists()).toBeFalsy();
     });
 
+    test('Test serialisation and deserialisation', () => {
+        let bookkeeper: Bookkeeper = new Bookkeeper();
+
+        bookkeeper.addFragment('https://www.test.com/1', 0);
+        bookkeeper.addFragment('https://www.test.com/2', 10);
+        bookkeeper.blacklistFragment('https://www.test.com/3');
+        
+        let serialized = bookkeeper.serialize();
+
+        // new bookkeeper
+        bookkeeper = new Bookkeeper();
+        bookkeeper.deserialize(serialized);
+
+        let serializedNew = bookkeeper.serialize();
+        
+        // console.log(serialized, serializedNew);
+        expect(serialized).toStrictEqual(serializedNew);
+    });
 
 
 });
