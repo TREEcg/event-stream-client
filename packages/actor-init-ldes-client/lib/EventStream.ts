@@ -106,6 +106,7 @@ export class EventStream extends Readable {
         url: string,
         mediators: IEventStreamMediators,
         args: IEventStreamArgs,
+        state: State | null
     ) {
         super({ objectMode: true });
         this.mediators = mediators;
@@ -135,6 +136,10 @@ export class EventStream extends Readable {
         this.bookie.addFragment(this.accessUrl, 0);
         this.buffering = true;
         this.bufferMembers();
+
+        if (state != null) {
+            this.importState(state);
+        }
     }
 
     public ignorePages(urls: string[]) {
@@ -171,12 +176,16 @@ export class EventStream extends Readable {
     }
 
     private buffering:boolean;
+    private paused:boolean = false;
 
     public async _read() {
         try {
             if (this.memberBuffer.length > 0) {
                 this.push(this.memberBuffer.pop());
-            } else if (this.memberBuffer.length === 0 && !this.bookie.nextFragmentExists() && !this.buffering) {
+            } else if (!this.isPaused() && this.paused) {
+            //} else if (!this.isPaused() && this.paused && !this.buffering) {
+                super.pause();
+            } else if (this.memberBuffer.length === 0 && !this.bookie.nextFragmentExists() && !this.buffering && !this.isPaused()) {
                 //end of the stream
                 this.done = true;
                 this.log('info', "done");
@@ -186,11 +195,23 @@ export class EventStream extends Readable {
                 this.once('page processed', this._read);
             }
             //Check whether the buffer still contains enough members, and if not, fetch more
-            if (!this.buffering && !this.done)
-                this.bufferMembers();
+            if (!this.buffering && !this.done && !this.paused) {
+                this.bufferMembers(); 
+            }     
         } catch (e) {
             console.error(e);
         }
+    }
+
+    public pause() : this {
+        this.paused = true;
+        return this
+    }
+
+    public resume() : this {
+        this.paused = false;
+        super.resume();
+        return this
     }
 
     public exportState(): State {
@@ -544,7 +565,7 @@ class PageMetadata {
     public "fromCache": boolean;
 }
 
-interface State {
+export interface State {
     bookie: Object;
     memberBuffer: string;
     processedURIs: string;
