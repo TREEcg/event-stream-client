@@ -51,6 +51,8 @@ import { inspect } from 'util';
 import RateLimiter from "./RateLimiter";
 import MemberIterator from "./MemberIterator";
 
+import * as RdfString from "rdf-string";
+
 export interface IEventStreamArgs {
     pollingInterval?: number,
     representation?:string,
@@ -227,10 +229,31 @@ export class EventStream extends Readable {
         if (!this.isPaused()) {
             this.pause();
         }
+        let memberBuffer;
+        if (this.representation === 'Quads') {
+            let internalBuffer = this.read();
+            if (internalBuffer !== null) {
+                memberBuffer = [];
+                for (const member of internalBuffer) {
+                    let quads = [];
+                    for (const quad of member.quads) {
+                        quads.push(RdfString.quadToStringQuad(quad));
+                    }
+                    memberBuffer.push({id:member.id, quads:quads});
+                }
+            }
+            else {
+                memberBuffer = internalBuffer;
+            }
+        }
+        else {
+            memberBuffer = this.read();
+        }
+
         return {
             bookie: this.bookie.serialize(),
             //memberBuffer: JSON.stringify(this.memberBuffer),
-            memberBuffer: JSON.stringify(this.read()),
+            memberBuffer: JSON.stringify(memberBuffer),
             processedURIs: JSON.stringify([...this.processedURIs]),
         };
     }
@@ -239,9 +262,23 @@ export class EventStream extends Readable {
         this.pause();
         this.bookie.deserialize(state.bookie);
         //this.memberBuffer = JSON.parse(state.memberBuffer);
-        if (JSON.parse(state.memberBuffer) != null) {
-            // TODO: import Quad Arrays properly
-            this.unshift(JSON.parse(state.memberBuffer));
+        //console.log(state.memberBuffer);
+        if (state.memberBuffer != undefined && JSON.parse(state.memberBuffer) != null) {
+            if (this.representation === 'Quads') {
+                let memberBuffer = [];
+                let internalBuffer = JSON.parse(state.memberBuffer);
+                for (const member of internalBuffer) {
+                    let quads = [];
+                    for (const quad of member.quads) {
+                        quads.push(RdfString.stringQuadToQuad(quad));
+                    }
+                    memberBuffer.push({id:member.id, quads:quads});
+                }
+                this.unshift(memberBuffer);
+            }
+            else {
+                this.unshift(JSON.parse(state.memberBuffer));
+            } 
         }    
         this.processedURIs = new Set(JSON.parse(state.processedURIs));
         this.resume();
