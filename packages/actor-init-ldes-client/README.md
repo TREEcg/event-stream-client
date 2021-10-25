@@ -80,12 +80,20 @@ try {
     let eventstreamSync = LDESClient.createReadStream(url, options);
     eventstreamSync.on('data', (member) => {
         if (options.representation) {
-            const memberURI = member.id;
-            console.log(memberURI);
             if (options.representation === "Object") {
+                const memberURI = member.id;
+                console.log(memberURI);
                 const object = member.object;
                 console.log(object);
             } else if (options.representation === "Quads") {
+                /* When using Quads representation, the members adhere to the [@Treecg/types Member interface](https://github.com/TREEcg/types/blob/main/lib/Member.ts) 
+                    interface Member {
+                        id: RDF.Term;
+                        quads: Array<RDF.Quad>;
+                    }
+                */
+                const memberURI = member.id.value;
+                console.log(memberURI);
                 const quads = member.quads;
                 console.log(quads);
             }
