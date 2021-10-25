@@ -51,9 +51,12 @@ import { inspect } from 'util';
 import RateLimiter from "./RateLimiter";
 import MemberIterator from "./MemberIterator";
 
+import type { Member } from "@treecg/types";
+import { DataFactory } from 'rdf-data-factory';
+
 export interface IEventStreamArgs {
     pollingInterval?: number,
-    representation?:string,
+    representation?: string,
     mimeType?: string,
     jsonLdContext?: ContextDefinition,
     fromTime?: Date,
@@ -160,7 +163,7 @@ export class EventStream extends Readable {
     /**
      * Buffers an amount of members by fetching pages until the buffer is filled sufficiently, or when there are no pages to fetch any more
      */
-    private async bufferMembers(bufferAtLeast : number = 1000) {
+    private async bufferMembers(bufferAtLeast: number = 1000) {
         this.buffering = true;
         // Do we still have enough elements buffered?
         // Check for 1000 members by default → PC: not sure what the best amount would be and whether this should be dynamically chosen somehow
@@ -170,7 +173,7 @@ export class EventStream extends Readable {
         this.buffering = false;
     }
 
-    private buffering:boolean;
+    private buffering: boolean;
 
     public async _read() {
         try {
@@ -351,7 +354,7 @@ export class EventStream extends Readable {
     }
 
     protected async processMembers(members: Generator<IMember>) {
-
+        let factory = new DataFactory();
         for (const member of members) {
             const id = member.uri;
             const quadStream = member.quads;
@@ -363,19 +366,23 @@ export class EventStream extends Readable {
                     if (this.representation === 'Object') {
                         let framedResult = (await this.mediators.mediatorRdfFrame.mediate({
                             data: quadStream,
-                            frames: [{"@id": id}],
+                            frames: [{ "@id": id }],
                             jsonLdContext: this.jsonLdContext
                         })).data;
                         let firstEntry = framedResult.entries().next();
-                        this.push({ "id": firstEntry.value[0]["@id"], object: firstEntry.value[1]});
+                        this.push({ "id": firstEntry.value[0]["@id"], object: firstEntry.value[1] });
                     } else {
                         //Build an array from the quads iterator
-                        let quadArray : Array<Quad> = [];
+                        let quadArray: Array<Quad> = [];
                         quadStream.forEach((item) => {
                             quadArray.push(item);
                         });
                         quadStream.on('end', () => {
-                            this.push({ "id": member.uri, quads: quadArray});
+                            let _member: Member = {
+                                id: factory.namedNode(member.uri),
+                                quads: quadArray
+                            };
+                            this.push(_member);
                         });
                     }
                 } else {
