@@ -174,13 +174,14 @@ export class EventStream extends Readable {
         // Do we still have enough elements buffered?
         // Check for 1000 members by default → PC: not sure what the best amount would be and whether this should be dynamically chosen somehow
         // TODO: use HighWaterMark to determine the buffer size
-        while (this.readableLength < bufferAtLeast && this.bookie.nextFragmentExists() && !this.isPaused()) {
+        while (this.readableLength < bufferAtLeast && this.bookie.nextFragmentExists() && !this.paused) {
             await this.fetchNextPage();
-            if (this.paused) {
-                super.pause();
-            }
         }
         this.buffering = false;
+
+        if (this.paused) {
+            super.pause();
+        }
     }
 
     private buffering:boolean;
@@ -188,7 +189,7 @@ export class EventStream extends Readable {
 
     public async _read() {
         try {
-            if (this.readableLength === 0 && !this.bookie.nextFragmentExists() && !this.buffering && !this.isPaused()) {
+            if (this.readableLength === 0 && !this.bookie.nextFragmentExists() && !this.buffering && !this.paused) {
                 //end of the stream
                 this.done = true;
                 this.log('info', "done");
@@ -199,7 +200,7 @@ export class EventStream extends Readable {
                 this.once('page processed', this._read);
             }
             //Check whether the buffer still contains enough members, and if not, fetch more
-            if (!this.buffering && !this.done && !this.isPaused()) {
+            if (!this.buffering && !this.done && !this.paused) {
                 this.bufferMembers(); 
             }     
         } catch (e) {
@@ -230,8 +231,10 @@ export class EventStream extends Readable {
             this.pause();
         }
         let memberBuffer;
+        // console.log("amount of objects in buffer:", this.readableLength);
+        /*
         if (this.representation === 'Quads') {
-            let internalBuffer = this.read();
+            let internalBuffer = super.read();
             if (internalBuffer !== null) {
                 memberBuffer = [];
                 for (const member of internalBuffer) {
@@ -247,22 +250,28 @@ export class EventStream extends Readable {
             }
         }
         else {
-            memberBuffer = this.read();
+            memberBuffer = super.read();
         }
-
+        */
         return {
             bookie: this.bookie.serialize(),
             //memberBuffer: JSON.stringify(this.memberBuffer),
-            memberBuffer: JSON.stringify(memberBuffer),
+            //memberBuffer: JSON.stringify(memberBuffer),
+            memberBuffer: JSON.stringify(null),
             processedURIs: JSON.stringify([...this.processedURIs]),
         };
     }
 
+    public isBuffering(): boolean {
+        return this.buffering;
+    }
+
     public importState(state: State) {
-        this.pause();
+        //this.pause();
         this.bookie.deserialize(state.bookie);
         //this.memberBuffer = JSON.parse(state.memberBuffer);
         //console.log(state.memberBuffer);
+        /*
         if (state.memberBuffer != undefined && JSON.parse(state.memberBuffer) != null) {
             if (this.representation === 'Quads') {
                 let memberBuffer = [];
@@ -274,14 +283,15 @@ export class EventStream extends Readable {
                     }
                     memberBuffer.push({id:member.id, quads:quads});
                 }
-                this.unshift(memberBuffer);
+                super.unshift(memberBuffer);
             }
             else {
-                this.unshift(JSON.parse(state.memberBuffer));
+                super.unshift(JSON.parse(state.memberBuffer));
             } 
-        }    
+        }
+        */
         this.processedURIs = new Set(JSON.parse(state.processedURIs));
-        this.resume();
+        //this.resume();
     }
 
     protected log(level: string, message: string, data?: any) {
