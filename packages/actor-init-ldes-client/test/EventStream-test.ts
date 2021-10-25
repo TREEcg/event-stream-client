@@ -305,6 +305,7 @@ describe('EventStream', () => {
             });
 
             eventstreamSync1.once('pause', () => {
+                expect(eventstreamSync1.isBuffering()).toBeFalsy();
                 state = eventstreamSync1.exportState();
                 // console.log(state);
 
@@ -315,6 +316,7 @@ describe('EventStream', () => {
                 eventstreamSync2.once('end', () => {
                     mockEnd();
                     expect(mockEnd).toHaveBeenCalled();
+                    //console.log(eventstreamSync2.exportState());
                     console.log(mock1.mock.calls.length, mock2.mock.calls.length);
                     expect(mock1.mock.calls.length + mock2.mock.calls.length).toBe(memberCount);
                     //expect(mock2).toHaveBeenCalledTimes(memberCount);
@@ -414,4 +416,49 @@ describe('EventStream', () => {
         }
     });
     
+    // test('Test if you can load a state with buffer in the eventstream using constructor, representation Quads', async (done) => {
+    //     try {
+    //         let url = "https://smartdata.dev-vlaanderen.be/base/gemeente";
+    //         let options = {
+    //             "representation": "Quads",
+    //             "disablePolling": true
+    //         };
+    //         let eventstreamSync1 = LDESClient.createReadStream(url, options);
+    //         let state: State;
+
+    //         const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+    //         await delay(5000);
+
+    //         const mock1 = jest.fn();
+    //         const mock2 = jest.fn();
+    //         const mockEnd = jest.fn();
+        
+    //         eventstreamSync1.pause();
+
+    //         eventstreamSync1.once('data', () => {});
+
+    //         eventstreamSync1.once('pause', () => {
+    //             state = eventstreamSync1.exportState();
+    //             console.log(state);
+
+    //             let eventstreamSync2 = LDESClient.createReadStream(url, options, state);
+
+    //             eventstreamSync2.on('data', () => {mock2()});
+
+    //             eventstreamSync2.once('end', () => {
+    //                 mockEnd();
+    //                 expect(mockEnd).toHaveBeenCalled();
+    //                 console.log(mock1.mock.calls.length, mock2.mock.calls.length);
+    //                 expect(mock1.mock.calls.length + mock2.mock.calls.length).toBe(memberCount);
+    //                 //expect(mock2).toHaveBeenCalledTimes(memberCount);
+    //                 done();
+    //             });
+    //         });
+            
+    //         //done();
+    //     } catch (e) {
+    //         done(e);
+    //     }
+    // });
+
 });
