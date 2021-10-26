@@ -200,7 +200,6 @@ export class EventStream extends Readable {
     public resume() : this {
         this.paused = false;
         super.resume();
-        //this.bufferMembers();
         return this
     }
     
@@ -227,9 +226,7 @@ export class EventStream extends Readable {
         }
         return {
             bookkeeper: this.bookkeeper.serialize(),
-            //memberBuffer: JSON.stringify(this.memberBuffer),
             memberBuffer: JSON.stringify(memberBuffer),
-            //memberBuffer: JSON.stringify(null),
             processedURIs: JSON.stringify([...this.processedURIs]),
         };
     }
