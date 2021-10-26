@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.5.0"></a>
+## [v2.5.0](https://github.com/TREEcg/event-stream-client/compare/v2.4.0...v2.5.0) - 2021-10-26
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Feat 36 - Pause and Resume EventStream with exportState/importState methods (#42)](https://github.com/TREEcg/event-stream-client/commit/18c06cea21f106657e784c55ef3b89d50fcf858a)
+* [Add serialisation & deserialization for Bookkeeper data structures  (#35)](https://github.com/TREEcg/event-stream-client/commit/67a8fee9a48241da6dd5133027a8ac41a7c52984)
+* [Bump to release version v2.4.1](https://github.com/TREEcg/event-stream-client/commit/d8c9154f14bc842f0fe04b653a01abdd8f421819)
+* [Fix 40 - remove custom memberBuffer and use internal readableBuffer (#41)](https://github.com/TREEcg/event-stream-client/commit/ddd8ae59cdf5a23bb5adb3a90f3ec42fa849dd36)
+
 <a name="v2.4.0"></a>
 ## [v2.4.0](https://github.com/TREEcg/event-stream-client/compare/v2.3.11...v2.4.0) - 2021-10-26
 
