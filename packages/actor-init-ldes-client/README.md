@@ -24,7 +24,7 @@ Possible parameters are:
 
 | Parameter  | Description | Possible values |
 | ------------- | ------------- | ------------- |
-|  pollingInterval | Number of milliseconds before refetching uncacheable fragments  | for example: 5000 |
+| pollingInterval | Number of milliseconds before refetching uncacheable fragments  | for example: 5000 |
 | mimeType  | the MIME type of the output  | application/ld+json, text/turtle... |
 | context  | path to a file with the JSON-LD context you want to use when MIME type is application/ld+json  | for example: ./context.jsonld |
 | fromTime  | datetime to prune relations that have a lower datetime value | for example: 2020-01-01T00:00:00 |
@@ -47,8 +47,8 @@ const newEngine = require('@treecg/actor-init-ldes-client').newEngine;
 const LDESClient = new newEngine();
 ```
 
-With the engine or client created, you can now use it to call the async ```createReadStream(url, options)``` method.
-Note that next to retrieving a serialized string (`mimeType` option) of member data, an `Object` (JSON-LD) or `Quads` representation is also possible with the Javascript API using the `representation` option. 
+With the engine or client created, you can now use it to call the async ```createReadStream(url, options)``` or ```createReadStream(url, options, state)``` method.
+Note that next to retrieving a serialized string (`mimeType` option) of member data, an `Object` (JSON-LD) or `Quads` representation is also possible with the Javascript API using the `representation` option. If you want to pause the streama and want to resume it later, you can export the state of the stream using the ```exportState()``` method once the stream is paused using ```pause()```.
  
 Here is an example synchronizing with a TREE root node of an Event Stream with polling interval of 5 seconds:
 
@@ -78,6 +78,8 @@ try {
     };
     let LDESClient = new newEngine();
     let eventstreamSync = LDESClient.createReadStream(url, options);
+    // OR if you have a previous state
+    // let eventstreamSync = LDESClient.createReadStream(url, options, state);
     eventstreamSync.on('data', (member) => {
         if (options.representation) {
             if (options.representation === "Object") {
@@ -100,10 +102,17 @@ try {
         } else {
             console.log(member);
         }
+
+        // Want to pause event stream?
+        eventstreamSync.pause();
     });
     eventstreamSync.on('metadata', (metadata) => {
         if (metadata.treeMetadata) console.log(metadata.treeMetadata); // follows the structure of the TREE metadata extractor (https://github.com/TREEcg/tree-metadata-extraction#extracted-metadata)
         console.log(metadata.url); // page from where metadata has been extracted
+    });
+    eventstreamSync.on('pause', () => {
+        // Export current state, not only when paused!
+        let state = eventstreamSync.exportState();
     });
     eventstreamSync.on('end', () => {
         console.log("No more data!");
