@@ -291,13 +291,14 @@ export class EventStream extends Readable {
         if (!this.isPaused()) {
             throw new Error('Cannot export state while stream is not paused');
         }
-        let memberBuffer;
+        let internalBuffer = this.read();
+        let memberBuffer: any;
         //console.log(this.readableLength, this.read());
-        console.log("amount of objects in buffer:", this.readableLength);
+        // console.log("amount of objects in buffer:", this.readableLength, typeof internalBuffer);
         if (this.readableLength > 0) {
             if (this.representation === 'Quads') {
-                let internalBuffer = super.read();
                 if (internalBuffer !== null) {
+                    console.log("internal buffer:", internalBuffer);
                     memberBuffer = [];
                     for (const member of internalBuffer) {
                         let quads = [];
@@ -312,7 +313,7 @@ export class EventStream extends Readable {
                 }
             }
             else {
-                memberBuffer = super.read();
+                memberBuffer = internalBuffer;
             }
         } else {
             memberBuffer = null;
