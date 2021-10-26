@@ -1,6 +1,6 @@
 {
   "name": "@treecg/actor-init-ldes-client",
-  "version": "2.3.11",
+  "version": "2.4.0",
   "description": "An init actor that fetches members from an Event Stream API",
   "publishConfig": {
     "access": "public"
