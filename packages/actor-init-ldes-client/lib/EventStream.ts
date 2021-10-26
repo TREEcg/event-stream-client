@@ -153,7 +153,6 @@ export class EventStream extends Readable {
 
         this.downloading = false;
         this.syncingmode = false;
-
     }
 
     public ignorePages(urls: string[]) {
@@ -202,19 +201,16 @@ export class EventStream extends Readable {
         }
     }
 
-
     public pause(): this {
         this.paused = true;
         return this;
     }
-
 
     public resume(): this {
         this.paused = false;
         super.resume();
         return this
     }
-
 
     public exportState(): State {
         if (!this.isPaused() && !this.readableEnded) {

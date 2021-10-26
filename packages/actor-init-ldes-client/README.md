@@ -134,7 +134,7 @@ We save and load the EventStream state:
 interface State {
     bookkeeper: Bookkeeper;
     memberBuffer: Array<Member>;
-    processedURIs: Set<string>;
+    processedURIs: LRUCache;
 }
 
 interface Bookkeeper {
@@ -148,7 +148,7 @@ interface Bookkeeper {
 - `queued` is a least-recently-used Cache containings the last 500 URLS added to the `queue`, to prevent adding to many duplicates to the `queue`.
 - `blacklist` is a Set containing blacklisted URLs that should not be added to the `queue`.
 - `memberBuffer` is the internal Buffer containing the unread Members from the EventStream.
-- `processedURIs` is a Set containing all processed URIs. When refetching pages, members having their URI in this set should not be emitted again when `"emitMemberOnce": true`.
+- `processedURIs` is a least-recently used Cache containing all processed URIs. When refetching pages, members having their URI in this set should not be emitted again when `"emitMemberOnce": true`.
 
 ### example
 ```typescript
