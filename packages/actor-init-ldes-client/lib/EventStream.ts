@@ -87,7 +87,6 @@ interface IMember {
 }
 
 export class EventStream extends Readable {
-    protected memberBuffer: Array<string>;
     protected readonly mediators: IEventStreamMediators;
 
     protected readonly pollingInterval?: number;
@@ -103,14 +102,16 @@ export class EventStream extends Readable {
     protected readonly processedURIs: Set<string>;
     protected readonly bookkeeper: Bookkeeper;
     protected readonly rateLimiter: RateLimiter;
-    protected done: boolean;
+
+    private downloading: boolean;
+
 
     public constructor(
         url: string,
         mediators: IEventStreamMediators,
         args: IEventStreamArgs,
     ) {
-        super({ objectMode: true });
+        super({ objectMode: true , highWaterMark: 1000});
         this.mediators = mediators;
 
         this.accessUrl = url;
@@ -123,7 +124,6 @@ export class EventStream extends Readable {
         this.jsonLdContext = args.jsonLdContext;
         this.dereferenceMembers = args.dereferenceMembers;
         this.emitMemberOnce = args.emitMemberOnce;
-        this.memberBuffer = [];
 
         if (args.requestsPerMinute) {
             this.rateLimiter = new RateLimiter(60000. / args.requestsPerMinute);
@@ -133,11 +133,10 @@ export class EventStream extends Readable {
 
         this.processedURIs = new Set();
         this.bookkeeper = new Bookkeeper();
-        this.done = false;
 
         this.bookkeeper.addFragment(this.accessUrl, 0);
-        this.buffering = true;
-        this.bufferMembers();
+
+        this.downloading = false;
     }
 
     public ignorePages(urls: string[]) {
@@ -147,6 +146,7 @@ export class EventStream extends Readable {
     }
 
     private async fetchNextPage() {
+        this.downloading = true;
         let next = this.bookkeeper.getNextFragmentToFetch();
         let now = new Date();
         // Do not refetch too soon
@@ -156,41 +156,22 @@ export class EventStream extends Readable {
             now = new Date();
         }
         return await this.retrieve(next.url).then(() => {
+            this.downloading = false;
             this.emit('page processed', next.url);
+            this._read();
         });
     }
 
-    /**
-     * Buffers an amount of members by fetching pages until the buffer is filled sufficiently, or when there are no pages to fetch any more
-     */
-    private async bufferMembers(bufferAtLeast: number = 1000) {
-        this.buffering = true;
-        // Do we still have enough elements buffered?
-        // Check for 1000 members by default → PC: not sure what the best amount would be and whether this should be dynamically chosen somehow
-        while (this.memberBuffer.length < bufferAtLeast && this.bookkeeper.nextFragmentExists()) {
-            await this.fetchNextPage();
-        }
-        this.buffering = false;
-    }
-
-    private buffering: boolean;
-
     public async _read() {
         try {
-            if (this.memberBuffer.length > 0) {
-                this.push(this.memberBuffer.pop());
-            } else if (this.memberBuffer.length === 0 && !this.bookkeeper.nextFragmentExists() && !this.buffering) {
+            if (!this.downloading && this.bookkeeper.nextFragmentExists()) {
+                await this.fetchNextPage();
+            } 
+            else if (!this.downloading) {
                 //end of the stream
-                this.done = true;
                 this.log('info', "done");
                 this.push(null);
-            } else {
-                // while we’re buffering and there are no members, but read was called again, it should wait until the buffer is full again
-                this.once('page processed', this._read);
             }
-            //Check whether the buffer still contains enough members, and if not, fetch more
-            if (!this.buffering && !this.done)
-                this.bufferMembers();
         } catch (e) {
             console.error(e);
         }
@@ -409,7 +390,7 @@ export class EventStream extends Readable {
                         })).data;
                         outputString = JSON.stringify(framedObjects.get(frame));
                     }
-                    this.memberBuffer.push(`${outputString}\n`);
+                    this.push(`${outputString}\n`);
                 }
             } catch (error) {
                 this.log("error", `Failed to process member ${id}`, error);
