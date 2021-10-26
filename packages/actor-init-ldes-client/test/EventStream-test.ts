@@ -3,10 +3,14 @@ import { State } from '../lib/EventStream';
 
 describe('EventStream', () => {
     var LDESClient = newEngine();
-    jest.setTimeout(10000);
+    jest.setTimeout(15000);
 
     const memberCount = 764;
     let state: State;
+
+    function sleep(ms: number) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
     test('Test if all members are emitted, representation Quads', (done) => {
         try {
@@ -128,22 +132,50 @@ describe('EventStream', () => {
         }
     });
 
-    
-    test('Test if you can load a state in the eventstream using constructor', (done) => {
+    test('Test if you get an error when exporting the state of a running eventstream', (done) => {
         try {
             let url = "https://smartdata.dev-vlaanderen.be/base/gemeente";
             let options = {
                 "mimeType": "text/turtle",
                 "disablePolling": true
             };
-            let state = LDESClient.createReadStream(url, options).exportState();
-            let eventstreamSync = LDESClient.createReadStream(url, options, state);
-            expect(eventstreamSync.exportState()).toStrictEqual(state);
+            let eventStreamStync = LDESClient.createReadStream(url, options);
+            expect(() => {
+                eventStreamStync.exportState()
+            }).toThrowError('Cannot export state while stream is not paused');
             done();
         } catch (e) {
             done(e);
         }
     });
+
+    
+    // test('Test if you can load a state in the eventstream using constructor', (done) => {
+    //     try {
+    //         let url = "https://smartdata.dev-vlaanderen.be/base/gemeente";
+    //         let options = {
+    //             "mimeType": "text/turtle",
+    //             "disablePolling": true
+    //         };
+    //         // let state = LDESClient.createReadStream(url, options).exportState();
+    //         // let eventstreamSync = LDESClient.createReadStream(url, options, state);
+    //         // expect(eventstreamSync.exportState()).toStrictEqual(state);
+    //         // done();
+    //         let eventstreamSync = LDESClient.createReadStream(url, options);
+    //         eventstreamSync.pause();
+    //         eventstreamSync.once('pause', () => {
+    //             let state = eventstreamSync.exportState();
+    //             let eventstreamSync2 = LDESClient.createReadStream(url, options, state);
+    //             eventstreamSync2.pause();
+    //             eventstreamSync2.once('pause', () => {
+    //                 expect(eventstreamSync2.exportState()).toEqual(state);
+    //                 done();
+    //             });
+    //         });
+    //     } catch (e) {
+    //         done(e);
+    //     }
+    // });
 
     test('Test if you can load a state in the eventstream', (done) => {
         try {
@@ -153,10 +185,13 @@ describe('EventStream', () => {
                 "disablePolling": true
             };
             let eventstreamSync = LDESClient.createReadStream(url, options);
-            let state = eventstreamSync.exportState();
-            eventstreamSync.importState(state);
-            expect(eventstreamSync.exportState()).toStrictEqual(state);
-            done();
+            eventstreamSync.pause();
+            eventstreamSync.once('pause', () => {
+                let state = eventstreamSync.exportState();
+                eventstreamSync.importState(state);
+                expect(eventstreamSync.exportState()).toStrictEqual(state);
+                done();
+            });
         } catch (e) {
             done(e);
         }
@@ -281,7 +316,7 @@ describe('EventStream', () => {
         } catch (e) {
             done(e);
         }
-    });
+    }); 
 
     test('Test if you can load a state in the eventstream using constructor, representation Quads', (done) => {
         try {
@@ -296,29 +331,46 @@ describe('EventStream', () => {
             const mock1 = jest.fn();
             const mock2 = jest.fn();
             const mockEnd = jest.fn();
+            const mockTest1 = jest.fn();
+            const mockTest2 = jest.fn();
             
             eventstreamSync1.on('data', () => {
                 if (mock1.mock.calls.length === 1) {
+                    
                     eventstreamSync1.pause();
                 }
                 mock1();
             });
 
-            eventstreamSync1.once('pause', () => {
-                expect(eventstreamSync1.isBuffering()).toBeFalsy();
+            eventstreamSync1.on('test', () => {
+                mockTest1();
+                //console.log(eventstreamSync1.isPaused())
+                //expect(eventstreamSync1.isPaused()).toBeFalsy();
+            });
+
+            eventstreamSync1.once('pause', async () => {
+                //expect(eventstreamSync1.isBuffering()).toBeFalsy();
+                //await sleep(3000);
                 state = eventstreamSync1.exportState();
-                // console.log(state);
+                console.log(state);
 
                 let eventstreamSync2 = LDESClient.createReadStream(url, options, state);
 
                 eventstreamSync2.on('data', () => {mock2()});
 
+                eventstreamSync2.on('test', () => {
+                    mockTest2();
+                });
+
                 eventstreamSync2.once('end', () => {
+                    // console.log(eventstreamSync1.exportState());
                     mockEnd();
                     expect(mockEnd).toHaveBeenCalled();
                     //console.log(eventstreamSync2.exportState());
                     console.log(mock1.mock.calls.length, mock2.mock.calls.length);
+                    console.log('mockTest: ', mockTest1.mock.calls.length, mockTest2.mock.calls.length);
                     expect(mock1.mock.calls.length + mock2.mock.calls.length).toBe(memberCount);
+                    expect(mockTest1.mock.calls.length + mockTest2.mock.calls.length).toBe(memberCount);
                     //expect(mock2).toHaveBeenCalledTimes(memberCount);
                     done();
                 });
@@ -330,7 +382,7 @@ describe('EventStream', () => {
         }
     });
 
-    test('Test if you emitted events are the right representation, representation Object', (done) => {
+test('Test if you emitted events are the right representation, representation Object', (done) => {
         try {
             let url = "https://smartdata.dev-vlaanderen.be/base/gemeente";
             let options = {
