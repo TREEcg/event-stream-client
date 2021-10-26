@@ -179,7 +179,7 @@ export class EventStream extends Readable {
             }
             else if (!this.downloading && !this.isPaused() && this.bookkeeper.nextFragmentExists()) {
                 await this.fetchNextPage();
-            } 
+            }
             else if (!this.downloading) {
                 //end of the stream
                 this.log('info', "done");
@@ -209,32 +209,21 @@ export class EventStream extends Readable {
         if (!this.isPaused()) {
             throw new Error('Cannot export state while stream is not paused');
         }
-        let internalBuffer = this.read();
-        let memberBuffer: any;
-        //console.log(this.readableLength, this.read());
-        // console.log("amount of objects in buffer:", this.readableLength, typeof internalBuffer);
-        if (this.readableLength > 0) {
+        let memberBuffer: any = [];
+        while (this.readableLength > 0) {
+            let member = this.read();
             if (this.representation === 'Quads') {
-                if (internalBuffer !== null) {
-                    console.log("internal buffer:", internalBuffer);
-                    memberBuffer = [];
-                    for (const member of internalBuffer) {
-                        let quads = [];
-                        for (const quad of member.quads) {
-                            quads.push(RdfString.quadToStringQuad(quad));
-                        }
-                        memberBuffer.push({id:member.id, quads:quads});
+                if (member !== null) {
+                    let quads = [];
+                    for (const quad of member.quads) {
+                        quads.push(RdfString.quadToStringQuad(quad));
                     }
-                }
-                else {
-                    memberBuffer = internalBuffer;
+                    memberBuffer.push({id:member.id, quads:quads});
                 }
             }
             else {
-                memberBuffer = internalBuffer;
+                memberBuffer.push(member);
             }
-        } else {
-            memberBuffer = null;
         }
         return {
             bookkeeper: this.bookkeeper.serialize(),
@@ -250,31 +239,28 @@ export class EventStream extends Readable {
     }
 
     public importState(state: State) {
-        //this.pause();
         this.bookkeeper.deserialize(state.bookkeeper);
-        //this.memberBuffer = JSON.parse(state.memberBuffer);
-        //console.log(state.memberBuffer);
         
         if (state.memberBuffer != undefined && JSON.parse(state.memberBuffer) != null) {
             if (this.representation === 'Quads') {
-                let memberBuffer = [];
                 let internalBuffer = JSON.parse(state.memberBuffer);
                 for (const member of internalBuffer) {
                     let quads = [];
                     for (const quad of member.quads) {
                         quads.push(RdfString.stringQuadToQuad(quad));
                     }
-                    memberBuffer.push({id:member.id, quads:quads});
+                    let _member: Member = {id:member.id, quads:quads};
+                    super.unshift(_member);
                 }
-                super.unshift(memberBuffer);
             }
             else {
-                super.unshift(JSON.parse(state.memberBuffer));
+                for (const member of JSON.parse(state.memberBuffer)) {
+                    super.unshift(member);
+                }
             } 
         }
         
         this.processedURIs = new Set(JSON.parse(state.processedURIs));
-        //this.resume();
     }
 
     protected log(level: string, message: string, data?: any) {
