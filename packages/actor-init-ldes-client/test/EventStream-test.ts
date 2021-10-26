@@ -81,30 +81,6 @@ describe('EventStream', () => {
         }
     });
 
-    test('Test if the pause event is emitted, when pause before data', (done) => {
-        try {
-            let url = "https://smartdata.dev-vlaanderen.be/base/gemeente";
-            let options = {
-                "representation": "Quads",
-                "disablePolling": true
-            };
-            
-            const mock = jest.fn();
-            let eventstreamSync = LDESClient.createReadStream(url, options);
-            eventstreamSync.pause();
-
-            eventstreamSync.once('pause', () => {
-                mock();
-                expect(mock).toHaveBeenCalled();
-                expect(eventstreamSync.isPaused()).toBeTruthy();
-                done();
-            });
-            
-        } catch (e) {
-            done(e);
-        }
-    });
-
     test('Test if the pause event is emitted, when pause after data', (done) => {
         try {
             let url = "https://smartdata.dev-vlaanderen.be/base/gemeente";
