@@ -100,6 +100,7 @@ export class EventStream extends Readable {
     protected readonly accessUrl: string;
 
     protected processedURIs: Set<string>;
+    protected fetching: Set<string>;
     protected readonly bookie: Bookkeeper;
     protected readonly rateLimiter: RateLimiter;
     protected done: boolean;
@@ -110,7 +111,7 @@ export class EventStream extends Readable {
         args: IEventStreamArgs,
         state: State | null
     ) {
-        super({ objectMode: true });
+        super({ objectMode: true , highWaterMark: 1000});
         this.mediators = mediators;
 
         this.accessUrl = url;
@@ -132,6 +133,7 @@ export class EventStream extends Readable {
         }
 
         this.processedURIs = new Set();
+        this.fetching = new Set();
         this.bookie = new Bookkeeper();
         this.done = false;
 
@@ -141,8 +143,10 @@ export class EventStream extends Readable {
         else {
             this.bookie.addFragment(this.accessUrl, 0);
         }
+
         this.buffering = true;
-        this.bufferMembers();
+        // this.bufferMembers();
+        this._read();
    
     }
 
@@ -152,8 +156,65 @@ export class EventStream extends Readable {
         }
     }
 
+    // private async fetchNextPage() {
+    //     let next = this.bookie.getNextFragmentToFetch();
+    //     let now = new Date();
+    //     // Do not refetch too soon
+    //     while (next.refetchTime.getTime() > now.getTime()) {
+    //         await this.sleep(FETCH_PAUSE);
+    //         this.log('info', `Waiting ${(next.refetchTime.getTime() - now.getTime()) / 1000}s before refetching: ${next.url}`);
+    //         now = new Date();
+    //     }
+    //     return await this.retrieve(next.url).then(() => {
+    //         this.emit('page processed', next.url);
+    //     });
+    // }
+
+    // /**
+    //  * Buffers an amount of members by fetching pages until the buffer is filled sufficiently, or when there are no pages to fetch any more
+    //  */
+    // private async bufferMembers(bufferAtLeast : number = 1000) {
+    //     this.buffering = true;
+    //     // Do we still have enough elements buffered?
+    //     // Check for 1000 members by default → PC: not sure what the best amount would be and whether this should be dynamically chosen somehow
+    //     // TODO: use HighWaterMark to determine the buffer size
+    //     while (this.readableLength < bufferAtLeast && this.bookie.nextFragmentExists() && !this.paused) {
+    //         await this.fetchNextPage();
+    //     }
+    //     this.buffering = false;
+
+    //     if (this.paused) {
+    //         super.pause();
+    //     }
+    // }
+
+    // private buffering:boolean;
+    // private paused:boolean = false;
+
+    // public async _read() {
+    //     try {
+    //         if (this.readableLength === 0 && !this.bookie.nextFragmentExists() && !this.buffering && !this.paused) {
+    //             //end of the stream
+    //             this.done = true;
+    //             this.log('info', "done");
+    //             this.push(null);
+    //         } else if (this.listenerCount('page processed') === 0) {
+    //             // while we’re buffering and there are no members, but read was called again, it should wait until the buffer is full again
+    //             // console.log(this.listenerCount('page processed'));
+    //             this.once('page processed', this._read);
+    //         }
+    //         //Check whether the buffer still contains enough members, and if not, fetch more
+    //         if (!this.buffering && !this.done && !this.paused) {
+    //             this.bufferMembers();
+    //         }     
+    //     } catch (e) {
+    //         console.error(e);
+    //     }
+    // }
+
     private async fetchNextPage() {
         let next = this.bookie.getNextFragmentToFetch();
+        this.fetching.add(next.url);
         let now = new Date();
         // Do not refetch too soon
         while (next.refetchTime.getTime() > now.getTime()) {
@@ -162,26 +223,27 @@ export class EventStream extends Readable {
             now = new Date();
         }
         return await this.retrieve(next.url).then(() => {
+            this.fetching.delete(next.url);
             this.emit('page processed', next.url);
+            this._read();
         });
     }
 
     /**
      * Buffers an amount of members by fetching pages until the buffer is filled sufficiently, or when there are no pages to fetch any more
      */
-    private async bufferMembers(bufferAtLeast : number = 1000) {
-        this.buffering = true;
+    private async bufferMembers() {
+        //this.buffering = true;
         // Do we still have enough elements buffered?
         // Check for 1000 members by default → PC: not sure what the best amount would be and whether this should be dynamically chosen somehow
-        // TODO: use HighWaterMark to determine the buffer size
-        while (this.readableLength < bufferAtLeast && this.bookie.nextFragmentExists() && !this.paused) {
+        //if (this.bookie.nextFragmentExists() && !this.paused) {
             await this.fetchNextPage();
-        }
-        this.buffering = false;
+        //}
+        //this.buffering = false;
 
-        if (this.paused) {
-            super.pause();
-        }
+        //if (this.paused) {
+        //    super.pause();
+        //}
     }
 
     private buffering:boolean;
@@ -189,20 +251,19 @@ export class EventStream extends Readable {
 
     public async _read() {
         try {
-            if (this.readableLength === 0 && !this.bookie.nextFragmentExists() && !this.buffering && !this.paused) {
+            if (this.readableLength === 0 && !this.bookie.nextFragmentExists() && this.fetching.size === 0) {
                 //end of the stream
                 this.done = true;
                 this.log('info', "done");
                 this.push(null);
-            } else if (this.listenerCount('page processed') === 0) {
-                // while we’re buffering and there are no members, but read was called again, it should wait until the buffer is full again
-                // console.log(this.listenerCount('page processed'));
-                this.once('page processed', this._read);
             }
             //Check whether the buffer still contains enough members, and if not, fetch more
-            if (!this.buffering && !this.done && !this.paused) {
-                this.bufferMembers(); 
-            }     
+            else if (this.bookie.nextFragmentExists() && !this.paused) {
+                this.fetchNextPage();
+            } else if (this.paused && this.fetching.size === 0) {
+                super.pause();
+            } 
+                
         } catch (e) {
             console.error(e);
         }
@@ -211,7 +272,7 @@ export class EventStream extends Readable {
     
     public pause() : this {
         this.paused = true;
-        if (!this.buffering) {
+        if (this.fetching.size === 0) {
             super.pause();
         }
         return this;
@@ -228,36 +289,39 @@ export class EventStream extends Readable {
 
     public exportState(): State {
         if (!this.isPaused()) {
-            this.pause();
+            throw new Error('Cannot export state while stream is not paused');
         }
         let memberBuffer;
-        // console.log("amount of objects in buffer:", this.readableLength);
-        /*
-        if (this.representation === 'Quads') {
-            let internalBuffer = super.read();
-            if (internalBuffer !== null) {
-                memberBuffer = [];
-                for (const member of internalBuffer) {
-                    let quads = [];
-                    for (const quad of member.quads) {
-                        quads.push(RdfString.quadToStringQuad(quad));
+        //console.log(this.readableLength, this.read());
+        console.log("amount of objects in buffer:", this.readableLength);
+        if (this.readableLength > 0) {
+            if (this.representation === 'Quads') {
+                let internalBuffer = super.read();
+                if (internalBuffer !== null) {
+                    memberBuffer = [];
+                    for (const member of internalBuffer) {
+                        let quads = [];
+                        for (const quad of member.quads) {
+                            quads.push(RdfString.quadToStringQuad(quad));
+                        }
+                        memberBuffer.push({id:member.id, quads:quads});
                     }
-                    memberBuffer.push({id:member.id, quads:quads});
+                }
+                else {
+                    memberBuffer = internalBuffer;
                 }
             }
             else {
-                memberBuffer = internalBuffer;
+                memberBuffer = super.read();
             }
+        } else {
+            memberBuffer = null;
         }
-        else {
-            memberBuffer = super.read();
-        }
-        */
         return {
             bookie: this.bookie.serialize(),
             //memberBuffer: JSON.stringify(this.memberBuffer),
-            //memberBuffer: JSON.stringify(memberBuffer),
-            memberBuffer: JSON.stringify(null),
+            memberBuffer: JSON.stringify(memberBuffer),
+            //memberBuffer: JSON.stringify(null),
             processedURIs: JSON.stringify([...this.processedURIs]),
         };
     }
@@ -271,7 +335,7 @@ export class EventStream extends Readable {
         this.bookie.deserialize(state.bookie);
         //this.memberBuffer = JSON.parse(state.memberBuffer);
         //console.log(state.memberBuffer);
-        /*
+        
         if (state.memberBuffer != undefined && JSON.parse(state.memberBuffer) != null) {
             if (this.representation === 'Quads') {
                 let memberBuffer = [];
@@ -289,7 +353,7 @@ export class EventStream extends Readable {
                 super.unshift(JSON.parse(state.memberBuffer));
             } 
         }
-        */
+        
         this.processedURIs = new Set(JSON.parse(state.processedURIs));
         //this.resume();
     }
@@ -477,6 +541,8 @@ export class EventStream extends Readable {
                         });
                         quadStream.on('end', () => {
                             this.push({ "id": member.uri, quads: quadArray});
+                            this.emit('test');
+                            // console.log(this.readableLength, id);
                         });
                     }
                 } else {
