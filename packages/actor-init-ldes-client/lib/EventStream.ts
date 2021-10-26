@@ -103,7 +103,6 @@ export class EventStream extends Readable {
     protected readonly bookkeeper: Bookkeeper;
     protected readonly rateLimiter: RateLimiter;
 
-    //private pagePromises: Array<Promise<void>>;
     private downloading: boolean;
 
 
@@ -137,7 +136,6 @@ export class EventStream extends Readable {
 
         this.bookkeeper.addFragment(this.accessUrl, 0);
 
-        //this.pagePromises = [];
         this.downloading = false;
     }
 
@@ -146,8 +144,6 @@ export class EventStream extends Readable {
             this.bookkeeper.blacklistFragment(url);
         }
     }
-
-    
 
     private async fetchNextPage() {
         this.downloading = true;
@@ -165,7 +161,6 @@ export class EventStream extends Readable {
             this._read();
         });
     }
-
 
     public async _read() {
         try {
