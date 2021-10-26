@@ -168,11 +168,9 @@ export class EventStream extends Readable {
                 await this.fetchNextPage();
             } 
             else if (!this.downloading) {
-                //Promise.all(this.pagePromises).then(() => {
                 //end of the stream
                 this.log('info', "done");
                 this.push(null);
-                //});
             }
         } catch (e) {
             console.error(e);
