@@ -51,6 +51,7 @@ import { inspect } from 'util';
 import RateLimiter from "./RateLimiter";
 import MemberIterator from "./MemberIterator";
 
+import * as RdfString from "rdf-string";
 import type { Member } from "@treecg/types";
 import { DataFactory } from 'rdf-data-factory';
 
@@ -99,7 +100,7 @@ export class EventStream extends Readable {
     protected readonly dereferenceMembers?: boolean;
     protected readonly accessUrl: string;
 
-    protected readonly processedURIs: Set<string>;
+    protected processedURIs: Set<string>;
     protected readonly bookkeeper: Bookkeeper;
     protected readonly rateLimiter: RateLimiter;
 
@@ -110,6 +111,7 @@ export class EventStream extends Readable {
         url: string,
         mediators: IEventStreamMediators,
         args: IEventStreamArgs,
+        state: State | null
     ) {
         super({ objectMode: true , highWaterMark: 1000});
         this.mediators = mediators;
@@ -134,9 +136,15 @@ export class EventStream extends Readable {
         this.processedURIs = new Set();
         this.bookkeeper = new Bookkeeper();
 
-        this.bookkeeper.addFragment(this.accessUrl, 0);
+        if (state != null) {
+            this.importState(state);
+        }
+        else {
+            this.bookkeeper.addFragment(this.accessUrl, 0);
+        }
 
         this.downloading = false;
+   
     }
 
     public ignorePages(urls: string[]) {
@@ -152,7 +160,7 @@ export class EventStream extends Readable {
         // Do not refetch too soon
         while (next.refetchTime.getTime() > now.getTime()) {
             await this.sleep(FETCH_PAUSE);
-            this.log('info', `Waiting ${(next.refetchTime - now.getTime()) / 1000}s before refetching: ${next.url}`);
+            this.log('info', `Waiting ${(next.refetchTime.getTime() - now.getTime()) / 1000}s before refetching: ${next.url}`);
             now = new Date();
         }
         return await this.retrieve(next.url).then(() => {
@@ -162,19 +170,94 @@ export class EventStream extends Readable {
         });
     }
 
+    private paused:boolean = false;
+
     public async _read() {
         try {
-            if (!this.downloading && this.bookkeeper.nextFragmentExists()) {
+            if (!this.downloading && this.paused) {
+                super.pause();
+            }
+            else if (!this.downloading && !this.isPaused() && this.bookkeeper.nextFragmentExists()) {
                 await this.fetchNextPage();
-            } 
+            }
             else if (!this.downloading) {
                 //end of the stream
                 this.log('info', "done");
                 this.push(null);
-            }
+            }                
         } catch (e) {
             console.error(e);
         }
+    }
+
+    
+    public pause() : this {
+        this.paused = true;
+        return this;
+    }
+
+    
+    public resume() : this {
+        this.paused = false;
+        super.resume();
+        return this
+    }
+    
+
+    public exportState(): State {
+        if (!this.isPaused()) {
+            throw new Error('Cannot export state while stream is not paused');
+        }
+        let memberBuffer: any = [];
+        while (this.readableLength > 0) {
+            let member = this.read();
+            if (this.representation === 'Quads') {
+                if (member !== null) {
+                    let quads = [];
+                    for (const quad of member.quads) {
+                        quads.push(RdfString.quadToStringQuad(quad));
+                    }
+                    memberBuffer.push({id:member.id, quads:quads});
+                }
+            }
+            else {
+                memberBuffer.push(member);
+            }
+        }
+        return {
+            bookkeeper: this.bookkeeper.serialize(),
+            memberBuffer: JSON.stringify(memberBuffer),
+            processedURIs: JSON.stringify([...this.processedURIs]),
+        };
+    }
+
+    public isBuffering(): boolean {
+        return this.downloading;
+    }
+
+    public importState(state: State) {
+        this.bookkeeper.deserialize(state.bookkeeper);
+        
+        if (state.memberBuffer != undefined && JSON.parse(state.memberBuffer) != null) {
+            if (this.representation === 'Quads') {
+                let internalBuffer = JSON.parse(state.memberBuffer);
+                for (const member of internalBuffer) {
+                    let quads = [];
+                    for (const quad of member.quads) {
+                        quads.push(RdfString.stringQuadToQuad(quad));
+                    }
+                    let _member: Member = {id:member.id, quads:quads};
+                    super.unshift(_member);
+                }
+            }
+            else {
+                for (const member of JSON.parse(state.memberBuffer)) {
+                    super.unshift(member);
+                }
+            } 
+        }
+        
+        this.processedURIs = new Set(JSON.parse(state.processedURIs));
     }
 
     protected log(level: string, message: string, data?: any) {
@@ -354,16 +437,19 @@ export class EventStream extends Readable {
                         this.push({ "id": firstEntry.value[0]["@id"], object: firstEntry.value[1] });
                     } else {
                         //Build an array from the quads iterator
-                        let quadArray: Array<Quad> = [];
-                        quadStream.forEach((item) => {
-                            quadArray.push(item);
-                        });
-                        quadStream.on('end', () => {
-                            let _member: Member = {
-                                id: factory.namedNode(member.uri),
-                                quads: quadArray
-                            };
-                            this.push(_member);
+                        await new Promise<void>((resolve, reject) => {
+                            let quadArray: Array<Quad> = [];
+                            quadStream.forEach((item) => {
+                                quadArray.push(item);
+                            });
+                            quadStream.on('end', () => {
+                                let _member: Member = {
+                                    id: factory.namedNode(member.uri),
+                                    quads: quadArray
+                                };
+                                this.push(_member);
+                                resolve();
+                            });
                         });
                     }
                 } else {
@@ -516,4 +602,10 @@ class PageMetadata {
     public "data": string;
     public "statusCode": number;
     public "fromCache": boolean;
+}
+
+export interface State {
+    bookkeeper: Object;
+    memberBuffer: string;
+    processedURIs: string;
 }

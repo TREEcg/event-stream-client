@@ -24,7 +24,7 @@ import {
     IActorOutputSparqlSerializeHandle,
     IActorTestSparqlSerializeHandle
 } from "@comunica/bus-sparql-serialize";
-import { EventStream, IEventStreamArgs } from "./EventStream";
+import { EventStream, IEventStreamArgs, State } from "./EventStream";
 
 export class LDESClient extends ActorInit implements ILDESClientArgs {
     public static readonly HELP_MESSAGE = `actor-init-ldes-client syncs event streams
@@ -143,7 +143,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
         return { 'stdout': eventStream };
     }
 
-    public createReadStream(url: string, options: IEventStreamArgs) {
+    public createReadStream(url: string, options: IEventStreamArgs, state: State | null = null) {
         if (!options.pollingInterval) {
             options.pollingInterval = this.pollingInterval;
         }
@@ -190,7 +190,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             mediatorRdfSerialize: this.mediatorRdfSerialize,
         };
 
-        return new EventStream(url, mediators, options);
+        return new EventStream(url, mediators, options, state);
     }
 }
 
