@@ -176,26 +176,6 @@ describe('EventStream', () => {
     //     }
     // });
 
-    test('Test if you can load a state in the eventstream', (done) => {
-        try {
-            let url = "https://smartdata.dev-vlaanderen.be/base/gemeente";
-            let options = {
-                "mimeType": "text/turtle",
-                "disablePolling": true
-            };
-            let eventstreamSync = LDESClient.createReadStream(url, options);
-            eventstreamSync.pause();
-            eventstreamSync.once('pause', () => {
-                let state = eventstreamSync.exportState();
-                eventstreamSync.importState(state);
-                expect(eventstreamSync.exportState()).toStrictEqual(state);
-                done();
-            });
-        } catch (e) {
-            done(e);
-        }
-    });
-
     test('Test if you can load a state in the eventstream, after data event', (done) => {
         try {
             let url = "https://smartdata.dev-vlaanderen.be/base/gemeente";
