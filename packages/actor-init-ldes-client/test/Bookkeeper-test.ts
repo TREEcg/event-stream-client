@@ -101,5 +101,4 @@ describe('Bookkeeper', () => {
         expect(serialized).toStrictEqual(serializedNew);
     });
 
-
 });
