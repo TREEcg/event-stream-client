@@ -1,6 +1,17 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.4.0"></a>
+## [v2.4.0](https://github.com/TREEcg/event-stream-client/compare/v2.3.11...v2.4.0) - 2021-10-26
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Merge pull request #39 from TREEcg/feat-32](https://github.com/TREEcg/event-stream-client/commit/440aa507eae719cf86e28bef8ec82cf6ce1da230)
+* [feat: update readme](https://github.com/TREEcg/event-stream-client/commit/946443fee3c3f5703596a8eba4efcdf7793da893)
+* [Merge pull request #38 from TREEcg/fix-37](https://github.com/TREEcg/event-stream-client/commit/8a38e64a2736e713aec81b5d4e355d2a14e063ac)
+* [fix: change Quads events to adhere to Member interface](https://github.com/TREEcg/event-stream-client/commit/a4a5b4cdb06ffa46d9774d7a99c44f8e552cd8ce)
+* [feat: add dependency @treecg/types](https://github.com/TREEcg/event-stream-client/commit/ad273370c04b859b9ee3b19f57674b00aeb2e90b)
+* [fix: rename bookie to bookkeeper](https://github.com/TREEcg/event-stream-client/commit/89fcf900a8977bab47fd7511f5253862c221bd5c)
+
 <a name="v2.3.11"></a>
 ## [v2.3.11](https://github.com/TREEcg/event-stream-client/compare/v2.3.10...v2.3.11) - 2021-09-22
 

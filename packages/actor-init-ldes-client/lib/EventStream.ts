@@ -52,10 +52,12 @@ import RateLimiter from "./RateLimiter";
 import MemberIterator from "./MemberIterator";
 
 import * as RdfString from "rdf-string";
+import type { Member } from "@treecg/types";
+import { DataFactory } from 'rdf-data-factory';
 
 export interface IEventStreamArgs {
     pollingInterval?: number,
-    representation?:string,
+    representation?: string,
     mimeType?: string,
     jsonLdContext?: ContextDefinition,
     fromTime?: Date,
@@ -86,7 +88,6 @@ interface IMember {
 }
 
 export class EventStream extends Readable {
-    //protected memberBuffer: Array<string>;
     protected readonly mediators: IEventStreamMediators;
 
     protected readonly pollingInterval?: number;
@@ -100,10 +101,11 @@ export class EventStream extends Readable {
     protected readonly accessUrl: string;
 
     protected processedURIs: Set<string>;
-    protected fetching: Set<string>;
-    protected readonly bookie: Bookkeeper;
+    protected readonly bookkeeper: Bookkeeper;
     protected readonly rateLimiter: RateLimiter;
-    protected done: boolean;
+
+    private downloading: boolean;
+
 
     public constructor(
         url: string,
@@ -124,7 +126,6 @@ export class EventStream extends Readable {
         this.jsonLdContext = args.jsonLdContext;
         this.dereferenceMembers = args.dereferenceMembers;
         this.emitMemberOnce = args.emitMemberOnce;
-        //this.memberBuffer = [];
 
         if (args.requestsPerMinute) {
             this.rateLimiter = new RateLimiter(60000. / args.requestsPerMinute);
@@ -133,31 +134,27 @@ export class EventStream extends Readable {
         }
 
         this.processedURIs = new Set();
-        this.fetching = new Set();
-        this.bookie = new Bookkeeper();
-        this.done = false;
+        this.bookkeeper = new Bookkeeper();
 
         if (state != null) {
             this.importState(state);
         }
         else {
-            this.bookie.addFragment(this.accessUrl, 0);
+            this.bookkeeper.addFragment(this.accessUrl, 0);
         }
 
-        this.buffering = true;
-        // this.bufferMembers();
-        this._read();
+        this.downloading = false;
    
     }
 
     public ignorePages(urls: string[]) {
         for (const url of urls) {
-            this.bookie.blacklistFragment(url);
+            this.bookkeeper.blacklistFragment(url);
         }
     }
 
     // private async fetchNextPage() {
-    //     let next = this.bookie.getNextFragmentToFetch();
+    //     let next = this.bookkeeper.getNextFragmentToFetch();
     //     let now = new Date();
     //     // Do not refetch too soon
     //     while (next.refetchTime.getTime() > now.getTime()) {
@@ -178,7 +175,7 @@ export class EventStream extends Readable {
     //     // Do we still have enough elements buffered?
     //     // Check for 1000 members by default → PC: not sure what the best amount would be and whether this should be dynamically chosen somehow
     //     // TODO: use HighWaterMark to determine the buffer size
-    //     while (this.readableLength < bufferAtLeast && this.bookie.nextFragmentExists() && !this.paused) {
+    //     while (this.readableLength < bufferAtLeast && this.bookkeeper.nextFragmentExists() && !this.paused) {
     //         await this.fetchNextPage();
     //     }
     //     this.buffering = false;
@@ -193,7 +190,7 @@ export class EventStream extends Readable {
 
     // public async _read() {
     //     try {
-    //         if (this.readableLength === 0 && !this.bookie.nextFragmentExists() && !this.buffering && !this.paused) {
+    //         if (this.readableLength === 0 && !this.bookkeeper.nextFragmentExists() && !this.buffering && !this.paused) {
     //             //end of the stream
     //             this.done = true;
     //             this.log('info', "done");
@@ -213,8 +210,8 @@ export class EventStream extends Readable {
     // }
 
     private async fetchNextPage() {
-        let next = this.bookie.getNextFragmentToFetch();
-        this.fetching.add(next.url);
+        this.downloading = true;
+        let next = this.bookkeeper.getNextFragmentToFetch();
         let now = new Date();
         // Do not refetch too soon
         while (next.refetchTime.getTime() > now.getTime()) {
@@ -223,44 +220,25 @@ export class EventStream extends Readable {
             now = new Date();
         }
         return await this.retrieve(next.url).then(() => {
-            this.fetching.delete(next.url);
+            this.downloading = false;
             this.emit('page processed', next.url);
             this._read();
         });
     }
 
-    /**
-     * Buffers an amount of members by fetching pages until the buffer is filled sufficiently, or when there are no pages to fetch any more
-     */
-    private async bufferMembers() {
-        //this.buffering = true;
-        // Do we still have enough elements buffered?
-        // Check for 1000 members by default → PC: not sure what the best amount would be and whether this should be dynamically chosen somehow
-        //if (this.bookie.nextFragmentExists() && !this.paused) {
-            await this.fetchNextPage();
-        //}
-        //this.buffering = false;
-
-        //if (this.paused) {
-        //    super.pause();
-        //}
-    }
-
-    private buffering:boolean;
     private paused:boolean = false;
 
     public async _read() {
         try {
-            if (this.readableLength === 0 && !this.bookie.nextFragmentExists() && this.fetching.size === 0) {
+            if (!this.downloading && this.bookkeeper.nextFragmentExists()) {
+                await this.fetchNextPage();
+            } 
+            else if (!this.downloading) {
                 //end of the stream
-                this.done = true;
                 this.log('info', "done");
                 this.push(null);
             }
-            //Check whether the buffer still contains enough members, and if not, fetch more
-            else if (this.bookie.nextFragmentExists() && !this.paused) {
-                this.fetchNextPage();
-            } else if (this.paused && this.fetching.size === 0) {
+            else if (this.paused) {
                 super.pause();
             } 
                 
@@ -272,9 +250,6 @@ export class EventStream extends Readable {
     
     public pause() : this {
         this.paused = true;
-        if (this.fetching.size === 0) {
-            super.pause();
-        }
         return this;
     }
 
@@ -319,7 +294,7 @@ export class EventStream extends Readable {
             memberBuffer = null;
         }
         return {
-            bookie: this.bookie.serialize(),
+            bookkeeper: this.bookkeeper.serialize(),
             //memberBuffer: JSON.stringify(this.memberBuffer),
             memberBuffer: JSON.stringify(memberBuffer),
             //memberBuffer: JSON.stringify(null),
@@ -328,12 +303,12 @@ export class EventStream extends Readable {
     }
 
     public isBuffering(): boolean {
-        return this.buffering;
+        return this.downloading;
     }
 
     public importState(state: State) {
         //this.pause();
-        this.bookie.deserialize(state.bookie);
+        this.bookkeeper.deserialize(state.bookkeeper);
         //this.memberBuffer = JSON.parse(state.memberBuffer);
         //console.log(state.memberBuffer);
         
@@ -389,7 +364,7 @@ export class EventStream extends Readable {
                 // Based on the HTTP Caching headers, poll this fragment for synchronization
                 const policy = new CachePolicy(page.request, page.response, { shared: false }); // If options.shared is false, then the response is evaluated from a perspective of a single-user cache (i.e. private is cacheable and s-maxage is ignored)
                 const ttl = Math.max(this.pollingInterval, policy.storable() ? policy.timeToLive() : 0); // pollingInterval is fallback
-                this.bookie.addFragment(page.url, ttl);
+                this.bookkeeper.addFragment(page.url, ttl);
             }
 
             const quadsArrayOfPage = await this.stringToQuadArray(page.data.toString(), '', mediaType);
@@ -405,7 +380,7 @@ export class EventStream extends Readable {
             // In this case, we expect that the URL parameter provided contains a tree collection's URI
             if (!treeMetadata.metadata.treeMetadata.relations.size && treeMetadata.metadata.treeMetadata.collections.get(pageUrl) && treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"]) {
                 const view = treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"][0]["@id"]; // take first view encountered
-                this.bookie.addFragment(view, 0);
+                this.bookkeeper.addFragment(view, 0);
             }
 
             // Retrieve TREE relations towards other nodes
@@ -421,7 +396,7 @@ export class EventStream extends Readable {
                     for (const node of relation.node) {
                         // do not add when synchronization is disabled and node has already been processed
                         if (!this.disableSynchronization || (this.disableSynchronization && !this.processedURIs.has(node['@id']))) {
-                            this.bookie.addFragment(node['@id'], 0);
+                            this.bookkeeper.addFragment(node['@id'], 0);
                         }
                     }
                 }
@@ -517,7 +492,7 @@ export class EventStream extends Readable {
     }
 
     protected async processMembers(members: Generator<IMember>) {
-
+        let factory = new DataFactory();
         for (const member of members) {
             const id = member.uri;
             const quadStream = member.quads;
@@ -529,19 +504,23 @@ export class EventStream extends Readable {
                     if (this.representation === 'Object') {
                         let framedResult = (await this.mediators.mediatorRdfFrame.mediate({
                             data: quadStream,
-                            frames: [{"@id": id}],
+                            frames: [{ "@id": id }],
                             jsonLdContext: this.jsonLdContext
                         })).data;
                         let firstEntry = framedResult.entries().next();
-                        this.push({ "id": firstEntry.value[0]["@id"], object: firstEntry.value[1]});
+                        this.push({ "id": firstEntry.value[0]["@id"], object: firstEntry.value[1] });
                     } else {
                         //Build an array from the quads iterator
-                        let quadArray : Array<Quad> = [];
+                        let quadArray: Array<Quad> = [];
                         quadStream.forEach((item) => {
                             quadArray.push(item);
                         });
                         quadStream.on('end', () => {
-                            this.push({ "id": member.uri, quads: quadArray});
+                            let _member: Member = {
+                                id: factory.namedNode(member.uri),
+                                quads: quadArray
+                            };
+                            this.push(_member);
                             this.emit('test');
                             // console.log(this.readableLength, id);
                         });
@@ -570,7 +549,6 @@ export class EventStream extends Readable {
                         })).data;
                         outputString = JSON.stringify(framedObjects.get(frame));
                     }
-                    //this.memberBuffer.push(`${outputString}\n`);
                     this.push(`${outputString}\n`);
                 }
             } catch (error) {
@@ -700,7 +678,7 @@ class PageMetadata {
 }
 
 export interface State {
-    bookie: Object;
+    bookkeeper: Object;
     memberBuffer: string;
     processedURIs: string;
 }

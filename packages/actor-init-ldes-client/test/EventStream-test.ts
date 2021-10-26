@@ -58,6 +58,29 @@ describe('EventStream', () => {
         }
     });
 
+    test('Test if all members are emitted, mimeType text/turtle', (done) => {
+        try {
+            let url = "https://smartdata.dev-vlaanderen.be/base/gemeente";
+            let options = {
+                "mimeType": "text/turtle",
+                "disablePolling": true
+            };
+            
+            const mock = jest.fn();
+            let eventstreamSync = LDESClient.createReadStream(url, options);
+            eventstreamSync.on('data', () => {
+                mock();
+            });
+
+            eventstreamSync.on('end', () => {
+                expect(mock).toHaveBeenCalledTimes(memberCount);
+                done();
+            });
+        } catch (e) {
+            done(e);
+        }
+    });
+
     test('Test if the pause event is emitted, when pause before data', (done) => {
         try {
             let url = "https://smartdata.dev-vlaanderen.be/base/gemeente";

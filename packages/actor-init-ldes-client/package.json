@@ -1,6 +1,6 @@
 {
   "name": "@treecg/actor-init-ldes-client",
-  "version": "2.3.11",
+  "version": "2.4.1",
   "description": "An init actor that fetches members from an Event Stream API",
   "publishConfig": {
     "access": "public"
@@ -65,6 +65,7 @@
     "@treecg/actor-rdf-metadata-extract-tree": "^1.20.0",
     "@treecg/bus-rdf-filter-object": "^2.3.6",
     "@treecg/bus-rdf-frame": "^2.3.6",
+    "@treecg/types": "0.0.10",
     "awesome-typescript-loader": "^5.2.1",
     "cacheable-request": "^7.0.1",
     "follow-redirects": "^1.13.0",
