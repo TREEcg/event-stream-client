@@ -174,18 +174,17 @@ export class EventStream extends Readable {
 
     public async _read() {
         try {
-            if (!this.downloading && this.bookkeeper.nextFragmentExists()) {
+            if (!this.downloading && this.paused) {
+                super.pause();
+            }
+            else if (!this.downloading && !this.isPaused() && this.bookkeeper.nextFragmentExists()) {
                 await this.fetchNextPage();
             } 
             else if (!this.downloading) {
                 //end of the stream
                 this.log('info', "done");
                 this.push(null);
-            }
-            else if (this.paused) {
-                super.pause();
-            } 
-                
+            }                
         } catch (e) {
             console.error(e);
         }
@@ -455,18 +454,19 @@ export class EventStream extends Readable {
                         this.push({ "id": firstEntry.value[0]["@id"], object: firstEntry.value[1] });
                     } else {
                         //Build an array from the quads iterator
-                        let quadArray: Array<Quad> = [];
-                        quadStream.forEach((item) => {
-                            quadArray.push(item);
-                        });
-                        quadStream.on('end', () => {
-                            let _member: Member = {
-                                id: factory.namedNode(member.uri),
-                                quads: quadArray
-                            };
-                            this.push(_member);
-                            this.emit('test');
-                            // console.log(this.readableLength, id);
+                        await new Promise<void>((resolve, reject) => {
+                            let quadArray: Array<Quad> = [];
+                            quadStream.forEach((item) => {
+                                quadArray.push(item);
+                            });
+                            quadStream.on('end', () => {
+                                let _member: Member = {
+                                    id: factory.namedNode(member.uri),
+                                    quads: quadArray
+                                };
+                                this.push(_member);
+                                resolve();
+                            });
                         });
                     }
                 } else {
