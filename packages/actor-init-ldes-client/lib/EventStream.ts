@@ -103,7 +103,8 @@ export class EventStream extends Readable {
     protected readonly bookkeeper: Bookkeeper;
     protected readonly rateLimiter: RateLimiter;
 
-    private pagePromises: Array<Promise<void>>;
+    //private pagePromises: Array<Promise<void>>;
+    private downloading: boolean;
 
 
     public constructor(
@@ -136,7 +137,7 @@ export class EventStream extends Readable {
 
         this.bookkeeper.addFragment(this.accessUrl, 0);
 
-        this.pagePromises = [];
+        //this.pagePromises = [];
         this.downloading = false;
     }
 
@@ -146,7 +147,7 @@ export class EventStream extends Readable {
         }
     }
 
-    private downloading: boolean;
+    
 
     private async fetchNextPage() {
         this.downloading = true;
@@ -161,6 +162,7 @@ export class EventStream extends Readable {
         return await this.retrieve(next.url).then(() => {
             this.downloading = false;
             this.emit('page processed', next.url);
+            this._read();
         });
     }
 
