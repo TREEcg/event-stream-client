@@ -240,7 +240,7 @@ describe('EventStream', () => {
                     mockEnd();
                     expect(mockPaused).toHaveBeenCalledTimes(0);
                     expect(mockEnd).toHaveBeenCalled();
-                    console.log(mock1.mock.calls.length, mock2.mock.calls.length);
+                    // console.log(mock1.mock.calls.length, mock2.mock.calls.length);
                     expect(mock1.mock.calls.length + mock2.mock.calls.length).toBe(memberCount);
                     done();
                 });
@@ -284,7 +284,7 @@ describe('EventStream', () => {
                 eventstreamSync2.once('end', () => {
                     mockEnd();
                     expect(mockEnd).toHaveBeenCalled();
-                    console.log(mock1.mock.calls.length, mock2.mock.calls.length);
+                    // console.log(mock1.mock.calls.length, mock2.mock.calls.length);
                     expect(mock1.mock.calls.length + mock2.mock.calls.length).toBe(memberCount);
                     //expect(mock2).toHaveBeenCalledTimes(memberCount);
                     done();
@@ -310,8 +310,6 @@ describe('EventStream', () => {
             const mock1 = jest.fn();
             const mock2 = jest.fn();
             const mockEnd = jest.fn();
-            const mockTest1 = jest.fn();
-            const mockTest2 = jest.fn();
             
             eventstreamSync1.on('data', () => {
                 if (mock1.mock.calls.length === 1) {
@@ -321,35 +319,22 @@ describe('EventStream', () => {
                 mock1();
             });
 
-            eventstreamSync1.on('test', () => {
-                mockTest1();
-                //console.log(eventstreamSync1.isPaused())
-                //expect(eventstreamSync1.isPaused()).toBeFalsy();
-            });
-
             eventstreamSync1.once('pause', async () => {
-                //expect(eventstreamSync1.isBuffering()).toBeFalsy();
                 //await sleep(3000);
                 state = eventstreamSync1.exportState();
-                console.log(state);
+                // console.log(state);
 
                 let eventstreamSync2 = LDESClient.createReadStream(url, options, state);
 
                 eventstreamSync2.on('data', () => {mock2()});
-
-                eventstreamSync2.on('test', () => {
-                    mockTest2();
-                });
 
                 eventstreamSync2.once('end', () => {
                     // console.log(eventstreamSync1.exportState());
                     mockEnd();
                     expect(mockEnd).toHaveBeenCalled();
                     //console.log(eventstreamSync2.exportState());
-                    console.log(mock1.mock.calls.length, mock2.mock.calls.length);
-                    console.log('mockTest: ', mockTest1.mock.calls.length, mockTest2.mock.calls.length);
+                    //console.log(mock1.mock.calls.length, mock2.mock.calls.length);
                     expect(mock1.mock.calls.length + mock2.mock.calls.length).toBe(memberCount);
-                    expect(mockTest1.mock.calls.length + mockTest2.mock.calls.length).toBe(memberCount);
                     //expect(mock2).toHaveBeenCalledTimes(memberCount);
                     done();
                 });
