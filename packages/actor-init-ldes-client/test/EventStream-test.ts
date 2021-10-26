@@ -19,7 +19,7 @@ describe('EventStream', () => {
                 "representation": "Quads",
                 "disablePolling": true
             };
-            
+
             const mock = jest.fn();
             let eventstreamSync = LDESClient.createReadStream(url, options);
             eventstreamSync.on('data', () => {
@@ -42,7 +42,7 @@ describe('EventStream', () => {
                 "representation": "Object",
                 "disablePolling": true
             };
-            
+
             const mock = jest.fn();
             let eventstreamSync = LDESClient.createReadStream(url, options);
             eventstreamSync.on('data', () => {
@@ -65,7 +65,7 @@ describe('EventStream', () => {
                 "mimeType": "text/turtle",
                 "disablePolling": true
             };
-            
+
             const mock = jest.fn();
             let eventstreamSync = LDESClient.createReadStream(url, options);
             eventstreamSync.on('data', () => {
@@ -88,7 +88,7 @@ describe('EventStream', () => {
                 "representation": "Quads",
                 "disablePolling": true
             };
-            
+
             const mock = jest.fn();
             let eventstreamSync = LDESClient.createReadStream(url, options);
 
@@ -102,12 +102,12 @@ describe('EventStream', () => {
                 expect(mock).toHaveBeenCalled();
                 done();
             });
-            
+
         } catch (e) {
             done(e);
         }
     });
-    
+
     test('Test if you can export State of the eventstream', (done) => {
         try {
             let url = "https://smartdata.dev-vlaanderen.be/base/gemeente";
@@ -148,7 +148,7 @@ describe('EventStream', () => {
         }
     });
 
-    
+
     // test('Test if you can load a state in the eventstream using constructor', (done) => {
     //     try {
     //         let url = "https://smartdata.dev-vlaanderen.be/base/gemeente";
@@ -187,7 +187,7 @@ describe('EventStream', () => {
 
             eventstreamSync.once('data', () => {
                 eventstreamSync.pause();
-            });  
+            });
 
             eventstreamSync.once('pause', () => {
                 eventstreamSync.pause();
@@ -196,7 +196,7 @@ describe('EventStream', () => {
                 expect(eventstreamSync.exportState()).toStrictEqual(state);
                 done();
             });
-            
+
         } catch (e) {
             done(e);
         }
@@ -216,7 +216,7 @@ describe('EventStream', () => {
             const mock2 = jest.fn();
             const mockPaused = jest.fn();
             const mockEnd = jest.fn();
-            
+
             eventstreamSync1.on('data', () => {
                 if (mock1.mock.calls.length === 1) {
                     eventstreamSync1.pause();
@@ -234,7 +234,7 @@ describe('EventStream', () => {
                 let eventstreamSync2 = newEngine().createReadStream(url, options, state);
                 //console.log(eventstreamSync2.exportState());
 
-                eventstreamSync2.on('data', () => {mock2()});
+                eventstreamSync2.on('data', () => { mock2() });
 
                 eventstreamSync2.once('end', () => {
                     mockEnd();
@@ -245,13 +245,13 @@ describe('EventStream', () => {
                     done();
                 });
             });
-            
+
             //done();
         } catch (e) {
             done(e);
         }
     });
-    
+
     test('Test if you can load a state in the eventstream using constructor, representation Object', (done) => {
         try {
             let url = "https://smartdata.dev-vlaanderen.be/base/gemeente";
@@ -265,7 +265,7 @@ describe('EventStream', () => {
             const mock1 = jest.fn();
             const mock2 = jest.fn();
             const mockEnd = jest.fn();
-            
+
             eventstreamSync1.on('data', () => {
                 if (mock1.mock.calls.length === 1) {
                     eventstreamSync1.pause();
@@ -279,7 +279,7 @@ describe('EventStream', () => {
 
                 let eventstreamSync2 = LDESClient.createReadStream(url, options, state);
 
-                eventstreamSync2.on('data', () => {mock2()});
+                eventstreamSync2.on('data', () => { mock2() });
 
                 eventstreamSync2.once('end', () => {
                     mockEnd();
@@ -290,12 +290,12 @@ describe('EventStream', () => {
                     done();
                 });
             });
-            
+
             //done();
         } catch (e) {
             done(e);
         }
-    }); 
+    });
 
     test('Test if you can load a state in the eventstream using constructor, representation Quads', (done) => {
         try {
@@ -310,10 +310,10 @@ describe('EventStream', () => {
             const mock1 = jest.fn();
             const mock2 = jest.fn();
             const mockEnd = jest.fn();
-            
+
             eventstreamSync1.on('data', () => {
                 if (mock1.mock.calls.length === 1) {
-                    
+
                     eventstreamSync1.pause();
                 }
                 mock1();
@@ -326,7 +326,7 @@ describe('EventStream', () => {
 
                 let eventstreamSync2 = LDESClient.createReadStream(url, options, state);
 
-                eventstreamSync2.on('data', () => {mock2()});
+                eventstreamSync2.on('data', () => { mock2() });
 
                 eventstreamSync2.once('end', () => {
                     // console.log(eventstreamSync1.exportState());
@@ -339,14 +339,14 @@ describe('EventStream', () => {
                     done();
                 });
             });
-            
+
             //done();
         } catch (e) {
             done(e);
         }
     });
 
-test('Test if you emitted events are the right representation, representation Object', (done) => {
+    test('Test if you emitted events are the right representation, representation Object', (done) => {
         try {
             let url = "https://smartdata.dev-vlaanderen.be/base/gemeente";
             let options = {
@@ -358,7 +358,7 @@ test('Test if you emitted events are the right representation, representation Ob
 
             const mock1 = jest.fn();
             const mockEnd = jest.fn();
-            
+
             eventstreamSync1.on('data', (member) => {
                 if (mock1.mock.calls.length === 1) {
                     eventstreamSync1.pause();
@@ -382,7 +382,7 @@ test('Test if you emitted events are the right representation, representation Ob
                     done();
                 });
             });
-            
+
             //done();
         } catch (e) {
             done(e);
@@ -401,7 +401,7 @@ test('Test if you emitted events are the right representation, representation Ob
 
             const mock1 = jest.fn();
             const mockEnd = jest.fn();
-            
+
             eventstreamSync1.on('data', (member) => {
                 if (mock1.mock.calls.length === 1) {
                     eventstreamSync1.pause();
@@ -425,13 +425,13 @@ test('Test if you emitted events are the right representation, representation Ob
                     done();
                 });
             });
-            
+
             //done();
         } catch (e) {
             done(e);
         }
     });
-    
+
     // test('Test if you can load a state with buffer in the eventstream using constructor, representation Quads', async (done) => {
     //     try {
     //         let url = "https://smartdata.dev-vlaanderen.be/base/gemeente";
@@ -448,7 +448,7 @@ test('Test if you emitted events are the right representation, representation Ob
     //         const mock1 = jest.fn();
     //         const mock2 = jest.fn();
     //         const mockEnd = jest.fn();
-        
+
     //         eventstreamSync1.pause();
 
     //         eventstreamSync1.once('data', () => {});
@@ -470,7 +470,7 @@ test('Test if you emitted events are the right representation, representation Ob
     //                 done();
     //             });
     //         });
-            
+
     //         //done();
     //     } catch (e) {
     //         done(e);
