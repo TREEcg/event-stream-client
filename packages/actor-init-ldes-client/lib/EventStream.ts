@@ -153,62 +153,6 @@ export class EventStream extends Readable {
         }
     }
 
-    // private async fetchNextPage() {
-    //     let next = this.bookkeeper.getNextFragmentToFetch();
-    //     let now = new Date();
-    //     // Do not refetch too soon
-    //     while (next.refetchTime.getTime() > now.getTime()) {
-    //         await this.sleep(FETCH_PAUSE);
-    //         this.log('info', `Waiting ${(next.refetchTime.getTime() - now.getTime()) / 1000}s before refetching: ${next.url}`);
-    //         now = new Date();
-    //     }
-    //     return await this.retrieve(next.url).then(() => {
-    //         this.emit('page processed', next.url);
-    //     });
-    // }
-
-    // /**
-    //  * Buffers an amount of members by fetching pages until the buffer is filled sufficiently, or when there are no pages to fetch any more
-    //  */
-    // private async bufferMembers(bufferAtLeast : number = 1000) {
-    //     this.buffering = true;
-    //     // Do we still have enough elements buffered?
-    //     // Check for 1000 members by default → PC: not sure what the best amount would be and whether this should be dynamically chosen somehow
-    //     // TODO: use HighWaterMark to determine the buffer size
-    //     while (this.readableLength < bufferAtLeast && this.bookkeeper.nextFragmentExists() && !this.paused) {
-    //         await this.fetchNextPage();
-    //     }
-    //     this.buffering = false;
-
-    //     if (this.paused) {
-    //         super.pause();
-    //     }
-    // }
-
-    // private buffering:boolean;
-    // private paused:boolean = false;
-
-    // public async _read() {
-    //     try {
-    //         if (this.readableLength === 0 && !this.bookkeeper.nextFragmentExists() && !this.buffering && !this.paused) {
-    //             //end of the stream
-    //             this.done = true;
-    //             this.log('info', "done");
-    //             this.push(null);
-    //         } else if (this.listenerCount('page processed') === 0) {
-    //             // while we’re buffering and there are no members, but read was called again, it should wait until the buffer is full again
-    //             // console.log(this.listenerCount('page processed'));
-    //             this.once('page processed', this._read);
-    //         }
-    //         //Check whether the buffer still contains enough members, and if not, fetch more
-    //         if (!this.buffering && !this.done && !this.paused) {
-    //             this.bufferMembers();
-    //         }     
-    //     } catch (e) {
-    //         console.error(e);
-    //     }
-    // }
-
     private async fetchNextPage() {
         this.downloading = true;
         let next = this.bookkeeper.getNextFragmentToFetch();
