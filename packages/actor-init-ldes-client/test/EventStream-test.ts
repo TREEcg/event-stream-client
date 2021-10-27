@@ -504,7 +504,7 @@ describe('EventStream', () => {
 
             eventstreamSync.on('pause', () => {
                 let state = eventstreamSync.exportState();
-                console.log(state);
+                // console.log(state);
                 expect(mock).toHaveBeenCalledTimes(memberCount);
                 done();
             });
