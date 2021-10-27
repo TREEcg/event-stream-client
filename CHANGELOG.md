@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.5.3"></a>
+## [v2.5.3](https://github.com/TREEcg/event-stream-client/compare/v2.5.2...v2.5.3) - 2021-10-27
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Fix 43 - Enable exportState after end event (#44)](https://github.com/TREEcg/event-stream-client/commit/80fb624a809ff52cb061534fa80e5b2c23fdbdcf)
+
 <a name="v2.5.2"></a>
 ## [v2.5.2](https://github.com/TREEcg/event-stream-client/compare/v2.5.1...v2.5.2) - 2021-10-26
 
