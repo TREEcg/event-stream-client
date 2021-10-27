@@ -451,6 +451,68 @@ describe('EventStream', () => {
         }
     });
 
+    test('Test if all event "now only syncing" is emitted', (done) => {
+        try {
+            let url = "https://smartdata.dev-vlaanderen.be/base/gemeente";
+            let options = {
+                "representation": "Quads",
+                "disablePolling": false
+            };
+
+            const mock = jest.fn();
+            const end = jest.fn();
+            const syncing = jest.fn();
+            let eventstreamSync = LDESClient.createReadStream(url, options);
+            eventstreamSync.on('data', () => {
+                mock();
+            });
+
+            eventstreamSync.on('now only syncing', () => {
+                syncing();
+                expect(mock).toHaveBeenCalledTimes(memberCount);
+                expect(syncing).toHaveBeenCalledTimes(1);
+                expect(end).toHaveBeenCalledTimes(0);
+                done();
+            });
+
+            eventstreamSync.on('end', () => {
+                end();
+                done();
+            });
+        } catch (e) {
+            done(e);
+        }
+    });
+
+    test('Test if you can export state after "now only syncing" event in polling mode', (done) => {
+        try {
+            let url = "https://smartdata.dev-vlaanderen.be/base/gemeente";
+            let options = {
+                "representation": "Quads",
+                "disablePolling": false
+            };
+
+            const mock = jest.fn();
+            let eventstreamSync = LDESClient.createReadStream(url, options);
+            eventstreamSync.on('data', () => {
+                mock();
+            });
+
+            eventstreamSync.on('now only syncing', () => {
+                eventstreamSync.pause();
+            });
+
+            eventstreamSync.on('pause', () => {
+                let state = eventstreamSync.exportState();
+                console.log(state);
+                expect(mock).toHaveBeenCalledTimes(memberCount);
+                done();
+            });
+        } catch (e) {
+            done(e);
+        }
+    });
+
     // test('Test if you can load a state with buffer in the eventstream using constructor, representation Quads', async (done) => {
     //     try {
     //         let url = "https://smartdata.dev-vlaanderen.be/base/gemeente";

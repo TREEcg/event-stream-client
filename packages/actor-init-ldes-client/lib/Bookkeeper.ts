@@ -77,6 +77,10 @@ export class Bookkeeper {
             });
         });
     }
+
+    public inSyncingMode(): boolean {
+        return this.queue.peek().refetchTime.getTime() > new Date().getTime();
+    }
 }
 
 interface FragmentInfo {

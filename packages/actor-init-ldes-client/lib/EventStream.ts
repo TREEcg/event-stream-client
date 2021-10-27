@@ -105,6 +105,7 @@ export class EventStream extends Readable {
     protected readonly rateLimiter: RateLimiter;
 
     private downloading: boolean;
+    private syncingmode: boolean;
 
 
     public constructor(
@@ -144,6 +145,7 @@ export class EventStream extends Readable {
         }
 
         this.downloading = false;
+        this.syncingmode = false;
    
     }
 
@@ -178,6 +180,10 @@ export class EventStream extends Readable {
                 super.pause();
             }
             else if (!this.downloading && !this.isPaused() && this.bookkeeper.nextFragmentExists()) {
+                if (this.bookkeeper.inSyncingMode() && !this.syncingmode) {
+                    this.syncingmode = true;
+                    this.emit('now only syncing');
+                }
                 await this.fetchNextPage();
             }
             else if (!this.downloading) {
