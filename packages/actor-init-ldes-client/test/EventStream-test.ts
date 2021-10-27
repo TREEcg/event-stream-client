@@ -141,8 +141,27 @@ describe('EventStream', () => {
             let eventStreamStync = LDESClient.createReadStream(url, options);
             expect(() => {
                 eventStreamStync.exportState()
-            }).toThrowError('Cannot export state while stream is not paused');
+            }).toThrowError('Cannot export state while stream is not paused or ended');
             done();
+        } catch (e) {
+            done(e);
+        }
+    });
+
+    test('Test if you can export state after EventStream ended', (done) => {
+        try {
+            let url = "https://smartdata.dev-vlaanderen.be/base/gemeente";
+            let options = {
+                "mimeType": "text/turtle",
+                "disablePolling": true
+            };
+            let eventStreamStync = LDESClient.createReadStream(url, options);
+            eventStreamStync.on('data', () => {});
+            eventStreamStync.on('end', () => {
+                state = eventStreamStync.exportState();
+                expect(state).toBeInstanceOf(Object);
+                done();
+            });
         } catch (e) {
             done(e);
         }

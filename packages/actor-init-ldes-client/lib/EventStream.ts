@@ -205,8 +205,8 @@ export class EventStream extends Readable {
     
 
     public exportState(): State {
-        if (!this.isPaused()) {
-            throw new Error('Cannot export state while stream is not paused');
+        if (!this.isPaused() && !this.readableEnded) {
+            throw new Error('Cannot export state while stream is not paused or ended');
         }
         let memberBuffer: any = [];
         while (this.readableLength > 0) {
