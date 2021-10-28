@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.5.5"></a>
+## [v2.5.5](https://github.com/TREEcg/event-stream-client/compare/v2.5.4...v2.5.5) - 2021-10-28
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Feat 46 - event "only syncing now" should only be emitted when disbableSynchronization is false (#49)](https://github.com/TREEcg/event-stream-client/commit/4720c04f9e4fec3bf467a69ec622f5d6ef1519f3)
+* [feat: emit event when in syncing mode (#47)](https://github.com/TREEcg/event-stream-client/commit/3f16f41e871a499ef8e4bf7148f75e2591024737)
+
 <a name="v2.5.4"></a>
 ## [v2.5.4](https://github.com/TREEcg/event-stream-client/compare/v2.5.3...v2.5.4) - 2021-10-27
 
