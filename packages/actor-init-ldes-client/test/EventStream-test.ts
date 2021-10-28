@@ -451,7 +451,7 @@ describe('EventStream', () => {
         }
     });
 
-    test('Test if all event "now only syncing" is emitted', (done) => {
+    test('Test if all event "now only syncing" is emitted when disablePolling = false', (done) => {
         try {
             let url = "https://smartdata.dev-vlaanderen.be/base/gemeente";
             let options = {
@@ -477,6 +477,104 @@ describe('EventStream', () => {
 
             eventstreamSync.on('end', () => {
                 end();
+                done();
+            });
+        } catch (e) {
+            done(e);
+        }
+    });
+
+    test('Test if event "now only syncing" is emitted when disablePolling = false', (done) => {
+        try {
+            let url = "https://smartdata.dev-vlaanderen.be/base/gemeente";
+            let options = {
+                "representation": "Quads",
+                "disablePolling": false
+            };
+
+            const mock = jest.fn();
+            const end = jest.fn();
+            const syncing = jest.fn();
+            let eventstreamSync = LDESClient.createReadStream(url, options);
+            eventstreamSync.on('data', () => {
+                mock();
+            });
+
+            eventstreamSync.on('now only syncing', () => {
+                syncing();
+                expect(mock).toHaveBeenCalledTimes(memberCount);
+                expect(syncing).toHaveBeenCalledTimes(1);
+                expect(end).toHaveBeenCalledTimes(0);
+                done();
+            });
+
+            eventstreamSync.on('end', () => {
+                end();
+                done();
+            });
+        } catch (e) {
+            done(e);
+        }
+    });
+
+    test('Test if event "now only syncing" is emitted when disableSynchronization = false', (done) => {
+        try {
+            let url = "https://smartdata.dev-vlaanderen.be/base/gemeente";
+            let options = {
+                "representation": "Quads",
+                "disableSynchronization": false
+            };
+
+            const mock = jest.fn();
+            const end = jest.fn();
+            const syncing = jest.fn();
+            let eventstreamSync = LDESClient.createReadStream(url, options);
+            eventstreamSync.on('data', () => {
+                mock();
+            });
+
+            eventstreamSync.on('now only syncing', () => {
+                syncing();
+                expect(mock).toHaveBeenCalledTimes(memberCount);
+                expect(syncing).toHaveBeenCalledTimes(1);
+                expect(end).toHaveBeenCalledTimes(0);
+                done();
+            });
+
+            eventstreamSync.on('end', () => {
+                end();
+                done();
+            });
+        } catch (e) {
+            done(e);
+        }
+    });
+
+    test('Test if event "now only syncing" is NOT emitted when disableSynchronization = true', (done) => {
+        try {
+            let url = "https://smartdata.dev-vlaanderen.be/base/gemeente";
+            let options = {
+                "representation": "Quads",
+                "disableSynchronization": true
+            };
+
+            const mock = jest.fn();
+            const end = jest.fn();
+            const syncing = jest.fn();
+            let eventstreamSync = LDESClient.createReadStream(url, options);
+            eventstreamSync.on('data', () => {
+                mock();
+            });
+
+            eventstreamSync.on('now only syncing', () => {
+                syncing();
+            });
+
+            eventstreamSync.on('end', () => {
+                end();
+                expect(mock).toHaveBeenCalledTimes(memberCount);
+                expect(syncing).toHaveBeenCalledTimes(0);
+                expect(end).toHaveBeenCalledTimes(1);
                 done();
             });
         } catch (e) {

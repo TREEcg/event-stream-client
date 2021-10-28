@@ -180,7 +180,7 @@ export class EventStream extends Readable {
                 super.pause();
             }
             else if (!this.downloading && !this.isPaused() && this.bookkeeper.nextFragmentExists()) {
-                if (this.bookkeeper.inSyncingMode() && !this.syncingmode) {
+                if (!this.disableSynchronization && this.bookkeeper.inSyncingMode() && !this.syncingmode) {
                     this.syncingmode = true;
                     this.emit('now only syncing');
                 }
