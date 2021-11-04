@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.5.6-alpha.0"></a>
+## [v2.5.6-alpha.0](https://github.com/TREEcg/event-stream-client/compare/v2.5.5...v2.5.6-alpha.0) - 2021-11-04
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [fix: don't start a new fetch immediately after emitting 'now only syncing' event (#52)](https://github.com/TREEcg/event-stream-client/commit/39d413ff6a19984bd0049bb2179cf6d68bc4bb53)
+
 <a name="v2.5.5"></a>
 ## [v2.5.5](https://github.com/TREEcg/event-stream-client/compare/v2.5.4...v2.5.5) - 2021-10-28
 
