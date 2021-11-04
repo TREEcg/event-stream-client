@@ -183,8 +183,9 @@ export class EventStream extends Readable {
                 if (!this.disableSynchronization && this.bookkeeper.inSyncingMode() && !this.syncingmode) {
                     this.syncingmode = true;
                     this.emit('now only syncing');
+                } else {
+                    await this.fetchNextPage();
                 }
-                await this.fetchNextPage();
             }
             else if (!this.downloading) {
                 //end of the stream
