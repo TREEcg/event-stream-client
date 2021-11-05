@@ -1,5 +1,11 @@
 # Change Log
 
+<a name="v2.5.7"></a>
+## [v2.5.7](https://github.com/TREEcg/event-stream-client/compare/v2.5.6...v2.5.7) - 2021-11-05
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+
+
 <a name="v2.5.6"></a>
 ## [v2.5.6](https://github.com/TREEcg/event-stream-client/compare/v2.5.6-alpha.0...v2.5.6) - 2021-11-05
 
