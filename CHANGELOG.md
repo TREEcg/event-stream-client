@@ -1,3 +1,22 @@
+# Change Log
+
+<a name="v2.5.6"></a>
+## [v2.5.6](https://github.com/TREEcg/event-stream-client/compare/v2.5.6-alpha.0...v2.5.6) - 2021-11-05
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+## [2.5.6](https://github.com/TREEcg/event-stream-client/compare/v2.5.6-alpha.0...v2.5.6) (2021-11-05)
+
+**Note:** Version bump only for package @treecg/event-stream-client
+
+
+
+
+
 # Changelog
 All notable changes to this project will be documented in this file.
 
@@ -323,4 +342,3 @@ All notable changes to this project will be documented in this file.
 ## [v1.18.4](https://github.com/TREEcg/event-stream-client/compare/v1.18.4...v1.18.4) - 2021-01-13
 
 ### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
-
