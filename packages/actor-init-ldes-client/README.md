@@ -121,3 +121,28 @@ try {
     console.error(e);
 }
 ```
+
+## How resuming works
+We save and load the EventStream state:
+- during or after the run of the LDES Client, we pause it, and export its state.
+- before a run of the LDES Client, we can load a previous state
+
+```typescript
+interface State {
+    bookkeeper: Bookkeeper;
+    memberBuffer: Array<Member>;
+    processedURIs: Set<string>;
+}
+
+interface Bookkeeper {
+    queue: PriorityQueue;
+    queued: LRUCache;
+    blacklist: Set<string>;
+}
+```
+
+- `queue` is a priorityQueue that stores all page ULRs that will be fetched, sorted on ascending refetch time. A page will not be re-added if the page-cache is set to immutable.
+- `queued` is a least-recently-used Cache containings the last 500 URLS added to the `queue`, to prevent adding to many duplicates to the `queue`.
+- `blacklist` is a Set containing blacklisted URLs that should not be added to the `queue`.
+- `memberBuffer` is the internal Buffer containing the unread Members from the EventStream.
+- `processedURIs` is a Set containing all processed URIs. When refetching pages, members having their URI in this set should not be emitted again when `"emitMemberOnce": true`.
