@@ -111,10 +111,97 @@ try {
         console.log(metadata.url); // page from where metadata has been extracted
     });
     eventstreamSync.on('pause', () => {
-        // Export current state, not only when paused!
+        // Export current state, but only when paused!
         let state = eventstreamSync.exportState();
     });
     eventstreamSync.on('end', () => {
+        console.log("No more data!");
+    });
+} catch (e) {
+    console.error(e);
+}
+```
+
+## How resuming works
+We save and load the EventStream state:
+- during or after the run of the LDES Client, we pause it, and export its state.
+- before a run of the LDES Client, we can load a previous state
+
+```typescript
+interface State {
+    bookkeeper: Bookkeeper;
+    memberBuffer: Array<Member>;
+    processedURIs: Set<string>;
+}
+
+interface Bookkeeper {
+    queue: PriorityQueue;
+    queued: LRUCache;
+    blacklist: Set<string>;
+}
+```
+
+- `queue` is a priorityQueue that stores all page ULRs that will be fetched, sorted on ascending refetch time. A page will not be re-added if the page-cache is set to immutable.
+- `queued` is a least-recently-used Cache containings the last 500 URLS added to the `queue`, to prevent adding to many duplicates to the `queue`.
+- `blacklist` is a Set containing blacklisted URLs that should not be added to the `queue`.
+- `memberBuffer` is the internal Buffer containing the unread Members from the EventStream.
+- `processedURIs` is a Set containing all processed URIs. When refetching pages, members having their URI in this set should not be emitted again when `"emitMemberOnce": true`.
+
+### example
+```typescript
+import { newEngine } from '@treecg/actor-init-ldes-client';
+
+// load previous state here (e.g. load from a json file on disk)
+const previousState;
+
+try {
+    let url = "https://apidg.gent.be/opendata/adlib2eventstream/v1/dmg/objecten";
+    let options = {
+        "representation": "Quads", //Object or Quads
+        "emitMemberOnce": true,
+        "disableSynchronization": false,
+    };
+    let LDESClient = new newEngine();
+    
+    if (previousState === undefined || previousState === null) {
+        // if you don't have a previous state, the created EventStream will start from scratch
+        let eventstreamSync = LDESClient.createReadStream(url, options);
+    }
+    else {
+        // if you have a previous state, use it to create the EventStream
+        let eventstreamSync = LDESClient.createReadStream(url, options, previousState);
+    }
+    
+    // If the run takes longer than x minutes, pause the LDES Client
+    cont timeoutms = 3600000; // amount of milliseconds before timeout
+    const timeout = setTimeout(() => eventstreamSync.pause(), timeoutms);
+    
+    eventstreamSync.on('data', (member) => {
+        console.log(member);
+    });
+    
+    eventstreamSync.on('metadata', (metadata) => {
+        if (metadata.treeMetadata)
+            // follows the TREE metadata extractor structure (https://github.com/TREEcg/tree-metadata-extraction#extracted-metadata)
+            console.log(metadata.treeMetadata);
+        console.log(metadata.url); // page from where metadata has been extracted
+    });
+    
+    eventstreamSync.on('now only syncing', () => {
+        // All known pages have been fetched at least once when receiving this event.
+        // This would be the point where we receive the `end` event in the `"disableSynchronization": true` equivalent
+        timeout.unref();
+        eventstreamSync.pause();
+    });
+    
+    eventstreamSync.on('pause', () => {
+        // Export current state, but only when paused!
+        let state = eventstreamSync.exportState();
+        // Save state here to reuse in a later run (e.g. save as a json file on disk)
+    });
+    
+    eventstreamSync.on('end', () => {
+        timeout.unref();
         console.log("No more data!");
     });
 } catch (e) {
