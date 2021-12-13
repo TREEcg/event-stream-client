@@ -54,6 +54,7 @@ import MemberIterator from "./MemberIterator";
 import * as RdfString from "rdf-string";
 import type { Member } from "@treecg/types";
 import { DataFactory } from 'rdf-data-factory';
+import {Logger} from "./Logger";
 
 export interface IEventStreamArgs {
     pollingInterval?: number,
@@ -66,6 +67,7 @@ export interface IEventStreamArgs {
     disableSynchronization?: boolean,
     dereferenceMembers?: boolean,
     requestsPerMinute?: number,
+    loggingLevel?: string
 }
 
 export interface IEventStreamMediators {
@@ -99,6 +101,7 @@ export class EventStream extends Readable {
     protected readonly disableSynchronization?: boolean;
     protected readonly dereferenceMembers?: boolean;
     protected readonly accessUrl: string;
+    protected readonly logger: Logger;
 
     protected processedURIs: Set<string>;
     protected readonly bookkeeper: Bookkeeper;
@@ -128,6 +131,8 @@ export class EventStream extends Readable {
         this.dereferenceMembers = args.dereferenceMembers;
         this.emitMemberOnce = args.emitMemberOnce;
 
+        this.logger = new Logger(this, args.loggingLevel);
+
         if (args.requestsPerMinute) {
             this.rateLimiter = new RateLimiter(60000. / args.requestsPerMinute);
         } else {
@@ -146,7 +151,7 @@ export class EventStream extends Readable {
 
         this.downloading = false;
         this.syncingmode = false;
-   
+
     }
 
     public ignorePages(urls: string[]) {
@@ -162,7 +167,7 @@ export class EventStream extends Readable {
         // Do not refetch too soon
         while (next.refetchTime.getTime() > now.getTime()) {
             await this.sleep(FETCH_PAUSE);
-            this.log('info', `Waiting ${(next.refetchTime.getTime() - now.getTime()) / 1000}s before refetching: ${next.url}`);
+            this.logger.info(`Waiting ${(next.refetchTime.getTime() - now.getTime()) / 1000}s before refetching: ${next.url}`);
             now = new Date();
         }
         return await this.retrieve(next.url).then(() => {
@@ -189,27 +194,27 @@ export class EventStream extends Readable {
             }
             else if (!this.downloading) {
                 //end of the stream
-                this.log('info', "done");
+                this.logger.info("done");
                 this.push(null);
-            }                
+            }
         } catch (e) {
             console.error(e);
         }
     }
 
-    
+
     public pause() : this {
         this.paused = true;
         return this;
     }
 
-    
+
     public resume() : this {
         this.paused = false;
         super.resume();
         return this
     }
-    
+
 
     public exportState(): State {
         if (!this.isPaused() && !this.readableEnded) {
@@ -244,7 +249,7 @@ export class EventStream extends Readable {
 
     public importState(state: State) {
         this.bookkeeper.deserialize(state.bookkeeper);
-        
+
         if (state.memberBuffer != undefined && JSON.parse(state.memberBuffer) != null) {
             if (this.representation === 'Quads') {
                 let internalBuffer = JSON.parse(state.memberBuffer);
@@ -261,21 +266,18 @@ export class EventStream extends Readable {
                 for (const member of JSON.parse(state.memberBuffer)) {
                     super.unshift(member);
                 }
-            } 
+            }
         }
-        
+
         this.processedURIs = new Set(JSON.parse(state.processedURIs));
     }
 
-    protected log(level: string, message: string, data?: any) {
-        process.stderr.write(`[${new Date().toISOString()}]  ${level.toUpperCase()}: ${message}\n`);
-        if (data) {
-            process.stderr.write(`[${new Date().toISOString()}]  ${level.toUpperCase()}: ${inspect(data)}\n`);
-        }
+    protected logErrorMessage(error: any) {
+        process.stderr.write(`[${new Date().toISOString()}]  ERROR: ${inspect(error)}\n`);
     }
 
     protected async retrieve(pageUrl: string) {
-        this.log('info', `GET ${pageUrl}`);
+        this.logger.info(`GET ${pageUrl}`);
         const startTime = new Date();
 
         await this.rateLimiter.planRequest(pageUrl);
@@ -283,7 +285,7 @@ export class EventStream extends Readable {
         try {
             const page = await this.getPage(pageUrl);
             const message = `${page.statusCode} ${page.url} (${new Date().getTime() - startTime.getTime()}) ms`;
-            this.log('info', message);
+            this.logger.info(message);
 
             // Remember that the fragment has been retrieved
             this.processedURIs.add(pageUrl);
@@ -340,7 +342,8 @@ export class EventStream extends Readable {
 
             await this.processMembers(members);
         } catch (e) {
-            this.log('error', `Failed to retrieve ${pageUrl}`, e);
+            this.logger.error(`Failed to retrieve ${pageUrl}`);
+            this.logErrorMessage(`[${new Date().toISOString()}]  error: ${inspect(e)}\n`);
         }
     }
 
@@ -378,7 +381,8 @@ export class EventStream extends Readable {
             } else {
                 const quads = new MemberIterator(memberUri, this.rateLimiter);
                 quads.on('error', (msg, e) => {
-                    this.log('error', msg, e);
+                    this.logger.error(msg);
+                    this.logErrorMessage(`[${new Date().toISOString()}]  error: ${inspect(e)}\n`);
                 })
                 yield {
                     uri: memberUri,
@@ -486,7 +490,8 @@ export class EventStream extends Readable {
                     this.push(`${outputString}\n`);
                 }
             } catch (error) {
-                this.log("error", `Failed to process member ${id}`, error);
+                this.logger.error(`Failed to process member ${id}`);
+                this.logErrorMessage(error);
             }
         };
     }

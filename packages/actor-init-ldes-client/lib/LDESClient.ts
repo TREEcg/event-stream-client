@@ -25,6 +25,7 @@ import {
     IActorTestSparqlSerializeHandle
 } from "@comunica/bus-sparql-serialize";
 import { EventStream, IEventStreamArgs, State } from "./EventStream";
+import {isLogLevel, LogLevel} from "./Logger";
 
 export class LDESClient extends ActorInit implements ILDESClientArgs {
     public static readonly HELP_MESSAGE = `actor-init-ldes-client syncs event streams
@@ -41,6 +42,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     --emitMemberOnce             whether to emit a member only once, because collection contains immutable version objects. Value can be set to "true" or "false"
     --dereferenceMembers         whether to dereference members, because the collection pages do not contain all information. Value can be set to "true" or "false", defaults to "false"
     --requestsPerMinute          How many requests per minutes may be sent to the same host
+    --loggingLevel               The detail level of logging; useful for debugging problems. (default: info)
     --help                       print this help message
   `;
 
@@ -70,6 +72,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     public disableSynchronization: boolean;
     public dereferenceMembers: boolean;
     public requestsPerMinute?: number;
+    public loggingLevel: string;
 
     public constructor(args: ILDESClientArgs) {
         super(args);
@@ -90,7 +93,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
 
         const options: IEventStreamArgs = {
             pollingInterval,
-            mimeType,
+            mimeType
         };
 
         if (args.context && existsSync(args.context)) {
@@ -137,6 +140,8 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
         if (args.requestsPerMinute) {
             options.requestsPerMinute = Number.parseInt(args.requestsPerMinute);
         }
+        options.loggingLevel = args.loggingLevel ? args.loggingLevel.toLowerCase() : 'info';
+
 
         const url = args._[args._.length - 1];
         const eventStream = this.createReadStream(url, options);
