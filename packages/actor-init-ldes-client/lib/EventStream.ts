@@ -1,5 +1,5 @@
-import { Actor, IActorTest, Mediator } from "@comunica/core";
-import { Quad, NamedNode } from "@rdfjs/types";
+import {Actor, IActorTest, Mediator} from "@comunica/core";
+import {Quad, NamedNode} from "@rdfjs/types";
 import type {
     IActionRdfMetadataExtract,
     IActorRdfMetadataExtractOutput,
@@ -9,51 +9,51 @@ import * as moment from 'moment';
 
 import type * as RDF from 'rdf-js';
 
-import { Readable } from 'stream';
+import {Readable} from 'stream';
 
 const FETCH_PAUSE = 2000; // in milliseconds; pause before fetching the next fragment
 
 const followRedirects = require('follow-redirects');
 followRedirects.maxRedirects = 10;
-const { http, https } = followRedirects;
+const {http, https} = followRedirects;
 const CacheableRequest = require('cacheable-request');
 const cacheableRequestHttp = new CacheableRequest(http.request);
 const cacheableRequestHttps = new CacheableRequest(https.request);
 const CachePolicy = require('http-cache-semantics');
 
-import { ContextDefinition, JsonLdDocument } from "jsonld";
+import {ContextDefinition, JsonLdDocument} from "jsonld";
 
 const stringifyStream = require('stream-to-string');
 const streamifyString = require('streamify-string');
 
-import { Bookkeeper } from './Bookkeeper';
-import { ActorRdfMetadataExtract } from "@comunica/bus-rdf-metadata-extract/lib/ActorRdfMetadataExtract";
+import {Bookkeeper} from './Bookkeeper';
+import {ActorRdfMetadataExtract} from "@comunica/bus-rdf-metadata-extract/lib/ActorRdfMetadataExtract";
 import {
     IActionHandleRdfParse,
     IActorOutputHandleRdfParse,
     IActorTestHandleRdfParse
 } from "@comunica/bus-rdf-parse";
-import { IActionRdfFrame, IActorRdfFrameOutput } from "../../bus-rdf-frame";
+import {IActionRdfFrame, IActorRdfFrameOutput} from "../../bus-rdf-frame";
 import {
     IActionSparqlSerializeHandle,
     IActorOutputSparqlSerializeHandle,
     IActorTestSparqlSerializeHandle
 } from "@comunica/bus-sparql-serialize";
-import { IActorQueryOperationOutputQuads } from "@comunica/bus-query-operation";
+import {IActorQueryOperationOutputQuads} from "@comunica/bus-query-operation";
 
 import * as f from "@dexagod/rdf-retrieval";
-import { AsyncIterator, ArrayIterator } from "asynciterator";
-import { Frame } from "jsonld/jsonld-spec";
+import {AsyncIterator, ArrayIterator} from "asynciterator";
+import {Frame} from "jsonld/jsonld-spec";
 
 const urlLib = require('url');
-import { inspect } from 'util';
+import {inspect} from 'util';
 
 import RateLimiter from "./RateLimiter";
 import MemberIterator from "./MemberIterator";
 
 import * as RdfString from "rdf-string";
-import type { Member } from "@treecg/types";
-import { DataFactory } from 'rdf-data-factory';
+import type {Member} from "@treecg/types";
+import {DataFactory} from 'rdf-data-factory';
 import {Logger} from "./Logger";
 
 export interface IEventStreamArgs {
@@ -117,7 +117,7 @@ export class EventStream extends Readable {
         args: IEventStreamArgs,
         state: State | null
     ) {
-        super({ objectMode: true , highWaterMark: 1000});
+        super({objectMode: true, highWaterMark: 1000});
         this.mediators = mediators;
 
         this.accessUrl = url;
@@ -144,8 +144,7 @@ export class EventStream extends Readable {
 
         if (state != null) {
             this.importState(state);
-        }
-        else {
+        } else {
             this.bookkeeper.addFragment(this.accessUrl, 0);
         }
 
@@ -177,22 +176,20 @@ export class EventStream extends Readable {
         });
     }
 
-    private paused:boolean = false;
+    private paused: boolean = false;
 
     public async _read() {
         try {
             if (!this.downloading && this.paused) {
                 super.pause();
-            }
-            else if (!this.downloading && !this.isPaused() && this.bookkeeper.nextFragmentExists()) {
+            } else if (!this.downloading && !this.isPaused() && this.bookkeeper.nextFragmentExists()) {
                 if (!this.disableSynchronization && this.bookkeeper.inSyncingMode() && !this.syncingmode) {
                     this.syncingmode = true;
                     this.emit('now only syncing');
                 } else {
                     await this.fetchNextPage();
                 }
-            }
-            else if (!this.downloading) {
+            } else if (!this.downloading) {
                 //end of the stream
                 this.logger.info("done");
                 this.push(null);
@@ -203,13 +200,13 @@ export class EventStream extends Readable {
     }
 
 
-    public pause() : this {
+    public pause(): this {
         this.paused = true;
         return this;
     }
 
 
-    public resume() : this {
+    public resume(): this {
         this.paused = false;
         super.resume();
         return this
@@ -229,10 +226,9 @@ export class EventStream extends Readable {
                     for (const quad of member.quads) {
                         quads.push(RdfString.quadToStringQuad(quad));
                     }
-                    memberBuffer.push({id:member.id, quads:quads});
+                    memberBuffer.push({id: member.id, quads: quads});
                 }
-            }
-            else {
+            } else {
                 memberBuffer.push(member);
             }
         }
@@ -258,11 +254,10 @@ export class EventStream extends Readable {
                     for (const quad of member.quads) {
                         quads.push(RdfString.stringQuadToQuad(quad));
                     }
-                    let _member: Member = {id:member.id, quads:quads};
+                    let _member: Member = {id: member.id, quads: quads};
                     super.unshift(_member);
                 }
-            }
-            else {
+            } else {
                 for (const member of JSON.parse(state.memberBuffer)) {
                     super.unshift(member);
                 }
@@ -272,9 +267,9 @@ export class EventStream extends Readable {
         this.processedURIs = new Set(JSON.parse(state.processedURIs));
     }
 
-    protected logErrorMessage(error: any) {
-        process.stderr.write(`[${new Date().toISOString()}]  ERROR: ${inspect(error)}\n`);
-    }
+    // protected logErrorMessage(error: any) {
+    //     process.stderr.write(`[${new Date().toISOString()}]  ERROR: ${inspect(error)}\n`);
+    // }
 
     protected async retrieve(pageUrl: string) {
         this.logger.info(`GET ${pageUrl}`);
@@ -297,7 +292,7 @@ export class EventStream extends Readable {
 
             if (!this.disableSynchronization && this.pollingInterval) {
                 // Based on the HTTP Caching headers, poll this fragment for synchronization
-                const policy = new CachePolicy(page.request, page.response, { shared: false }); // If options.shared is false, then the response is evaluated from a perspective of a single-user cache (i.e. private is cacheable and s-maxage is ignored)
+                const policy = new CachePolicy(page.request, page.response, {shared: false}); // If options.shared is false, then the response is evaluated from a perspective of a single-user cache (i.e. private is cacheable and s-maxage is ignored)
                 const ttl = Math.max(this.pollingInterval, policy.storable() ? policy.timeToLive() : 0); // pollingInterval is fallback
                 this.bookkeeper.addFragment(page.url, ttl);
             }
@@ -309,7 +304,7 @@ export class EventStream extends Readable {
                 metadata: await this.quadArrayToQuadStream(quadsArrayOfPage),
                 url: page.url
             });
-            this.emit("metadata", { ...treeMetadata.metadata, url: page.url });
+            this.emit("metadata", {...treeMetadata.metadata, url: page.url});
 
             // When there are no tree:relations found, search for a tree:view to continue
             // In this case, we expect that the URL parameter provided contains a tree collection's URI
@@ -342,12 +337,12 @@ export class EventStream extends Readable {
 
             await this.processMembers(members);
         } catch (e) {
-            this.logger.error(`Failed to retrieve ${pageUrl}`);
-            this.logErrorMessage(`[${new Date().toISOString()}]  error: ${inspect(e)}\n`);
+            this.logger.error(`Failed to retrieve ${pageUrl}
+${inspect(e)}`);
         }
     }
 
-    protected * getMembers(quads: RDF.Quad[], memberUris: string[]): Generator<IMember> {
+    protected* getMembers(quads: RDF.Quad[], memberUris: string[]): Generator<IMember> {
         const subjectIndex: Record<string, RDF.Quad[]> = {};
         for (const quad of quads) {
             const subject = quad.subject.value;
@@ -381,8 +376,7 @@ export class EventStream extends Readable {
             } else {
                 const quads = new MemberIterator(memberUri, this.rateLimiter);
                 quads.on('error', (msg, e) => {
-                    this.logger.error(msg);
-                    this.logErrorMessage(`[${new Date().toISOString()}]  error: ${inspect(e)}\n`);
+                    this.logger.error(msg + '\n' + inspect(e));
                 })
                 yield {
                     uri: memberUri,
@@ -441,11 +435,11 @@ export class EventStream extends Readable {
                     if (this.representation === 'Object') {
                         let framedResult = (await this.mediators.mediatorRdfFrame.mediate({
                             data: quadStream,
-                            frames: [{ "@id": id }],
+                            frames: [{"@id": id}],
                             jsonLdContext: this.jsonLdContext
                         })).data;
                         let firstEntry = framedResult.entries().next();
-                        this.push({ "id": firstEntry.value[0]["@id"], object: firstEntry.value[1] });
+                        this.push({"id": firstEntry.value[0]["@id"], object: firstEntry.value[1]});
                     } else {
                         //Build an array from the quads iterator
                         await new Promise<void>((resolve, reject) => {
@@ -490,10 +484,10 @@ export class EventStream extends Readable {
                     this.push(`${outputString}\n`);
                 }
             } catch (error) {
-                this.logger.error(`Failed to process member ${id}`);
-                this.logErrorMessage(error);
+                this.logger.error(`Failed to process member ${id}
+${inspect(error)}`);
             }
-        };
+        }
     }
 
     protected getPage(pageUrl: string): Promise<PageMetadata> {

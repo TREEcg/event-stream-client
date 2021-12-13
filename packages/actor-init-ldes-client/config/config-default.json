@@ -47,6 +47,7 @@
           "ldes:disableSynchronization": false,
           "ldes:mimeType": "application/ld+json",
           "ldes:jsonLdContextString": "{\"@context\":  {}}",
+          "ldes:loggingLevel": "info",
           "ldes:mediatorRdfMetadataExtractTree": {
             "@id": "urn:comunica:mediatorRdfMetadataExtractTree",
             "@type": "MediatorRace",

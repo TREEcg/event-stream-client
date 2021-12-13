@@ -117,6 +117,12 @@
           "comment": "The RDF serialize mediator of LDES Client",
           "required": true,
           "unique": true
+        },
+        {
+          "@id": "ldes:loggingLevel",
+          "comment": "The detail level of logging of LDES Client",
+          "required": false,
+          "unique": true
         }
       ],
       "constructorArguments": [
@@ -187,6 +193,10 @@
             {
               "keyRaw": "mediatorRdfSerialize",
               "value": "ldes:mediatorRdfSerialize"
+            },
+            {
+              "keyRaw": "loggingLevel",
+              "value": "ldes:loggingLevel"
             }
         ]
         }

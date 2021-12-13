@@ -188,6 +188,8 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             options.requestsPerMinute = this.requestsPerMinute;
         }
 
+        options.loggingLevel = this.loggingLevel;
+
         const mediators = {
             mediatorRdfMetadataExtract: this.mediatorRdfMetadataExtractTree,
             mediatorRdfParse: this.mediatorRdfParse,
