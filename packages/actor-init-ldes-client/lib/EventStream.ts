@@ -54,7 +54,7 @@ import MemberIterator from "./MemberIterator";
 import * as RdfString from "rdf-string";
 import type {Member} from "@treecg/types";
 import {DataFactory} from 'rdf-data-factory';
-import {Logger} from "./Logger";
+import {Logger} from "@treecg/types";
 
 export interface IEventStreamArgs {
     pollingInterval?: number,
