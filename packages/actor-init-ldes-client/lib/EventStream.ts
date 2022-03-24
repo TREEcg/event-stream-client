@@ -146,7 +146,7 @@ export class EventStream extends Readable {
 
         this.downloading = false;
         this.syncingmode = false;
-   
+
     }
 
     public ignorePages(urls: string[]) {
@@ -191,25 +191,25 @@ export class EventStream extends Readable {
                 //end of the stream
                 this.log('info', "done");
                 this.push(null);
-            }                
+            }
         } catch (e) {
             console.error(e);
         }
     }
 
-    
+
     public pause() : this {
         this.paused = true;
         return this;
     }
 
-    
+
     public resume() : this {
         this.paused = false;
         super.resume();
         return this
     }
-    
+
 
     public exportState(): State {
         if (!this.isPaused() && !this.readableEnded) {
@@ -244,7 +244,7 @@ export class EventStream extends Readable {
 
     public importState(state: State) {
         this.bookkeeper.deserialize(state.bookkeeper);
-        
+
         if (state.memberBuffer != undefined && JSON.parse(state.memberBuffer) != null) {
             if (this.representation === 'Quads') {
                 let internalBuffer = JSON.parse(state.memberBuffer);
@@ -261,9 +261,9 @@ export class EventStream extends Readable {
                 for (const member of JSON.parse(state.memberBuffer)) {
                     super.unshift(member);
                 }
-            } 
+            }
         }
-        
+
         this.processedURIs = new Set(JSON.parse(state.processedURIs));
     }
 
@@ -300,7 +300,7 @@ export class EventStream extends Readable {
                 this.bookkeeper.addFragment(page.url, ttl);
             }
 
-            const quadsArrayOfPage = await this.stringToQuadArray(page.data.toString(), '', mediaType);
+            const quadsArrayOfPage = await this.stringToQuadArray(page.data.toString(), page.url, mediaType);
 
             // Parse into RDF Stream to retrieve TREE metadata
             const treeMetadata = await this.mediators.mediatorRdfMetadataExtract.mediate({
