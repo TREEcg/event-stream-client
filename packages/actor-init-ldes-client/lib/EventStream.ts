@@ -297,7 +297,7 @@ export class EventStream extends Readable {
                 this.bookkeeper.addFragment(page.url, ttl);
             }
 
-            const quadsArrayOfPage = await this.stringToQuadArray(page.data.toString(), '', mediaType);
+            const quadsArrayOfPage = await this.stringToQuadArray(page.data.toString(), page.url, mediaType);
 
             // Parse into RDF Stream to retrieve TREE metadata
             const treeMetadata = await this.mediators.mediatorRdfMetadataExtract.mediate({
