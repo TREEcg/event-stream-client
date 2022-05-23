@@ -311,9 +311,17 @@ export class EventStream extends Readable {
 
             // When there are no tree:relations found, search for a tree:view to continue
             // In this case, we expect that the URL parameter provided contains a tree collection's URI
-            if (!treeMetadata.metadata.treeMetadata.relations.size && treeMetadata.metadata.treeMetadata.collections.get(pageUrl) && treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"]) {
-                const view = treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"][0]["@id"]; // take first view encountered
-                this.bookkeeper.addFragment(view, 0);
+            if (!treeMetadata.metadata.treeMetadata.relations.size) {
+                // Page URL should be a collection URI
+                // Check the URL with and without www
+                const pageUrlWithoutWWW = pageUrl.replace('://www.', '://');
+                if (treeMetadata.metadata.treeMetadata.collections.get(pageUrl) && treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"]) {
+                    const view = treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"][0]["@id"]; // take first view encountered
+                    this.bookkeeper.addFragment(view, 0);
+                } else if (treeMetadata.metadata.treeMetadata.collections.get(pageUrlWithoutWWW) && treeMetadata.metadata.treeMetadata.collections.get(pageUrlWithoutWWW)["view"]) {
+                    const view = treeMetadata.metadata.treeMetadata.collections.get(pageUrlWithoutWWW)["view"][0]["@id"]; // take first view encountered
+                    this.bookkeeper.addFragment(view, 0);
+                }
             }
 
             // Retrieve TREE relations towards other nodes
