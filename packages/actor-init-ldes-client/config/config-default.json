@@ -49,6 +49,7 @@
           "ldes:disableFraming": false,
           "ldes:jsonLdContextString": "{\"@context\":  {}}",
           "ldes:loggingLevel": "info",
+          "ldes:processedURIsCount": 15000,
           "ldes:mediatorRdfMetadataExtractTree": {
             "@id": "urn:comunica:mediatorRdfMetadataExtractTree",
             "@type": "MediatorRace",

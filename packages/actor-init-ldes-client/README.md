@@ -34,6 +34,7 @@ Possible parameters are:
 | dereferenceMembers | whether to dereference members, because the collection pages do not contain all information (by default: false). | true / false |
 | requestsPerMinute | how many requests per minutes may be sent to the same host (optional) | any number |
 | loggingLevel | The detail level of logging; useful for debugging problems. (default: info)| 'error', 'warn', 'info', 'verbose', 'debug', 'silly' |
+| processedURIsCount | The maximum number of processed URIs (members and fragments) that remain in the cache. (default: 10000) | any number |
 
 Example commando with parameters:
 ```

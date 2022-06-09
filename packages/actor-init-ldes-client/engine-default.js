@@ -173,12 +173,13 @@ const urn_comunica_myLDESClient = new (require('./index.js').LDESClient)({
   'disableFraming': false,
   'emitMemberOnce': true,
   'dereferenceMembers': false,
+  'loggingLevel': 'info',
+  'processedURIsCount': 15000,
   'mediatorRdfMetadataExtractTree': urn_comunica_mediatorRdfMetadataExtractTree,
   'mediatorRdfParse': urn_comunica_mediatorRdfParse,
   'mediatorRdfFilterObject': urn_comunica_mediatorRdfFilterObject,
   'mediatorRdfFrame': urn_comunica_mediatorRdfFrame,
   'mediatorRdfSerialize': urn_comunica_mediatorRdfSerialize,
-  'loggingLevel': 'info',
   'name': 'urn:comunica:myLDESClient',
   'bus': https___linkedsoftwaredependencies_org_bundles_npm__comunica_bus_init_Bus_Init
 });

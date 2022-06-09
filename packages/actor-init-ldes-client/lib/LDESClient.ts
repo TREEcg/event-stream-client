@@ -44,6 +44,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     --dereferenceMembers         whether to dereference members, because the collection pages do not contain all information. Value can be set to "true" or "false", defaults to "false"
     --requestsPerMinute          How many requests per minutes may be sent to the same host
     --loggingLevel               The detail level of logging; useful for debugging problems. (default: info)
+    --processedURIsCount         The maximum number of processed URIs that remain in the cache. (default: 10000)
     --help                       print this help message
   `;
 
@@ -75,6 +76,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     public dereferenceMembers: boolean;
     public requestsPerMinute?: number;
     public loggingLevel: string;
+    public processedURIsCount: number;
 
     public constructor(args: ILDESClientArgs) {
         super(args);
@@ -152,6 +154,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
         }
         options.loggingLevel = args.loggingLevel ? args.loggingLevel.toLowerCase() : 'info';
 
+        options.processedURIsCount = args.processedURIsCount ? args.processedURIsCount : this.processedURIsCount;
 
         const url = args._[args._.length - 1];
         const eventStream = this.createReadStream(url, options);

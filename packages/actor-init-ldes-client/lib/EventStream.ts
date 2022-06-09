@@ -55,6 +55,7 @@ import * as RdfString from "rdf-string";
 import type {Member} from "@treecg/types";
 import {DataFactory} from 'rdf-data-factory';
 import {Logger} from "@treecg/types";
+const LRU = require("lru-cache");
 
 export interface IEventStreamArgs {
     pollingInterval?: number,
@@ -68,7 +69,8 @@ export interface IEventStreamArgs {
     disableFraming?: boolean,
     dereferenceMembers?: boolean,
     requestsPerMinute?: number,
-    loggingLevel?: string
+    loggingLevel?: string,
+    processedURIsCount?: number,
 }
 
 export interface IEventStreamMediators {
@@ -104,8 +106,9 @@ export class EventStream extends Readable {
     protected readonly dereferenceMembers?: boolean;
     protected readonly accessUrl: string;
     protected readonly logger: Logger;
+    protected readonly processedURIsCount?: number;
 
-    protected processedURIs: Set<string>;
+    protected processedURIs;
     protected readonly bookkeeper: Bookkeeper;
     protected readonly rateLimiter: RateLimiter;
 
@@ -133,6 +136,7 @@ export class EventStream extends Readable {
         this.jsonLdContext = args.jsonLdContext;
         this.dereferenceMembers = args.dereferenceMembers;
         this.emitMemberOnce = args.emitMemberOnce;
+        this.processedURIsCount = args.processedURIsCount;
 
         this.logger = new Logger(this, args.loggingLevel);
 
@@ -142,7 +146,9 @@ export class EventStream extends Readable {
             this.rateLimiter = new RateLimiter(0);
         }
 
-        this.processedURIs = new Set();
+        this.processedURIs = new LRU({
+            max: this.processedURIsCount
+        });
         this.bookkeeper = new Bookkeeper();
 
         if (state != null) {
@@ -234,7 +240,7 @@ export class EventStream extends Readable {
         return {
             bookkeeper: this.bookkeeper.serialize(),
             memberBuffer: JSON.stringify(memberBuffer),
-            processedURIs: JSON.stringify([...this.processedURIs]),
+            processedURIs: JSON.stringify(this.processedURIs.dump()),
         };
     }
 
@@ -263,7 +269,10 @@ export class EventStream extends Readable {
             }
         }
 
-        this.processedURIs = new Set(JSON.parse(state.processedURIs));
+        this.processedURIs = new LRU({
+            max: this.processedURIsCount
+        });
+        this.processedURIs.load(JSON.parse(state.processedURIs));
     }
 
     // protected logErrorMessage(error: any) {
@@ -282,9 +291,10 @@ export class EventStream extends Readable {
             this.logger.info(message);
 
             // Remember that the fragment has been retrieved
-            this.processedURIs.add(pageUrl);
-            this.processedURIs.add(page.url); // can be a redirected response <> pageUrl
-
+            this.processedURIs.set(pageUrl, {});
+            this.processedURIs.set(page.url, {}); // can be a redirected response <> pageUrl
+            this.logger.debug(page.url + " added to processedURIs");
+            this.logger.debug("Size of processedURIs: " + this.processedURIs.length);
             // Retrieve media type
             // TODO: Fetch mediaType by using response and comunica actor
             const mediaType = page.headers['content-type'].indexOf(';') > 0 ? page.headers['content-type'].substr(0, page.headers['content-type'].indexOf(';')) : page.headers['content-type'];
@@ -375,7 +385,7 @@ ${inspect(e)}`);
                 continue;
             }
 
-            this.processedURIs.add(memberUri);
+            this.processedURIs.set(memberUri, {});
 
             if (!this.dereferenceMembers) {
                 const done = new Set(memberUris);

@@ -18,6 +18,8 @@
       "disableFraming": "ldes:disableFraming",
       "dereferenceMembers": "ldes:dereferenceMembers",
       "requestsPerMinute": "ldes:requestsPerMinute",
+      "loggingLevel": "ldes:loggingLevel",
+      "processedURIsCount": "ldes:processedURIsCount",
 
       "mediatorRdfMetadataExtractTree": "ldes:mediatorRdfMetadataExtractTree",
       "mediatorRdfParse": "ldes:mediatorRdfParse",

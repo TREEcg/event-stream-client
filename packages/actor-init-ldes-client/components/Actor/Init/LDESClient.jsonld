@@ -131,6 +131,14 @@
           "comment": "The detail level of logging of LDES Client",
           "required": false,
           "unique": true
+        },
+        {
+          "@id": "ldes:processedURIsCount",
+          "comment": "The maximum number of processed URIs (members and fragments) that remain in the cache.",
+          "required": false,
+          "unique": true,
+          "range": "xsd:integer",
+          "default": "15000"
         }
       ],
       "constructorArguments": [
@@ -187,6 +195,14 @@
               "value": "ldes:requestsPerMinute"
             },
             {
+              "keyRaw": "loggingLevel",
+              "value": "ldes:loggingLevel"
+            },
+            {
+              "keyRaw": "processedURIsCount",
+              "value": "ldes:processedURIsCount"
+            },
+            {
               "keyRaw": "mediatorRdfMetadataExtractTree",
               "value": "ldes:mediatorRdfMetadataExtractTree"
             },
@@ -205,10 +221,6 @@
             {
               "keyRaw": "mediatorRdfSerialize",
               "value": "ldes:mediatorRdfSerialize"
-            },
-            {
-              "keyRaw": "loggingLevel",
-              "value": "ldes:loggingLevel"
             }
         ]
         }
