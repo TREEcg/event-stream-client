@@ -61,7 +61,7 @@ export interface IEventStreamArgs {
     pollingInterval?: number,
     representation?: string,
     mimeType?: string,
-    jsonLdContext?: ContextDefinition,
+    jsonLdContext?: JsonLdDocument,
     fromTime?: Date,
     emitMemberOnce?: boolean,
     disablePolling?: boolean,
@@ -98,7 +98,7 @@ export class EventStream extends Readable {
     protected readonly pollingInterval?: number;
     protected readonly representation?: string;
     protected readonly mimeType?: string;
-    protected readonly jsonLdContext?: ContextDefinition;
+    protected readonly jsonLdContext?: JsonLdDocument;
     protected readonly emitMemberOnce?: boolean;
     protected readonly fromTime?: Date;
     protected readonly disableSynchronization?: boolean;

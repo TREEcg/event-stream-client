@@ -49,7 +49,7 @@ export class ActorRdfFrameWithJSONLDjs extends ActorRdfFrame {
       const framed = await jsonld.frame(obj, frame);
 
       // Fetch JSON-LD context for compaction
-      const context : ContextDefinition = action.jsonLdContext ? action.jsonLdContext : {"@context": {}};
+      const context : ContextDefinition = <ContextDefinition>(action.jsonLdContext ? action.jsonLdContext : {"@context": {}});
       const compacted = await jsonld.compact(framed, context);
 
       //const output : IActorRdfFrameOutput = {
