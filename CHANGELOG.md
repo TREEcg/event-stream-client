@@ -1,5 +1,21 @@
 # Change Log
 
+<a name="v2.6.0"></a>
+## [v2.6.0](https://github.com/TREEcg/event-stream-client/compare/v2.5.11...v2.6.0) - 2022-06-13
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Merge branch 'main' of github.com:TREEcg/event-stream-client into main](https://github.com/TREEcg/event-stream-client/commit/095ace9736d8a4fb04b70f0ca5d7105ec69fd2c4)
+* [Change type of JsonLdContext to JsonLdDocument](https://github.com/TREEcg/event-stream-client/commit/6c7019f702b13d2db13076d81dbd3c8540d16170)
+* [Use LRU cache for processedURIs](https://github.com/TREEcg/event-stream-client/commit/ea74182fd52456f663464c11676643b5e7390ba6)
+* [Bump to release version v2.5.11](https://github.com/TREEcg/event-stream-client/commit/448d1555b1108b291f67ea80a39bdf95c7015a19)
+* [Check with and without www when searching for view](https://github.com/TREEcg/event-stream-client/commit/19fe324190059b88d9043ea8ee894db64982ef7a)
+* [Feat 36 - Pause and Resume EventStream with exportState/importState methods (#42)](https://github.com/TREEcg/event-stream-client/commit/0b071519f5acde44c716afbb6700b31ab49a0f0e)
+* [Make JSON-LD framing optional](https://github.com/TREEcg/event-stream-client/commit/8eee74fccdfd4caa354ff2d9800f0874171e3db1)
+* [Merge branch 'main' into feat/logger](https://github.com/TREEcg/event-stream-client/commit/5b6c23e65c1a625e8b764dbeae6ef5790cea7aa5)
+* [feat: Remove local Logger and import logger from @treecg/types](https://github.com/TREEcg/event-stream-client/commit/574432a0f691b8247828eeae81382257141df30f)
+* [feat: Add component.js config for logging + fix error logging](https://github.com/TREEcg/event-stream-client/commit/e0ff2eee3c9e6d84d7560c5608c077d528ed264a)
+* [feat: Add logging functionality](https://github.com/TREEcg/event-stream-client/commit/45680dd323ebd526a8fb02ed84e72f7363d92ef4)
+
 <a name="v2.5.11"></a>
 ## [v2.5.11](https://github.com/TREEcg/event-stream-client/compare/v2.5.9...v2.5.11) - 2022-05-23
 

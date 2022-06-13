@@ -1,6 +1,6 @@
 {
   "name": "@treecg/bus-rdf-frame",
-  "version": "2.3.6",
+  "version": "2.6.0",
   "description": "A comunica bus to transform a stream of quads into a framed JSON-LD object.",
   "lsd:module": true,
   "main": "index.js",
