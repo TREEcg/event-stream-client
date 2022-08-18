@@ -72,7 +72,7 @@
   "homepage": "https://github.com/TREEcg/event-stream-client#readme",
   "dependencies": {
     "awesome-typescript-loader": "^5.2.1",
-    "lerna": "^3.4.0",
+    "lerna": "4.0.0",
     "source-map-loader": "^2.0.0",
     "typescript": "^4.1.3"
   },

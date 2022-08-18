@@ -1,5 +1,97 @@
+# Change Log
+
+<a name="v2.5.11"></a>
+## [v2.5.11](https://github.com/TREEcg/event-stream-client/compare/v2.5.9...v2.5.11) - 2022-05-23
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Check with and without www when searching for view](https://github.com/TREEcg/event-stream-client/commit/604e0cda99e877c6cef2c093c6762c1e396df8ff)
+
+<a name="v2.5.7"></a>
+## [v2.5.7](https://github.com/TREEcg/event-stream-client/compare/v2.5.6...v2.5.7) - 2021-11-05
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+
+
+<a name="v2.5.6"></a>
+## [v2.5.6](https://github.com/TREEcg/event-stream-client/compare/v2.5.6-alpha.0...v2.5.6) - 2021-11-05
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+## [2.5.6](https://github.com/TREEcg/event-stream-client/compare/v2.5.6-alpha.0...v2.5.6) (2021-11-05)
+
+**Note:** Version bump only for package @treecg/event-stream-client
+
+
+
+
+
 # Changelog
 All notable changes to this project will be documented in this file.
+
+<a name="v2.5.6-alpha.0"></a>
+## [v2.5.6-alpha.0](https://github.com/TREEcg/event-stream-client/compare/v2.5.5...v2.5.6-alpha.0) - 2021-11-04
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [fix: don't start a new fetch immediately after emitting 'now only syncing' event (#52)](https://github.com/TREEcg/event-stream-client/commit/39d413ff6a19984bd0049bb2179cf6d68bc4bb53)
+
+<a name="v2.5.5"></a>
+## [v2.5.5](https://github.com/TREEcg/event-stream-client/compare/v2.5.4...v2.5.5) - 2021-10-28
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Feat 46 - event "only syncing now" should only be emitted when disbableSynchronization is false (#49)](https://github.com/TREEcg/event-stream-client/commit/4720c04f9e4fec3bf467a69ec622f5d6ef1519f3)
+* [feat: emit event when in syncing mode (#47)](https://github.com/TREEcg/event-stream-client/commit/3f16f41e871a499ef8e4bf7148f75e2591024737)
+
+<a name="v2.5.4"></a>
+## [v2.5.4](https://github.com/TREEcg/event-stream-client/compare/v2.5.3...v2.5.4) - 2021-10-27
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [feat: export interface State from EventStream](https://github.com/TREEcg/event-stream-client/commit/88106565ee1f68baf24e1a3d537c578dd9e36a84)
+
+<a name="v2.5.3"></a>
+## [v2.5.3](https://github.com/TREEcg/event-stream-client/compare/v2.5.2...v2.5.3) - 2021-10-27
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Fix 43 - Enable exportState after end event (#44)](https://github.com/TREEcg/event-stream-client/commit/80fb624a809ff52cb061534fa80e5b2c23fdbdcf)
+
+<a name="v2.5.2"></a>
+## [v2.5.2](https://github.com/TREEcg/event-stream-client/compare/v2.5.1...v2.5.2) - 2021-10-26
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [feat: add EventStream export inside index.ts](https://github.com/TREEcg/event-stream-client/commit/92b112e50c18a7b5764906c4776453cea5fdb0a7)
+
+<a name="v2.5.1"></a>
+## [v2.5.1](https://github.com/TREEcg/event-stream-client/compare/v2.4.0...v2.5.1) - 2021-10-26
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Bump to release version v2.5.0](https://github.com/TREEcg/event-stream-client/commit/53aca9513254be2d4d48d8041f36c1c43e08b243)
+* [Feat 36 - Pause and Resume EventStream with exportState/importState methods (#42)](https://github.com/TREEcg/event-stream-client/commit/18c06cea21f106657e784c55ef3b89d50fcf858a)
+* [Add serialisation & deserialization for Bookkeeper data structures  (#35)](https://github.com/TREEcg/event-stream-client/commit/67a8fee9a48241da6dd5133027a8ac41a7c52984)
+* [Bump to release version v2.4.1](https://github.com/TREEcg/event-stream-client/commit/d8c9154f14bc842f0fe04b653a01abdd8f421819)
+* [Fix 40 - remove custom memberBuffer and use internal readableBuffer (#41)](https://github.com/TREEcg/event-stream-client/commit/ddd8ae59cdf5a23bb5adb3a90f3ec42fa849dd36)
+
+<a name="v2.5.0"></a>
+## [v2.5.0](https://github.com/TREEcg/event-stream-client/compare/v2.4.0...v2.5.0) - 2021-10-26
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Feat 36 - Pause and Resume EventStream with exportState/importState methods (#42)](https://github.com/TREEcg/event-stream-client/commit/18c06cea21f106657e784c55ef3b89d50fcf858a)
+* [Add serialisation & deserialization for Bookkeeper data structures  (#35)](https://github.com/TREEcg/event-stream-client/commit/67a8fee9a48241da6dd5133027a8ac41a7c52984)
+* [Bump to release version v2.4.1](https://github.com/TREEcg/event-stream-client/commit/d8c9154f14bc842f0fe04b653a01abdd8f421819)
+* [Fix 40 - remove custom memberBuffer and use internal readableBuffer (#41)](https://github.com/TREEcg/event-stream-client/commit/ddd8ae59cdf5a23bb5adb3a90f3ec42fa849dd36)
+
+<a name="v2.4.0"></a>
+## [v2.4.0](https://github.com/TREEcg/event-stream-client/compare/v2.3.11...v2.4.0) - 2021-10-26
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Merge pull request #39 from TREEcg/feat-32](https://github.com/TREEcg/event-stream-client/commit/440aa507eae719cf86e28bef8ec82cf6ce1da230)
+* [feat: update readme](https://github.com/TREEcg/event-stream-client/commit/946443fee3c3f5703596a8eba4efcdf7793da893)
+* [Merge pull request #38 from TREEcg/fix-37](https://github.com/TREEcg/event-stream-client/commit/8a38e64a2736e713aec81b5d4e355d2a14e063ac)
+* [fix: change Quads events to adhere to Member interface](https://github.com/TREEcg/event-stream-client/commit/a4a5b4cdb06ffa46d9774d7a99c44f8e552cd8ce)
+* [feat: add dependency @treecg/types](https://github.com/TREEcg/event-stream-client/commit/ad273370c04b859b9ee3b19f57674b00aeb2e90b)
+* [fix: rename bookie to bookkeeper](https://github.com/TREEcg/event-stream-client/commit/89fcf900a8977bab47fd7511f5253862c221bd5c)
 
 <a name="v2.3.11"></a>
 ## [v2.3.11](https://github.com/TREEcg/event-stream-client/compare/v2.3.10...v2.3.11) - 2021-09-22
@@ -262,4 +354,3 @@ All notable changes to this project will be documented in this file.
 ## [v1.18.4](https://github.com/TREEcg/event-stream-client/compare/v1.18.4...v1.18.4) - 2021-01-13
 
 ### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
-

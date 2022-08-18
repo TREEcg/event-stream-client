@@ -24,7 +24,8 @@ import {
     IActorOutputSparqlSerializeHandle,
     IActorTestSparqlSerializeHandle
 } from "@comunica/bus-sparql-serialize";
-import { EventStream, IEventStreamArgs } from "./EventStream";
+import { EventStream, IEventStreamArgs, State } from "./EventStream";
+import {isLogLevel, LogLevel} from "@treecg/types";
 
 export class LDESClient extends ActorInit implements ILDESClientArgs {
     public static readonly HELP_MESSAGE = `actor-init-ldes-client syncs event streams
@@ -41,8 +42,9 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     --fromTime                   datetime to prune relations that have a lower datetime value (e.g., 2020-01-01T00:00:00)
     --emitMemberOnce             whether to emit a member only once, because collection contains immutable version objects. Value can be set to "true" or "false"
     --dereferenceMembers         whether to dereference members, because the collection pages do not contain all information. Value can be set to "true" or "false", defaults to "false"
-    --requestsPerMinute          How many requests per minutes may be se352
-    .2nt to the same host
+    --requestsPerMinute          How many requests per minutes may be sent to the same host
+    --loggingLevel               The detail level of logging; useful for debugging problems. (default: info)
+    --processedURIsCount         The maximum number of processed URIs that remain in the cache. (default: 10000)
     --help                       print this help message
   `;
 
@@ -73,6 +75,8 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     public disableFraming: boolean;
     public dereferenceMembers: boolean;
     public requestsPerMinute?: number;
+    public loggingLevel: string;
+    public processedURIsCount: number;
 
     public constructor(args: ILDESClientArgs) {
         super(args);
@@ -93,7 +97,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
 
         const options: IEventStreamArgs = {
             pollingInterval,
-            mimeType,
+            mimeType
         };
 
         if (args.context && existsSync(args.context)) {
@@ -148,13 +152,16 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
         if (args.requestsPerMinute) {
             options.requestsPerMinute = Number.parseInt(args.requestsPerMinute);
         }
+        options.loggingLevel = args.loggingLevel ? args.loggingLevel.toLowerCase() : 'info';
+
+        options.processedURIsCount = args.processedURIsCount ? args.processedURIsCount : this.processedURIsCount;
 
         const url = args._[args._.length - 1];
         const eventStream = this.createReadStream(url, options);
         return { 'stdout': eventStream };
     }
 
-    public createReadStream(url: string, options: IEventStreamArgs) {
+    public createReadStream(url: string, options: IEventStreamArgs, state: State | null = null) {
         if (!options.pollingInterval) {
             options.pollingInterval = this.pollingInterval;
         }
@@ -196,6 +203,10 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             options.requestsPerMinute = this.requestsPerMinute;
         }
 
+        if (!options.loggingLevel) {
+            options.loggingLevel = this.loggingLevel;
+        }
+
         const mediators = {
             mediatorRdfMetadataExtract: this.mediatorRdfMetadataExtractTree,
             mediatorRdfParse: this.mediatorRdfParse,
@@ -203,7 +214,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
             mediatorRdfSerialize: this.mediatorRdfSerialize,
         };
 
-        return new EventStream(url, mediators, options);
+        return new EventStream(url, mediators, options, state);
     }
 }
 

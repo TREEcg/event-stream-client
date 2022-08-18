@@ -84,6 +84,7 @@ describe('LDESClient as a lib', () => {
                 "disablePolling" : true
             };
             let eventstreamSync = LDESClient.createReadStream(url, options);
+            eventstreamSync.once('data', () => {});
             eventstreamSync.once('metadata', (metadata) => {
                 expect(metadata).toBeInstanceOf(Object);
                 done();

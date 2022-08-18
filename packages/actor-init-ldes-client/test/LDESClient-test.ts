@@ -160,7 +160,8 @@ describe('LDESClient', () => {
                         "jsonLdContext": {
                             "@context": {}
                         },
-                        "requestsPerMinute": undefined
+                        "requestsPerMinute": undefined,
+                        "loggingLevel": "info"
                     });
                     done();
                 } catch (e) {

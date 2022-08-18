@@ -33,7 +33,7 @@ export interface IActionRdfFrame extends IAction {
   /**
    * Optional JSON-LD context
    */
-  jsonLdContext?: ContextDefinition;
+  jsonLdContext?: JsonLdDocument;
 }
 
 export interface IActorRdfFrameOutput extends IActorOutput {
