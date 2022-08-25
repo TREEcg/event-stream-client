@@ -1,6 +1,6 @@
 {
   "name": "@treecg/actor-rdf-filter-objects-with-quadstore",
-  "version": "2.3.6",
+  "version": "3.0.0",
   "description": "A rdf-filter-objects-with-quadstore actor",
   "lsd:module": true,
   "main": "index.js",
@@ -30,16 +30,10 @@
     "index.d.ts",
     "index.js"
   ],
-  "peerDependencies": {
-    "@comunica/core": "1.21.1",
-    "@treecg/bus-rdf-filter-object": "2.3.4"
-  },
-  "devDependencies": {
-    "@comunica/core": "1.21.1",
-    "@treecg/bus-rdf-filter-object": "^2.3.6",
-    "@types/rdf-js": "^4.0.1"
-  },
   "dependencies": {
+    "@comunica/core": "^2.3.0",
+    "@treecg/bus-rdf-filter-object": "^3.0.0",
+    "@types/rdf-js": "^4.0.2",
     "n3": "^1.10.0",
     "rdf-store-stream": "^1.2.0"
   },
@@ -62,7 +56,9 @@
   "scripts": {
     "test": "node \"../../node_modules/jest/bin/jest.js\" ${1}",
     "test-watch": "node \"../../node_modules/jest/bin/jest.js\" ${1} --watch",
-    "build": "node \"../../node_modules/typescript/bin/tsc\"",
+    "build": "npm run build:ts && npm run build:components",
+    "build:ts": "node \"../../node_modules/typescript/bin/tsc\"",
+    "build:components": "componentsjs-generator",
     "validate": "npm ls"
   },
   "gitHead": "7e3418ef6a15a38e973f5651d6e67a83bd5cf421"

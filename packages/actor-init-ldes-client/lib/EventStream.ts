@@ -1,15 +1,19 @@
-import {Actor, IActorTest, Mediator} from "@comunica/core";
+import {ActionContext, Actor, IActorTest, Mediator} from "@comunica/core";
 import {Quad, NamedNode} from "@rdfjs/types";
-import type {
+import {
     IActionRdfMetadataExtract,
     IActorRdfMetadataExtractOutput,
-} from '@comunica/bus-rdf-metadata-extract/lib/ActorRdfMetadataExtract';
+    ActorRdfMetadataExtract
+} from '@comunica/bus-rdf-metadata-extract';
+import {
+    MediatorRdfSerializeHandle
+} from '@comunica/bus-rdf-serialize';
 
 import * as moment from 'moment';
 
-import type * as RDF from 'rdf-js';
+import * as RDF from 'rdf-js';
 
-import {Readable} from 'stream';
+import {Readable} from 'readable-stream';
 
 const FETCH_PAUSE = 2000; // in milliseconds; pause before fetching the next fragment
 
@@ -27,34 +31,23 @@ const stringifyStream = require('stream-to-string');
 const streamifyString = require('streamify-string');
 
 import {Bookkeeper} from './Bookkeeper';
-import {ActorRdfMetadataExtract} from "@comunica/bus-rdf-metadata-extract/lib/ActorRdfMetadataExtract";
-import {
-    IActionHandleRdfParse,
-    IActorOutputHandleRdfParse,
-    IActorTestHandleRdfParse
-} from "@comunica/bus-rdf-parse";
-import {IActionRdfFrame, IActorRdfFrameOutput} from "../../bus-rdf-frame";
-import {
-    IActionSparqlSerializeHandle,
-    IActorOutputSparqlSerializeHandle,
-    IActorTestSparqlSerializeHandle
-} from "@comunica/bus-sparql-serialize";
-import {IActorQueryOperationOutputQuads} from "@comunica/bus-query-operation";
+import {IActionRdfFrame, IActorRdfFrameOutput} from "@treecg/bus-rdf-frame";
 
 import * as f from "@dexagod/rdf-retrieval";
 import {AsyncIterator, ArrayIterator} from "asynciterator";
 import {Frame} from "jsonld/jsonld-spec";
 
-const urlLib = require('url');
+import * as urlLib from 'url' ;
 import {inspect} from 'util';
 
 import RateLimiter from "./RateLimiter";
 import MemberIterator from "./MemberIterator";
 
 import * as RdfString from "rdf-string";
-import type {Member} from "@treecg/types";
+import {Member} from "@treecg/types";
 import {DataFactory} from 'rdf-data-factory';
 import {Logger} from "@treecg/types";
+import {MediatorRdfParseHandle} from "@comunica/bus-rdf-parse";
 const LRU = require("lru-cache");
 
 export interface IEventStreamArgs {
@@ -77,14 +70,12 @@ export interface IEventStreamMediators {
     mediatorRdfMetadataExtract: Mediator<ActorRdfMetadataExtract,
         IActionRdfMetadataExtract, IActorTest, IActorRdfMetadataExtractOutput>;
 
-    mediatorRdfParse: Mediator<Actor<IActionHandleRdfParse, IActorTestHandleRdfParse, IActorOutputHandleRdfParse>,
-        IActionHandleRdfParse, IActorTestHandleRdfParse, IActorOutputHandleRdfParse>;
+    mediatorRdfParseHandle: MediatorRdfParseHandle;
 
     mediatorRdfFrame: Mediator<Actor<IActionRdfFrame, IActorTest, IActorRdfFrameOutput>,
         IActionRdfFrame, IActorTest, IActorRdfFrameOutput>;
 
-    mediatorRdfSerialize: Mediator<Actor<IActionSparqlSerializeHandle, IActorTestSparqlSerializeHandle, IActorOutputSparqlSerializeHandle>,
-        IActionSparqlSerializeHandle, IActorTestSparqlSerializeHandle, IActorOutputSparqlSerializeHandle>;
+    mediatorRdfSerializeHandle: MediatorRdfSerializeHandle;
 }
 
 interface IMember {
@@ -108,7 +99,7 @@ export class EventStream extends Readable {
     protected readonly logger: Logger;
     protected readonly processedURIsCount?: number;
 
-    protected processedURIs;
+    protected processedURIs: any;
     protected readonly bookkeeper: Bookkeeper;
     protected readonly rateLimiter: RateLimiter;
 
@@ -309,7 +300,10 @@ export class EventStream extends Readable {
             const quadsArrayOfPage = await this.stringToQuadArray(page.data.toString(), page.url, mediaType);
 
             // Parse into RDF Stream to retrieve TREE metadata
+            const context = new ActionContext({});
             const treeMetadata = await this.mediators.mediatorRdfMetadataExtract.mediate({
+                context: context,
+                requestTime: 0,
                 metadata: await this.quadArrayToQuadStream(quadsArrayOfPage),
                 url: page.url
             });
@@ -446,12 +440,14 @@ ${inspect(e)}`);
             const quadStream = member.quads;
 
             try {
+                const context = new ActionContext({});
                 //If representation is set, let’s return the data without serialization, but in the requested representation (Object or Quads)
                 if (this.representation) {
                     //Can be "Object" or "Quads"
                     if (this.representation === 'Object') {
                         if (!this.disableFraming) {
                             let framedResult = (await this.mediators.mediatorRdfFrame.mediate({
+                                context: context,
                                 data: quadStream,
                                 frames: [{"@id": id}],
                                 jsonLdContext: this.jsonLdContext
@@ -459,12 +455,9 @@ ${inspect(e)}`);
                             let firstEntry = framedResult.entries().next();
                             this.push({"id": firstEntry.value[0]["@id"], object: firstEntry.value[1]});
                         } else {
-                            const handle: IActorQueryOperationOutputQuads = {
-                                type: "quads",
-                                quadStream: quadStream,
-                            };
-                            let result = JSON.parse(await stringifyStream((await this.mediators.mediatorRdfSerialize.mediate({
-                                handle: handle,
+                            let result = JSON.parse(await stringifyStream((await this.mediators.mediatorRdfSerializeHandle.mediate({
+                                context: context,
+                                handle: { quadStream: quadStream, context: context},
                                 handleMediaType: "application/ld+json"
                             })).handle.data));
                            this.push({"id": result[0]["@id"], object: result});
@@ -489,13 +482,9 @@ ${inspect(e)}`);
                 } else {
                     let outputString;
                     if (this.mimeType != "application/ld+json" || this.disableFraming) {
-                        const handle: IActorQueryOperationOutputQuads = {
-                            type: "quads",
-                            quadStream: quadStream,
-                        };
-
-                        outputString = await stringifyStream((await this.mediators.mediatorRdfSerialize.mediate({
-                            handle: handle,
+                        outputString = await stringifyStream((await this.mediators.mediatorRdfSerializeHandle.mediate({
+                            context: context,
+                            handle: { quadStream: quadStream, context: context},
                             handleMediaType: this.mimeType
                         })).handle.data);
                     } else {
@@ -504,6 +493,7 @@ ${inspect(e)}`);
                             "@id": id
                         };
                         const framedObjects: Map<Frame, JsonLdDocument> = (await this.mediators.mediatorRdfFrame.mediate({
+                            context: context,
                             data: quadStream,
                             frames: [frame],
                             jsonLdContext: this.jsonLdContext
@@ -568,24 +558,30 @@ ${inspect(error)}`);
     }
 
     protected async stringToQuadStream(data: string, baseIRI: string, mediaType: string): Promise<RDF.Stream> {
-        return (await this.mediators.mediatorRdfParse.mediate({
+        const context = new ActionContext({});
+        return (await this.mediators.mediatorRdfParseHandle.mediate({
+            context: context,
             handle: {
-                input: streamifyString(data),
-                baseIRI: baseIRI
+                data: streamifyString(data),
+                metadata: { baseIRI: baseIRI},
+                context: context
             }, handleMediaType: mediaType
-        })).handle.quads
+        })).handle.data
     }
 
     protected async stringToQuadArray(data: string, baseIRI: string, mediaType: string): Promise<RDF.Quad[]> {
+        const context = new ActionContext({});
         return new Promise(async (resolve, reject) => {
             let quadArray: RDF.Quad[] = [];
-            const stream = (await this.mediators.mediatorRdfParse.mediate({
+            const stream = (await this.mediators.mediatorRdfParseHandle.mediate({
+                context: context,
                 handle: {
-                    input: streamifyString(data),
-                    baseIRI: baseIRI
+                    context: context,
+                    data: streamifyString(data),
+                    metadata: { baseIRI: baseIRI }
                 }, handleMediaType: mediaType
-            })).handle.quads;
-            stream.on('data', (quad) => {
+            })).handle.data;
+            stream.on('data', (quad: any) => {
                 quadArray.push(quad);
             });
             stream.on('end', () => {

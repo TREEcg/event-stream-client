@@ -1,9 +1,0 @@
-{
-  "@context": "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/actor-init-ldes-client/^2.0.0/components/context.jsonld",
-  "@id": "npmd:@treecg/actor-init-ldes-client",
-  "@type": "Module",
-  "requireName": "@treecg/actor-init-ldes-client",
-  "import": [
-    "files-ldes:components/Actor/Init/LDESClient.jsonld"
-  ]
-}
