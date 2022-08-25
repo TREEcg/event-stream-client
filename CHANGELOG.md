@@ -1,5 +1,16 @@
 # Change Log
 
+<a name="v3.0.0"></a>
+## [v3.0.0](https://github.com/TREEcg/event-stream-client/compare/v2.6.0...v3.0.0) - 2022-08-25
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Merge pull request #60 from TREEcg/feat/update-componentsjs](https://github.com/TREEcg/event-stream-client/commit/543f70406e896ad1184fb03eb3e8e7e9519dad2f)
+* [Update LDES Client to Comunica 2.3](https://github.com/TREEcg/event-stream-client/commit/4a2df0449a9810817e6a732ce17b47302d3758ef)
+* [Merge branch 'development' of github.com:TREEcg/event-stream-client into development](https://github.com/TREEcg/event-stream-client/commit/21d4db5a61af7e81a2dfd3e376b9776f5e5cea41)
+* [Merge pull request #31 from TREEcg/fix-12](https://github.com/TREEcg/event-stream-client/commit/dc9fa2dd93f2db08c15e77e782fedbdc4bd50f4b)
+* [Merge branch 'development' into fix-12](https://github.com/TREEcg/event-stream-client/commit/4013d9a53519d5dd865cb0d28d042dc50b3634f9)
+* [Make JSON-LD framing optional](https://github.com/TREEcg/event-stream-client/commit/735dbeefd96e01b816c31f2fd86d7f86cd9fad10)
+
 <a name="v2.6.0"></a>
 ## [v2.6.0](https://github.com/TREEcg/event-stream-client/compare/v2.5.11...v2.6.0) - 2022-06-13
 
