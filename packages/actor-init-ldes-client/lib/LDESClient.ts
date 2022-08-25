@@ -1,9 +1,10 @@
-import { ActorInit, IActionInit, IActorOutputInit } from "@comunica/bus-init/lib/ActorInit";
-import { Actor, IActorArgs, IActorTest, Mediator } from "@comunica/core";
-import type {
+import {ActorInit, IActionInit, IActorInitArgs, IActorOutputInit} from "@comunica/bus-init";
+import { Actor, IActorTest, Mediator } from "@comunica/core";
+import {
     IActionRdfMetadataExtract,
     IActorRdfMetadataExtractOutput,
-} from '@comunica/bus-rdf-metadata-extract/lib/ActorRdfMetadataExtract';
+    ActorRdfMetadataExtract, MediatorRdfMetadataExtract
+} from '@comunica/bus-rdf-metadata-extract';
 
 import * as moment from 'moment';
 
@@ -11,21 +12,18 @@ import minimist = require("minimist");
 
 import { existsSync, readFileSync } from 'fs';
 
-import { ActorRdfMetadataExtract } from "@comunica/bus-rdf-metadata-extract/lib/ActorRdfMetadataExtract";
 import {
-    IActionHandleRdfParse,
-    IActorOutputHandleRdfParse,
-    IActorTestHandleRdfParse
+    MediatorRdfParseHandle
 } from "@comunica/bus-rdf-parse";
-import { IActionRdfFilterObject, IActorRdfFilterObjectOutput } from "../../bus-rdf-filter-object";
-import { IActionRdfFrame, IActorRdfFrameOutput } from "../../bus-rdf-frame";
 import {
-    IActionSparqlSerializeHandle,
-    IActorOutputSparqlSerializeHandle,
-    IActorTestSparqlSerializeHandle
-} from "@comunica/bus-sparql-serialize";
+    IActionRdfFilterObject,
+    IActorRdfFilterObjectOutput,
+    MediatorRdfFilterObject
+} from "@treecg/bus-rdf-filter-object";
+import {IActionRdfFrame, IActorRdfFrameOutput, MediatorRdfFrame} from "@treecg/bus-rdf-frame";
 import { EventStream, IEventStreamArgs, State } from "./EventStream";
 import {isLogLevel, LogLevel} from "@treecg/types";
+import {MediatorRdfSerializeHandle} from "@comunica/bus-rdf-serialize";
 
 export class LDESClient extends ActorInit implements ILDESClientArgs {
     public static readonly HELP_MESSAGE = `actor-init-ldes-client syncs event streams
@@ -48,29 +46,24 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     --help                       print this help message
   `;
 
-    public readonly mediatorRdfMetadataExtractTree: Mediator<ActorRdfMetadataExtract,
-        IActionRdfMetadataExtract, IActorTest, IActorRdfMetadataExtractOutput>;
+    public readonly mediatorRdfMetadataExtractTree: MediatorRdfMetadataExtract;
 
-    public readonly mediatorRdfParse: Mediator<Actor<IActionHandleRdfParse, IActorTestHandleRdfParse, IActorOutputHandleRdfParse>,
-        IActionHandleRdfParse, IActorTestHandleRdfParse, IActorOutputHandleRdfParse>;
+    public readonly mediatorRdfParseHandle: MediatorRdfParseHandle;
 
-    public readonly mediatorRdfFilterObject: Mediator<Actor<IActionRdfFilterObject, IActorTest, IActorRdfFilterObjectOutput>,
-        IActionRdfFilterObject, IActorTest, IActorRdfFilterObjectOutput>;
+    public readonly mediatorRdfFilterObject: MediatorRdfFilterObject;
 
-    public readonly mediatorRdfFrame: Mediator<Actor<IActionRdfFrame, IActorTest, IActorRdfFrameOutput>,
-        IActionRdfFrame, IActorTest, IActorRdfFrameOutput>;
+    public readonly mediatorRdfFrame: MediatorRdfFrame;
 
-    public readonly mediatorRdfSerialize: Mediator<Actor<IActionSparqlSerializeHandle, IActorTestSparqlSerializeHandle, IActorOutputSparqlSerializeHandle>,
-        IActionSparqlSerializeHandle, IActorTestSparqlSerializeHandle, IActorOutputSparqlSerializeHandle>;
+    public readonly mediatorRdfSerializeHandle: MediatorRdfSerializeHandle;
 
     public pollingInterval: number;
     public mimeType: string;
     public representation: string;
-    public jsonLdContextPath: string;
-    public jsonLdContextString: string;
+    public jsonLdContextPath?: string;
+    public jsonLdContextString?: string;
     public emitMemberOnce: boolean;
     public fromTime?: Date;
-    public disablePolling: boolean;
+    public disablePolling?: boolean;
     public disableSynchronization: boolean;
     public disableFraming: boolean;
     public dereferenceMembers: boolean;
@@ -209,33 +202,31 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
 
         const mediators = {
             mediatorRdfMetadataExtract: this.mediatorRdfMetadataExtractTree,
-            mediatorRdfParse: this.mediatorRdfParse,
+            mediatorRdfParseHandle: this.mediatorRdfParseHandle,
             mediatorRdfFrame: this.mediatorRdfFrame,
-            mediatorRdfSerialize: this.mediatorRdfSerialize,
+            mediatorRdfSerializeHandle: this.mediatorRdfSerializeHandle,
         };
 
         return new EventStream(url, mediators, options, state);
     }
 }
 
-export interface ILDESClientArgs extends IActorArgs<IActionInit, IActorTest, IActorOutputInit> {
-    mediatorRdfMetadataExtractTree: Mediator<
-        ActorRdfMetadataExtract,
-        IActionRdfMetadataExtract, IActorTest, IActorRdfMetadataExtractOutput>;
-    mediatorRdfParse: Mediator<Actor<IActionHandleRdfParse, IActorTestHandleRdfParse, IActorOutputHandleRdfParse>, IActionHandleRdfParse, IActorTestHandleRdfParse, IActorOutputHandleRdfParse>
-    mediatorRdfFilterObject: Mediator<
-        Actor<IActionRdfFilterObject, IActorTest, IActorRdfFilterObjectOutput>,
-        IActionRdfFilterObject, IActorTest, IActorRdfFilterObjectOutput>;
-    mediatorRdfFrame: Mediator<Actor<IActionRdfFrame, IActorTest, IActorRdfFrameOutput>, IActionRdfFrame, IActorTest, IActorRdfFrameOutput>;
-    mediatorRdfSerialize: Mediator<Actor<IActionSparqlSerializeHandle, IActorTestSparqlSerializeHandle, IActorOutputSparqlSerializeHandle>,
-        IActionSparqlSerializeHandle, IActorTestSparqlSerializeHandle, IActorOutputSparqlSerializeHandle>;
+export interface ILDESClientArgs extends IActorInitArgs  {
+    mediatorRdfMetadataExtractTree: MediatorRdfMetadataExtract,
+    mediatorRdfParseHandle: MediatorRdfParseHandle,
+    mediatorRdfFilterObject: MediatorRdfFilterObject;
+    mediatorRdfFrame: MediatorRdfFrame;
+    mediatorRdfSerializeHandle: MediatorRdfSerializeHandle;
     pollingInterval: number;
     mimeType: string;
-    jsonLdContextPath: string;
-    jsonLdContextString: string;
+    jsonLdContextPath?: string;
+    jsonLdContextString?: string;
     emitMemberOnce: boolean;
-    disablePolling: boolean;
+    disablePolling?: boolean;
     disableSynchronization: boolean;
+    disableFraming?: boolean;
+    loggingLevel?: string;
+    processedURIsCount?: number;
     dereferenceMembers: boolean;
     fromTime?: Date;
     requestsPerMinute?: number;

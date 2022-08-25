@@ -1,8 +1,6 @@
-import { Actor, IAction, IActorArgs, IActorOutput, IActorTest } from '@comunica/core/lib/Actor';
+import {Actor, IAction, IActorArgs, IActorOutput, IActorTest, Mediate} from '@comunica/core';
 
 import type * as RDF from 'rdf-js';
-import {Quad, Stream} from "rdf-js";
-import {AsyncIterator} from "asynciterator";
 
 /**
  * An RDF Filter actor that extracts triples from a stream of triples related to a specific object.
@@ -16,6 +14,9 @@ import {AsyncIterator} from "asynciterator";
  * @see IActorRdfFilterObjectOutput
  */
 export abstract class ActorRdfFilterObject extends Actor<IActionRdfFilterObject, IActorTest, IActorRdfFilterObjectOutput> {
+  /**
+   * @param args - @defaultNested {<default_bus> a <cc:components/Bus.jsonld#Bus>} bus
+   */
   public constructor(args: IActorArgs<IActionRdfFilterObject, IActorTest, IActorRdfFilterObjectOutput>) {
     super(args);
   }
@@ -44,3 +45,6 @@ export interface IActorRdfFilterObjectOutput extends IActorOutput {
   **/
   data: Map<string, RDF.Stream>;
 }
+
+export type MediatorRdfFilterObject = Mediate<IActionRdfFilterObject, IActorRdfFilterObjectOutput>;
+

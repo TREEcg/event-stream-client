@@ -1,132 +1,70 @@
 {
   "@context": [
-    "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/actor-init-ldes-client/^2.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/actor-rdf-filter-object-with-framing/^2.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/actor-rdf-filter-objects-with-quadstore/^2.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/actor-rdf-frame-with-json-ld-js/^2.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/bus-rdf-filter-object/^2.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/bus-rdf-frame/^2.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/bus-rdf-serialize/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/runner/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/core/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/bus-rdf-metadata-extract/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/mediator-race/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/actor-rdf-metadata-extract-tree/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/bus-rdf-parse/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/actor-abstract-mediatyped/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/actor-rdf-parse-n3/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/actor-rdf-parse-jsonld/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/actor-rdf-parse-rdfxml/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/actor-rdf-parse-html/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/actor-rdf-parse-html-microdata/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/actor-rdf-parse-html-rdfa/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/actor-rdf-parse-html-script/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/actor-rdf-parse-xml-rdfa/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/mediator-combine-union/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/mediator-race/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/mediator-number/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/bus-rdf-dereference/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/actor-rdf-dereference-http-parse/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/actor-http-node-fetch/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/bus-http/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/actor-http-native/^1.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/actor-http-proxy/^1.0.0/components/context.jsonld"
+    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/config-query-sparql/^2.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/actor-init-ldes-client/^3.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/actor-rdf-filter-objects-with-quadstore/^3.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/actor-rdf-frame-with-json-ld-js/^3.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/bus-rdf-filter-object/^3.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/bus-rdf-frame/^3.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/bus-rdf-serialize/^2.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/runner/^2.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/core/^2.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/bus-rdf-metadata-extract/^2.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/mediator-race/^2.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/actor-rdf-metadata-extract-tree/^2.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/bus-rdf-parse/^2.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/mediator-race/^2.0.0/components/context.jsonld"
   ],
   "@graph": [
     {
-      "@id": "urn:comunica:my",
+      "@id": "urn:comunica:default:Runner",
       "@type": "Runner",
       "import": [
-        "files-ldes:config/sets/rdf-serializers.json"
+        "ccqs:config/http/actors.json",
+        "ccqs:config/http/mediators.json",
+        "ccqs:config/rdf-parse/actors.json",
+        "ccqs:config/rdf-parse/mediators.json",
+        "ccqs:config/rdf-parse-html/actors.json",
+        "ccqs:config/rdf-serialize/actors.json",
+        "ccqs:config/rdf-serialize/mediators.json",
+        "ccqs:config/rdf-metadata-extract/mediators.json"
       ],
       "actors": [
-        {
-          "@id": "urn:comunica:myLDESClient",
-          "@type": "LDESClient",
-          "ldes:pollingInterval": 5000,
-          "ldes:disableSynchronization": false,
-          "ldes:mimeType": "application/ld+json",
-          "ldes:disableFraming": false,
-          "ldes:jsonLdContextString": "{\"@context\":  {}}",
-          "ldes:loggingLevel": "info",
-          "ldes:processedURIsCount": 15000,
-          "ldes:mediatorRdfMetadataExtractTree": {
-            "@id": "urn:comunica:mediatorRdfMetadataExtractTree",
-            "@type": "MediatorRace",
-            "cc:Mediator/bus": {
-              "@id": "cbrme:Bus/RdfMetadataExtract"
-            }
-          },
-          "ldes:mediatorRdfParse": {
-            "@id": "urn:comunica:mediatorRdfParse",
-            "@type": "MediatorRace",
-            "cc:Mediator/bus": { "@id": "cbrp:Bus/RdfParse" }
-          },
-          "ldes:mediatorRdfFilterObject": {
-            "@id": "urn:comunica:mediatorRdfFilterObject",
-            "@type": "MediatorRace",
-            "cc:Mediator/bus": { "@id": "cbrfo:Bus/RdfFilterObject" }
-          },
-          "ldes:mediatorRdfFrame": {
-            "@id": "urn:comunica:mediatorRdfFrame",
-            "@type": "MediatorRace",
-            "cc:Mediator/bus": { "@id": "cbrf:Bus/RdfFrame" }
-          },
-          "ldes:mediatorRdfSerialize": {
-            "@id": "urn:comunica:mediatorRdfSerialize",
-            "@type": "MediatorRace",
-            "cc:Mediator/bus": { "@id": "cbrs:Bus/RdfSerialize" }
-          }
-        },
         {
           "@id": "urn:comunica:actorRdfMetadataExtractTree",
           "@type": "ActorRdfMetadataExtractTree"
         },
         {
-          "@id": "urn:comunica:myHttpFetcher",
-          "@type": "ActorHttpNative"
-        },
-        {
-          "@id": "urn:comunica:myRdfParserN3",
-          "@type": "ActorRdfParseN3",
-          "priorityScale": 1.0
-        },
-        {
-          "@id": "urn:comunica:myRdfParserJsonLd",
-          "@type": "ActorRdfParseJsonLd",
-          "priorityScale": 0.9,
-          "crpjl:Actor/RdfParse/JsonLd/mediatorHttp": {
-            "@id": "urn:comunica:mediatorHttp",
-            "@type": "MediatorNumberMin",
-            "field": "time",
-            "ignoreErrors": true,
-            "cc:Mediator/bus": {
-              "@id": "cbh:Bus/Http"
-            }
+          "@id": "urn:comunica:myLDESClient",
+          "@type": "LDESClient",
+          "pollingInterval": 5000,
+          "disableSynchronization": false,
+          "mimeType": "application/ld+json",
+          "disableFraming": false,
+          "dereferenceMembers": false,
+          "emitMemberOnce": true,
+          "jsonLdContextString": "{\"@context\":  {}}",
+          "loggingLevel": "info",
+          "processedURIsCount": 15000,
+          "mediatorRdfMetadataExtractTree": {
+            "@id": "urn:comunica:default:rdf-metadata-extract/mediators#main"
+          },
+          "mediatorRdfParseHandle": {
+            "@id": "urn:comunica:default:rdf-parse/mediators#parse"
+          },
+          "mediatorRdfFilterObject": {
+            "@id": "urn:comunica:default:rdf-filter-object/mediators#filter",
+            "@type": "MediatorRace",
+            "bus": { "@id": "ActorRdfFilterObject:_default_bus" }
+          },
+          "mediatorRdfFrame": {
+            "@id": "urn:comunica:default:rdf-frame/mediators#rdfFrame",
+            "@type": "MediatorRace",
+            "bus": { "@id": "ActorRdfFrame:_default_bus" }
+          },
+          "mediatorRdfSerializeHandle": {
+            "@id": "urn:comunica:default:rdf-serialize/mediators#serialize"
           }
-        },
-        {
-          "@id": "urn:comunica:myRdfParserRdfXml",
-          "@type": "ActorRdfParseRdfXml",
-          "priorityScale": 0.5
-        },
-        {
-          "@id": "urn:comunica:myRdfParserXmlRdfa",
-          "@type": "ActorRdfParseXmlRdfa",
-          "priorityScale": 0.3
-        },
-        {
-          "@id": "urn:comunica:myRdfParserHtml",
-          "@type": "ActorRdfParseHtml",
-          "priorityScale": 0.2
-        },
-        {
-          "@id": "urn:comunica:myRdfParserHtmlMicrodata",
-          "@type": "ActorRdfParseHtmlMicrodata"
-        },
-        {
-          "@id": "urn:comunica:myRdfParserHtmlRdfa",
-          "@type": "ActorRdfParseHtmlRdfa"
         },
         {
           "@id": "urn:comunica:myRdfFilterObjectsWithQuadstore",
@@ -135,10 +73,8 @@
         {
           "@id": "urn:comunica:myActorRdfFrameWithJSONLDjs",
           "@type": "ActorRdfFrameWithJSONLDjs",
-          "carfwjlj:mediatorRdfSerialize": {
-            "@id": "urn:comunica:mediatorRdfSerialize2",
-            "@type": "MediatorRace",
-            "cc:Mediator/bus": { "@id": "cbrs:Bus/RdfSerialize" }
+          "mediatorRdfSerializeHandle": {
+            "@id": "urn:comunica:default:rdf-serialize/mediators#serialize"
           }
         }
       ]

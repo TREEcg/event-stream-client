@@ -1,8 +1,7 @@
-import { Actor, IAction, IActorArgs, IActorOutput, IActorTest } from '@comunica/core';
+import {Actor, IAction, IActorArgs, IActorOutput, IActorTest, Mediate} from '@comunica/core';
 import * as RDF from "rdf-js";
-import {ContextDefinition, JsonLdDocument} from "jsonld";
-import { Frame, Url, JsonLdProcessor, RemoteDocument, JsonLdObj, JsonLdArray } from 'jsonld/jsonld-spec';
-import {AsyncIterator} from "asynciterator";
+import { JsonLdDocument} from "jsonld";
+import { Frame } from 'jsonld/jsonld-spec';
 
 /**
  * A Comunica actor that frames a stream of quads
@@ -16,6 +15,9 @@ import {AsyncIterator} from "asynciterator";
  * @see IActorRdfFrameOutput
  */
 export abstract class ActorRdfFrame extends Actor<IActionRdfFrame, IActorTest, IActorRdfFrameOutput> {
+  /**
+   * @param args - @defaultNested {<default_bus> a <cc:components/Bus.jsonld#Bus>} bus
+   */
   public constructor(args: IActorArgs<IActionRdfFrame, IActorTest, IActorRdfFrameOutput>) {
     super(args);
   }
@@ -42,3 +44,5 @@ export interface IActorRdfFrameOutput extends IActorOutput {
    */
   data: Map<Frame, JsonLdDocument>;
 }
+
+export type MediatorRdfFrame = Mediate<IActionRdfFrame, IActorRdfFrameOutput>;

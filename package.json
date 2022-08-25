@@ -15,13 +15,17 @@
     "coveralls-ci": "cat ./coverage/lcov.info | coveralls",
     "lint": "tslint packages/*/lib/**/*.ts packages/*/test/**/*.ts --exclude '**/*.d.ts'",
     "clean": "rm -rf ./node_modules && rm -rf ./packages/*/node_modules",
-    "build-watch": "tsc --watch",
+    "build-watch": "nodemon -e ts --ignore '*.d.ts' --exec yarn run build",
     "publish": "yarn run build && lerna publish",
     "publish-bare": "lerna exec -- npm publish --silent",
     "doc": "typedoc --name Comunica --disableOutputCheck --external-modulemap '.*packages/([^/]+)/.*' --mode modules --out documentation",
     "postinstall": "yarn run build && lerna run prepare",
     "version": "manual-git-changelog onversion",
-    "build": "node \"./node_modules/typescript/bin/tsc\" --build --force tsconfig.json",
+    "build": "npm run build:ts && npm run build:components",
+    "build:ts": "tsc",
+    "build:components": "componentsjs-generator packages/*",
+    "build-watch:ts": "tsc --watch",
+    "build-watch:components": "nodemon -e d.ts --exec yarn run build:components",
     "test": "jest"
   },
   "jest": {
@@ -72,6 +76,7 @@
   "homepage": "https://github.com/TREEcg/event-stream-client#readme",
   "dependencies": {
     "awesome-typescript-loader": "^5.2.1",
+    "componentsjs-generator": "^3.1.0",
     "lerna": "4.0.0",
     "source-map-loader": "^2.0.0",
     "typescript": "^4.1.3"

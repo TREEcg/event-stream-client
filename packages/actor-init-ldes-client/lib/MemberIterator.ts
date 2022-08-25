@@ -78,8 +78,8 @@ export default class MemberIterator extends AsyncIterator<Quad> {
         await this.rateLimiter.planRequest(url);
 
         try {
-            const { quads } = await rdfDereferencer.dereference(url);
-            return await f.quadStreamToQuadArray(quads);
+            const { data } = await rdfDereferencer.dereference(url);
+            return await f.quadStreamToQuadArray(data);
         } catch (error) {
             if (attempts > 0) {
                 return this.fetchPageRetry(url, attempts - 1);

@@ -1,21 +1,13 @@
 import { ActorRdfFrame, IActionRdfFrame, IActorRdfFrameOutput } from '@treecg/bus-rdf-frame';
-import {Actor, IActorArgs, IActorTest, Mediator} from "@comunica/core";
-
-import type {
-  IActionSparqlSerializeHandle,
-  IActorOutputSparqlSerializeHandle,
-  IActorTestSparqlSerializeHandle,
-} from '@comunica/bus-sparql-serialize';
-
-import type {
-  IActorQueryOperationOutputQuads,
-} from '@comunica/bus-query-operation';
+import {Actor, Bus, IActorArgs, IActorTest, Mediator} from "@comunica/core";
 
 import * as jsonld from 'jsonld';
 import {ContextDefinition, JsonLdDocument} from "jsonld/jsonld";
-import { Frame, Url, JsonLdProcessor, RemoteDocument, JsonLdObj, JsonLdArray } from 'jsonld/jsonld-spec';
+import {Frame, Url, JsonLdProcessor, RemoteDocument, JsonLdObj, JsonLdArray} from 'jsonld/jsonld-spec';
 import * as RDF from "rdf-js";
 import {AsyncIterator} from "asynciterator";
+import {MediatorRdfSerializeHandle} from "@comunica/bus-rdf-serialize";
+
 const stringifyStream = require('stream-to-string');
 
 /**
@@ -23,10 +15,9 @@ const stringifyStream = require('stream-to-string');
  */
 export class ActorRdfFrameWithJSONLDjs extends ActorRdfFrame {
 
-  public readonly mediatorRdfSerialize: Mediator<Actor<IActionSparqlSerializeHandle, IActorTestSparqlSerializeHandle, IActorOutputSparqlSerializeHandle>,
-      IActionSparqlSerializeHandle, IActorTestSparqlSerializeHandle, IActorOutputSparqlSerializeHandle>;
+  public readonly mediatorRdfSerializeHandle: MediatorRdfSerializeHandle;
 
-  public constructor(args: IActorArgs<IActionRdfFrame, IActorTest, IActorRdfFrameOutput>) {
+  public constructor(args: IActorRdfFrameWithJSONLDjsArgs) {
     super(args);
   }
 
@@ -35,13 +26,8 @@ export class ActorRdfFrameWithJSONLDjs extends ActorRdfFrame {
   }
 
   public async run(action: IActionRdfFrame): Promise<IActorRdfFrameOutput> {
-    // Serialize quad stream into JSON-LD object
-    const handle: IActorQueryOperationOutputQuads = {
-        type: "quads",
-        quadStream: <RDF.Stream & AsyncIterator<RDF.Quad>> action.data
-     };
-
-    const obj: JsonLdDocument = JSON.parse(await stringifyStream((await this.mediatorRdfSerialize.mediate({handle: handle, handleMediaType: "application/ld+json"})).handle.data));
+    // @ts-ignore
+    const obj: JsonLdDocument = JSON.parse(await stringifyStream((await this.mediatorRdfSerializeHandle.mediate({context: action.context, handle: { quadStream: action.data, context: action.context}, handleMediaType: "application/ld+json"})).handle.data));
 
     let result: Map<Frame, JsonLdDocument> = new Map();
     for (let frame of action.frames) {
@@ -66,7 +52,5 @@ export class ActorRdfFrameWithJSONLDjs extends ActorRdfFrame {
 }
 
 export interface IActorRdfFrameWithJSONLDjsArgs extends IActorArgs<IActionRdfFrame, IActorTest, IActorRdfFrameOutput> {
-  mediatorRdfSerialize: Mediator<
-      Actor<IActionSparqlSerializeHandle, IActorTestSparqlSerializeHandle, IActorOutputSparqlSerializeHandle>,
-      IActionSparqlSerializeHandle, IActorTestSparqlSerializeHandle, IActorOutputSparqlSerializeHandle>;
+  mediatorRdfSerializeHandle: MediatorRdfSerializeHandle;
 }

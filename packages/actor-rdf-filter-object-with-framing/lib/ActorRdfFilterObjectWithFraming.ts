@@ -1,14 +1,14 @@
-import { ActorRdfFilterObject, IActionRdfFilterObject, IActorRdfFilterObjectOutput } from '@treecg/bus-rdf-filter-object';
+import { ActorRdfFilterObject, IActionRdfFilterObject, IActorRdfFilterObjectOutput } from "@treecg/bus-rdf-filter-object";
 import {Actor, IActorArgs, IActorTest, Mediator} from '@comunica/core';
 import * as RDF from "rdf-js";
-import {IActionRdfFrame, IActorRdfFrameOutput} from "../../bus-rdf-frame";
+import {IActionRdfFrame, IActorRdfFrameOutput, MediatorRdfFrame} from "@treecg/bus-rdf-frame";
 import {JsonLdDocument} from "jsonld/jsonld";
 import { Frame, Url, JsonLdProcessor, RemoteDocument, JsonLdObj, JsonLdArray } from 'jsonld/jsonld-spec';
 
 import {
-  IActionHandleRdfParse,
-  IActorOutputHandleRdfParse,
-  IActorTestHandleRdfParse
+  IActionRdfParseHandle,
+  IActorOutputRdfParseHandle,
+  IActorTestRdfParseHandle, MediatorRdfParseHandle
 } from "@comunica/bus-rdf-parse";
 
 import * as f from "@dexagod/rdf-retrieval"
@@ -18,11 +18,9 @@ import * as f from "@dexagod/rdf-retrieval"
  */
 export class ActorRdfFilterObjectWithFraming extends ActorRdfFilterObject {
 
-  public readonly mediatorRdfParse: Mediator<Actor<IActionHandleRdfParse, IActorTestHandleRdfParse, IActorOutputHandleRdfParse>, IActionHandleRdfParse, IActorTestHandleRdfParse, IActorOutputHandleRdfParse>
+  public readonly mediatorRdfParseHandle: MediatorRdfParseHandle;
 
-  public readonly mediatorRdfFrame: Mediator<
-      Actor<IActionRdfFrame, IActorTest, IActorRdfFrameOutput>,
-      IActionRdfFrame, IActorTest, IActorRdfFrameOutput>;
+  public readonly mediatorRdfFrame: MediatorRdfFrame;
 
   public constructor(args: IActorArgs<IActionRdfFilterObject, IActorTest, IActorRdfFilterObjectOutput>) {
     super(args);
@@ -44,13 +42,13 @@ export class ActorRdfFilterObjectWithFraming extends ActorRdfFilterObject {
     }
       // Retrieve JSON-LD of object
       //let test = await f.quadStreamToString(action.data);
-      const frameMapping : Map<Frame, JsonLdDocument> = (await this.mediatorRdfFrame.mediate({data: action.data, frames: frames})).data;
+      const frameMapping : Map<Frame, JsonLdDocument> = (await this.mediatorRdfFrame.mediate({context: action.context, data: action.data, frames: frames})).data;
 
     for (let framedObject of frameMapping.values()) {
       // Convert back into RDF Stream
       const objectURI = (framedObject as any)['@id'];
       let framedObjectAsStream = require('streamify-string')(JSON.stringify(framedObject));
-      const filteredDataStream : RDF.Stream = (await this.mediatorRdfParse.mediate({handle: {input: framedObjectAsStream, baseIRI: ''}, handleMediaType: "application/ld+json"})).handle.quads;
+      const filteredDataStream : RDF.Stream = (await this.mediatorRdfParseHandle.mediate({context: action.context, handle: {context: action.context, data: framedObjectAsStream, metadata: { baseIRI: <string> '' }}, handleMediaType: "application/ld+json"})).handle.data;
       result.set(objectURI, filteredDataStream);
     }
 
@@ -61,7 +59,7 @@ export class ActorRdfFilterObjectWithFraming extends ActorRdfFilterObject {
 }
 
 export interface IActorRdfFilterObjectWithFramingArgs extends IActorArgs<IActionRdfFilterObject, IActorTest, IActorRdfFilterObjectOutput> {
-  mediatorRdfParse: Mediator<Actor<IActionHandleRdfParse, IActorTestHandleRdfParse, IActorOutputHandleRdfParse>, IActionHandleRdfParse, IActorTestHandleRdfParse, IActorOutputHandleRdfParse>
-  mediatorRdfFrame: Mediator<Actor<IActionRdfFrame, IActorTest, IActorRdfFrameOutput>, IActionRdfFrame, IActorTest, IActorRdfFrameOutput>;
+  mediatorRdfParseHandle: MediatorRdfParseHandle;
+  mediatorRdfFrame: MediatorRdfFrame;
 }
 

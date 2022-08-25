@@ -5,9 +5,9 @@ import {IActionRdfFrame, IActorRdfFrameOutput} from "../../bus-rdf-frame";
 import * as f from "@dexagod/rdf-retrieval";
 
 import {
-  IActionHandleRdfParse,
-  IActorOutputHandleRdfParse,
-  IActorTestHandleRdfParse
+  IActionRdfParseHandle,
+  IActorOutputRdfParseHandle,
+  IActorTestRdfParseHandle
 } from "@comunica/bus-rdf-parse";
 
 import { Store, Quad } from "n3"
