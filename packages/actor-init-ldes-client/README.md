@@ -62,6 +62,9 @@ try {
     let options = {
         "pollingInterval": 5000, // millis
         "representation": "Object", //Object or Quads
+        "requestHeaders": { // Optional request headers, useful when e.g. the endpoint requires Auth headers
+            Accept: 'application/ld+json', 
+        }
         "fromTime": new Date("2021-02-03T15:46:12.307Z"),
         "emitMemberOnce": true,
         "disableSynchronization": true,
