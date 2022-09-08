@@ -53,6 +53,7 @@ const LRU = require("lru-cache");
 export interface IEventStreamArgs {
     pollingInterval?: number,
     representation?: string,
+    requestHeaders?: { [key: string]: number | string | string[] },
     mimeType?: string,
     jsonLdContext?: JsonLdDocument,
     fromTime?: Date,
@@ -88,6 +89,7 @@ export class EventStream extends Readable {
 
     protected readonly pollingInterval?: number;
     protected readonly representation?: string;
+    protected readonly requestHeaders?: { [key: string]: number | string | string[] };
     protected readonly mimeType?: string;
     protected readonly jsonLdContext?: JsonLdDocument;
     protected readonly emitMemberOnce?: boolean;
@@ -122,6 +124,7 @@ export class EventStream extends Readable {
         this.disableFraming = args.disableFraming;
         this.pollingInterval = args.pollingInterval;
         this.representation = args.representation;
+        this.requestHeaders = args.requestHeaders;
 
         this.mimeType = args.mimeType;
         this.jsonLdContext = args.jsonLdContext;
@@ -517,7 +520,8 @@ ${inspect(error)}`);
             const options = {
                 ...urlLib.parse(pageUrl),
                 headers: {
-                    Accept: 'application/ld+json', // TODO: make configurable
+                    Accept: 'application/ld+json',
+                    ...this.requestHeaders,
                 }
             };
 
