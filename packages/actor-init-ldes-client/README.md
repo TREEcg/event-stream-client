@@ -135,6 +135,8 @@ We save and load the EventStream state:
 - during or after the run of the LDES Client, we pause it, and export its state.
 - before a run of the LDES Client, we can load a previous state
 
+Pro-tip: write/read the state from a JSON file, check out the [example code](https://github.com/TREEcg/LDES-Action/blob/main/src/utils/State.ts).
+
 ```typescript
 interface State {
     bookkeeper: Bookkeeper;
