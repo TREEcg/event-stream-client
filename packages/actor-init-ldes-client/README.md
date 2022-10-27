@@ -27,6 +27,7 @@ Possible parameters are:
 | pollingInterval | Number of milliseconds before refetching uncacheable fragments  | for example: 5000 |
 | mimeType  | the MIME type of the output  | application/ld+json, text/turtle... |
 | context  | path to a file with the JSON-LD context you want to use when MIME type is application/ld+json  | for example: ./context.jsonld |
+| requestHeadersPath  | path to a file with the HTTP request headers you want to use | for example: ./headers.json |
 | fromTime  | datetime to prune relations that have a lower datetime value | for example: 2020-01-01T00:00:00 |
 | emitMemberOnce  | whether to emit a member only once, because collection contains immutable version objects.  | true / false |
 | disableSynchronization  | whether to disable synchronization or not (by default set to "false", syncing is enabled) | true / false |
