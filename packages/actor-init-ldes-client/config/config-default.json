@@ -43,6 +43,7 @@
           "disableFraming": false,
           "dereferenceMembers": false,
           "emitMemberOnce": true,
+          "requestHeadersString": "{}",
           "jsonLdContextString": "{\"@context\":  {}}",
           "loggingLevel": "info",
           "processedURIsCount": 15000,

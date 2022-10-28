@@ -1,5 +1,15 @@
 # Change Log
 
+<a name="v3.0.1"></a>
+## [v3.0.1](https://github.com/TREEcg/event-stream-client/compare/v3.0.0...v3.0.1) - 2022-10-27
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Add option requestHeaders also to CLI](https://github.com/TREEcg/event-stream-client/commit/3a851ce1f6dc13d3475389725e2046bd129775b1)
+* [update README](https://github.com/TREEcg/event-stream-client/commit/5eda2bec76a8d852011a112bdd2bade8167f1a39)
+* [add support for passing custom headers when creating an eventStream](https://github.com/TREEcg/event-stream-client/commit/546b6977e5d5d2ceb4087e6c684068a78829fbf3)
+* [Update LICENSE](https://github.com/TREEcg/event-stream-client/commit/14de7d465e970bd8ea9c2ad962c76e917fc7230b)
+* [Update LICENSE](https://github.com/TREEcg/event-stream-client/commit/4c3b37e21b45186967c481a9ab39dbe159b8fe71)
+
 <a name="v3.0.0"></a>
 ## [v3.0.0](https://github.com/TREEcg/event-stream-client/compare/v2.6.0...v3.0.0) - 2022-08-25
 

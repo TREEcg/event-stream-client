@@ -1,6 +1,6 @@
 {
   "name": "@treecg/actor-init-ldes-client",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "An init actor that fetches members from an Event Stream API",
   "publishConfig": {
     "access": "public"
@@ -105,7 +105,7 @@
     "build": "npm run build:ts && npm run build:components",
     "build:ts": "node \"../../node_modules/typescript/bin/tsc\"",
     "build:components": "componentsjs-generator",
-    "start": "node ./bin/run.js"
+    "start": "node ./bin/run.js https://lodi.ilabt.imec.be/iow-ldes/hierarchical?type=https%3A%2F%2Furi.fiware.org%2Fns%2Fdata-models%23WaterQualityObserved&timeAt=2022-09-07T00:00:00.000Z&endTimeAt=2022-09-07T00:28:48.000Z"
   },
   "author": "",
   "license": "ISC",

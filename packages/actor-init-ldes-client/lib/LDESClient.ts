@@ -34,6 +34,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     --pollingInterval            Number of milliseconds before refetching uncacheable fragments (e.g., 5000)
     --mimeType                   the MIME type of the output (application/ld+json or text/turtle)
     --context                    path to a file with the JSON-LD context you want to use when MIME type is application/ld+json (e.g., ./context.jsonld)
+    --requestHeadersPath         path to a file with the HTTP request headers you want to use (e.g., ./headers.json)
     --disableSynchronization     whether to disable synchronization or not (by default set to "false", syncing is enabled). Value can be set to "true" or "false"
     --disablePolling             DEPRECATED: use disableSynchronization
     --disableFraming             whether to disable JSON-LD framing when mimeType is application/ld+json or when representation is 'Object' (by default set to "false"). Value can be set to "true" or "false"
@@ -61,6 +62,8 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     public representation: string;
     public jsonLdContextPath?: string;
     public jsonLdContextString?: string;
+    public requestHeadersPath?: string;
+    public requestHeadersString?: string;
     public emitMemberOnce: boolean;
     public fromTime?: Date;
     public disablePolling?: boolean;
@@ -95,6 +98,10 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
 
         if (args.context && existsSync(args.context)) {
             options.jsonLdContext = JSON.parse(readFileSync(args.context, 'utf8'));
+        }
+
+        if (args.requestHeadersPath && existsSync(args.requestHeadersPath)) {
+            options.requestHeaders = JSON.parse(readFileSync(args.requestHeadersPath, 'utf8'));
         }
 
         if (args.fromTime && moment(args.fromTime).isValid()) {
@@ -173,6 +180,13 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
                 options.jsonLdContext = {"@context":{}};
             }
         }
+        if (!options.requestHeaders) {
+            if (this.requestHeadersPath && this.requestHeadersPath.length > 0) {
+                options.requestHeaders = JSON.parse(readFileSync(this.requestHeadersPath, 'utf8'));
+            } else if (this.requestHeadersString) {
+                options.requestHeaders = JSON.parse(this.requestHeadersString);
+            }
+        }
         if (typeof options.emitMemberOnce != "boolean") {
             options.emitMemberOnce = this.emitMemberOnce;
         }
@@ -221,6 +235,8 @@ export interface ILDESClientArgs extends IActorInitArgs  {
     mimeType: string;
     jsonLdContextPath?: string;
     jsonLdContextString?: string;
+    requestHeadersPath?: string;
+    requestHeadersString?: string;
     emitMemberOnce: boolean;
     disablePolling?: boolean;
     disableSynchronization: boolean;
