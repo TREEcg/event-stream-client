@@ -220,7 +220,7 @@ try {
 }
 ```
 ## Project Assumptions
-This contains a listing of things to be aware or might be part to be fixed in next improvements. 
+This contains a list of things to look out for or possibly fix in the following improvements. 
 * Not a really maintained project. Some library dependencies are deprecated and no longer supported.
 * In a JSON-LD output, all the floating type values are represented in a scientific notation.
 * Some public helper methods don't have an implementation.
