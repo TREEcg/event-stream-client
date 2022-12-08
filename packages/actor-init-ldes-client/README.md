@@ -18,24 +18,25 @@ In order to use it as a library, you can leave out the `-g`.
 actor-init-ldes-client --parameter ${PARAMETER} ${URL}
 ```
 
-URL can be a `tree:Node` from where relations will be followed OR the URI of a `tree:Collection`. For the latter, the collection's URI will be dereferenced and one `tree:view` will be followed. 
+URL can be a `tree:Node` from where relations will be followed OR the URI of a `tree:Collection`. For the latter, the
+collection's URI will be dereferenced and one `tree:view` will be followed. 
 
 Possible parameters are:
 
-| Parameter  | Description | Possible values |
-| ------------- | ------------- | ------------- |
-| pollingInterval | Number of milliseconds before refetching uncacheable fragments  | for example: 5000 |
-| mimeType  | the MIME type of the output  | application/ld+json, text/turtle... |
-| context  | path to a file with the JSON-LD context you want to use when MIME type is application/ld+json. Pro-tip: provide the full context without references to external context files, because there is no cache and thus they are requested each time a page gets loaded. | for example: ./context.jsonld |
-| requestHeadersPath  | path to a file with the HTTP request headers you want to use | for example: ./headers.json |
-| fromTime  | datetime to prune relations that have a lower datetime value | for example: 2020-01-01T00:00:00 |
-| emitMemberOnce  | whether to emit a member only once, because collection contains immutable version objects.  | true / false |
-| disableSynchronization  | whether to disable synchronization or not (by default set to "false", syncing is enabled) | true / false |
-| disableFraming  | whether to disable JSON-LD framing when mimeType is 'application/ld+json' or when representation is 'Object' (by default set to "false"). Value can be set to "true" or "false" | true / false |
-| dereferenceMembers | whether to dereference members, because the collection pages do not contain all information (by default: false). | true / false |
-| requestsPerMinute | how many requests per minutes may be sent to the same host (optional) | any number |
-| loggingLevel | The detail level of logging; useful for debugging problems. (default: info)| 'error', 'warn', 'info', 'verbose', 'debug', 'silly' |
-| processedURIsCount | The maximum number of processed URIs (members and fragments) that remain in the cache. (default: 10000) | any number |
+| Parameter  | Description                                                                                                                                                                                                                                                            | Possible values |
+| ------------- |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| ------------- |
+| pollingInterval | Number of milliseconds before refetching uncacheable fragments                                                                                                                                                                                                         | for example: 5000 |
+| mimeType  | the MIME type of the output                                                                                                                                                                                                                                            | application/ld+json, text/turtle... |
+| context  | path to a file with the JSON-LD context you want to use when MIME type is application/ld+json. **Pro-tip:** provide the full context without references to external context files, because there is no cache and thus they are requested each time a page gets loaded. | for example: ./context.jsonld |
+| requestHeadersPath  | path to a file with the HTTP request headers you want to use                                                                                                                                                                                                           | for example: ./headers.json |
+| fromTime  | datetime to prune relations that have a lower datetime value                                                                                                                                                                                                           | for example: 2020-01-01T00:00:00 |
+| emitMemberOnce  | whether to emit a member only once, because collection contains immutable version objects.                                                                                                                                                                             | true / false |
+| disableSynchronization  | whether to disable synchronization or not (by default set to "false", syncing is enabled)                                                                                                                                                                              | true / false |
+| disableFraming  | whether to disable JSON-LD framing when mimeType is 'application/ld+json' or when representation is 'Object' (by default set to "false"). Value can be set to "true" or "false"                                                                                        | true / false |
+| dereferenceMembers | whether to dereference members, because the collection pages do not contain all information (by default: false).                                                                                                                                                       | true / false |
+| requestsPerMinute | how many requests per minutes may be sent to the same host (optional)                                                                                                                                                                                                  | any number |
+| loggingLevel | The detail level of logging; useful for debugging problems. (default: info)                                                                                                                                                                                            | 'error', 'warn', 'info', 'verbose', 'debug', 'silly' |
+| processedURIsCount | The maximum number of processed URIs (members and fragments) that remain in the cache. (default: 10000)                                                                                                                                                                | any number |
 
 Example commando with parameters:
 ```
@@ -135,7 +136,7 @@ We save and load the EventStream state:
 - during or after the run of the LDES Client, we pause it, and export its state.
 - before a run of the LDES Client, we can load a previous state
 
-Pro-tip: write/read the state from a JSON file, check out the [example code](https://github.com/TREEcg/LDES-Action/blob/main/src/utils/State.ts).
+**Pro-tip:** write/read the state from a JSON file, check out the [example code](https://github.com/TREEcg/LDES-Action/blob/main/src/utils/State.ts).
 
 ```typescript
 interface State {
@@ -218,3 +219,13 @@ try {
     console.error(e);
 }
 ```
+## Project Assumptions
+This contains a list of things to look out for or possibly fix in the following improvements. 
+* Not a really maintained project. Some library dependencies are deprecated and no longer supported.
+* In a JSON-LD output, all the floating type values are represented in a scientific notation.
+* Some public helper methods don't have an implementation.
+* One can provide a context URL via the jsonLdContext configuration option, but in certain cases due the dependency on 
+the `jsonld.context-parser.js` might throw an exception due to remote throttling of a certain context URL. Therefor 
+it would be better that this part should be split in the application so that the application contains a cache of given 
+context URL's with related context values. => This will solve issue that one notice when trying to resolve NGSI-LD 
+related context files.
