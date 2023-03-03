@@ -1,5 +1,21 @@
 # Change Log
 
+<a name="v3.0.2"></a>
+## [v3.0.2](https://github.com/TREEcg/event-stream-client/compare/v3.0.1...v3.0.2) - 2023-03-03
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Fix logic to allow for readable stream paused mode](https://github.com/TREEcg/event-stream-client/commit/211c03666c937924b3ad02eec2ec87c48d0b825b)
+* [Merge pull request #62 from redpencilio/fix/pause_on_sync_when_necessary](https://github.com/TREEcg/event-stream-client/commit/1ee3dcef3ec65160d587231ac28dfcad961f703c)
+* [Merge pull request #63 from TREEcg/demonstrator-assumptions](https://github.com/TREEcg/event-stream-client/commit/78f47909cb5d6e7a0f6739ad01287950ca825f08)
+* [Small corrections in the assumption section](https://github.com/TREEcg/event-stream-client/commit/f200d809fe7911a9d0fd2837eab793191c87e6e1)
+* [Add assumption section to the README.md based on the findings of this project as a dependency for the IOW Demonstrater.](https://github.com/TREEcg/event-stream-client/commit/62f6d43bc9f15e097e7ee87ae6615d4714020031)
+* [Merge branch 'TREEcg:main' into fix/pause_on_sync_when_necessary](https://github.com/TREEcg/event-stream-client/commit/229e030741ce019d3f696eea01f561b4de1e498f)
+* [Add pro-tip json-ld context](https://github.com/TREEcg/event-stream-client/commit/a4308535bc1ad07f45f71c1c91268303851f09c7)
+* [Add pro-tip for writing/reading state](https://github.com/TREEcg/event-stream-client/commit/e024559c407ac36983b99173e7a80620cb922102)
+* [ensure stream is paused on sync if necessary](https://github.com/TREEcg/event-stream-client/commit/2689c50527420d5fa4d1f18a57ccfb38a949aac1)
+* [update README](https://github.com/TREEcg/event-stream-client/commit/d723ade34a321194c7223807f6609ce166b0cdf3)
+* [add support for passing custom headers when creating an eventStream](https://github.com/TREEcg/event-stream-client/commit/865f1272f58a9d4756c7f03603d4ea4fa738e38b)
+
 <a name="v3.0.1"></a>
 ## [v3.0.1](https://github.com/TREEcg/event-stream-client/compare/v3.0.0...v3.0.1) - 2022-10-27
 
