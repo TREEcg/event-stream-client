@@ -184,7 +184,7 @@ export class EventStream extends Readable {
         try {
             if (!this.downloading && this.paused) {
                 super.pause();
-            } else if (!this.downloading && !this.isPaused() && this.bookkeeper.nextFragmentExists()) {
+            } else if (!this.downloading && this.isPaused() && this.bookkeeper.nextFragmentExists()) {
                 if (!this.disableSynchronization && this.bookkeeper.inSyncingMode() && !this.syncingmode) {
                     this.syncingmode = true;
                     this.emit('now only syncing');
