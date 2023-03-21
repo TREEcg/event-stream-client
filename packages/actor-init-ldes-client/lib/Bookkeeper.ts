@@ -1,11 +1,11 @@
 const PriorityQueue = require('js-priority-queue');
-const LRU = require("lru-cache");
+import LRU from 'lru-cache'
 
 export class Bookkeeper {
     protected readonly queue = new PriorityQueue({ comparator: compareFragments});
     protected readonly queued: any = new LRU({
         max: 500,
-        maxAge: 1000 * 60 * 60 * 24
+        ttl: 1000 * 60 * 60 * 24
     }); // to know whether a fragment URL is already added to the priority queue
     protected blacklist: Set<string> = new Set();
 
@@ -27,7 +27,7 @@ export class Bookkeeper {
 
     public addFragment(url: string, ttl: number): void {
         if (!this.fragmentAlreadyAdded(url) && !this.fragmentIsBlacklisted(url)) {
-            let fragmentInfo: FragmentInfo = {
+            const fragmentInfo: FragmentInfo = {
                 "url": url,
                 "refetchTime": new Date(new Date().getTime() + ttl) // now
             }
@@ -37,16 +37,16 @@ export class Bookkeeper {
     }
 
     public nextFragmentExists(): boolean {
-        return this.queued.length > 0;
+        return this.queued.size > 0;
     }
 
     public getNextFragmentToFetch(): FragmentInfo {
         let next = this.queue.dequeue();
-        this.queued.del(next.url);
+        this.queued.delete(next.url);
         return next;
     }
 
-    public serialize(): Object {
+    public serialize(): SerializedBookkeper {
         return {
             "queue": JSON.stringify(this.serializePriorityQueue()),
             "queued": JSON.stringify(this.queued.dump()),
@@ -86,6 +86,12 @@ export class Bookkeeper {
 interface FragmentInfo {
     url: string;
     refetchTime: Date;
+}
+
+interface SerializedBookkeper {
+    queue: string;
+    queued: string;
+    blacklist: string;
 }
 
 function compareFragments(a: any, b: any) {

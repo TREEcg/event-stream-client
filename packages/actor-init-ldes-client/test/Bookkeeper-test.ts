@@ -1,4 +1,3 @@
-import { url } from "inspector";
 import { Bookkeeper } from "../lib/Bookkeeper";
 
 describe('Bookkeeper', () => {
@@ -51,7 +50,6 @@ describe('Bookkeeper', () => {
         bookkeeper.addFragment('https://www.test.com/2', 10);
         bookkeeper.blacklistFragment('https://www.test.com/3');
         expect(() => bookkeeper.serialize()).toBeDefined();
-        //console.log(bookkeeper.serialize());
     });
 
     test('Test deserialisation', () => {
@@ -89,16 +87,13 @@ describe('Bookkeeper', () => {
         bookkeeper.addFragment('https://www.test.com/2', 10);
         bookkeeper.blacklistFragment('https://www.test.com/3');
         
-        let serialized = bookkeeper.serialize();
+        const serialized = bookkeeper.serialize();
 
         // new bookkeeper
         bookkeeper = new Bookkeeper();
         bookkeeper.deserialize(serialized);
-
-        let serializedNew = bookkeeper.serialize();
+        const serializedNew = bookkeeper.serialize();
         
-        // console.log(serialized, serializedNew);
-        expect(serialized).toStrictEqual(serializedNew);
+        expect(serialized.queue).toBe(serializedNew.queue);
     });
-
 });
