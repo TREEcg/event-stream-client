@@ -18,7 +18,7 @@ import { storeStream } from 'rdf-store-stream';
  */
 export class ActorRdfFilterObjectsWithQuadstore extends ActorRdfFilterObject {
 
-  public constructor(args: IActorArgs<IActionRdfFilterObject, IActorTest, IActorRdfFilterObjectOutput>) {
+  public constructor(args: IActorRdfFilterObjectsWithQuadstoreArgs) {
     super(args);
   }
 

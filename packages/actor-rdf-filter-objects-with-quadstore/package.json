@@ -31,10 +31,10 @@
     "index.js"
   ],
   "dependencies": {
-    "@comunica/core": "^2.3.0",
+    "@comunica/core": "^2.6.8",
     "@treecg/bus-rdf-filter-object": "^3.0.0",
-    "n3": "^1.10.0",
-    "rdf-store-stream": "^1.2.0"
+    "n3": "^1.16.3",
+    "rdf-store-stream": "^1.3.1"
   },
   "jest": {
     "globals": {
