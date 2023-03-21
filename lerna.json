@@ -1,5 +1,5 @@
 {
-  "lerna": "2.4.0",
+  "lerna": "6.5.1",
   "command": {
     "publish": {
       "ignoreChanges": [
@@ -17,7 +17,7 @@
   "version": "3.0.2",
   "loglevel": "success",
   "registry": "https://registry.npmjs.org/",
-  "npmClient": "yarn",
+  "npmClient": "npm",
   "npmClientArgs": [
     "--pure-lockfile"
   ]
