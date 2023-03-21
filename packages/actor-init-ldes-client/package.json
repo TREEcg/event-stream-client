@@ -78,17 +78,6 @@
     "rdf-string": "^1.6.3",
     "streamify-string": "^1.0.1"
   },
-  "devDependencies": {
-    "@types/jest": "^24.0.0",
-    "@types/n3": "^1.0.4",
-    "@types/node": "^14.0.0",
-    "jest": "^29.5.0",
-    "source-map-loader": "^4.0.1",
-    "ts-jest": "^29.0.5",
-    "typescript": "^5.0.2",
-    "webpack": "^5.11.1",
-    "webpack-cli": "^4.3.1"
-  },
   "bin": {
     "actor-init-ldes-client": "./bin/run.js"
   },
