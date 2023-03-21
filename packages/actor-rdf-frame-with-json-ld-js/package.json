@@ -33,7 +33,7 @@
   ],
   "dependencies": {
     "@types/jsonld": "^1.5.4",
-    "jsonld": "^4.0.1",
+    "jsonld": "^8.1.1",
     "stream-to-string": "^1.2.0"
   },
   "jest": {
