@@ -32,9 +32,9 @@
     "index.js"
   ],
   "dependencies": {
-    "@types/jsonld": "^1.5.4",
+    "@types/jsonld": "^1.5.8",
     "jsonld": "^8.1.1",
-    "stream-to-string": "^1.2.0"
+    "stream-to-string": "^1.2.1"
   },
   "jest": {
     "globals": {

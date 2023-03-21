@@ -33,7 +33,6 @@
   "dependencies": {
     "@comunica/core": "^2.3.0",
     "@treecg/bus-rdf-filter-object": "^3.0.0",
-    "@types/rdf-js": "^4.0.2",
     "n3": "^1.10.0",
     "rdf-store-stream": "^1.2.0"
   },
