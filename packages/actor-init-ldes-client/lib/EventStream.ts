@@ -1,54 +1,42 @@
-import {ActionContext, Actor, IActorTest, Mediator} from "@comunica/core";
-import {Quad, NamedNode} from "@rdfjs/types";
+import { ActionContext, Actor, IActorTest, Mediator } from "@comunica/core";
 import {
     IActionRdfMetadataExtract,
     IActorRdfMetadataExtractOutput,
     ActorRdfMetadataExtract
 } from '@comunica/bus-rdf-metadata-extract';
-import {
-    MediatorRdfSerializeHandle
-} from '@comunica/bus-rdf-serialize';
-
+import { MediatorRdfSerializeHandle } from '@comunica/bus-rdf-serialize';
+import { Quad } from "@rdfjs/types";
 import * as moment from 'moment';
-
 import * as RDF from 'rdf-js';
-
-import {Readable} from 'readable-stream';
-
-const FETCH_PAUSE = 2000; // in milliseconds; pause before fetching the next fragment
-
-const followRedirects = require('follow-redirects');
-followRedirects.maxRedirects = 10;
-const {http, https} = followRedirects;
-const CacheableRequest = require('cacheable-request');
-const cacheableRequestHttp = new CacheableRequest(http.request);
-const cacheableRequestHttps = new CacheableRequest(https.request);
-const CachePolicy = require('http-cache-semantics');
-
-import {ContextDefinition, JsonLdDocument} from "jsonld";
+import { Readable } from 'readable-stream';
+import { JsonLdDocument } from "jsonld";
+import { Bookkeeper } from './Bookkeeper';
+import { IActionRdfFrame, IActorRdfFrameOutput } from "@treecg/bus-rdf-frame";
+import * as f from "@dexagod/rdf-retrieval";
+import { AsyncIterator, ArrayIterator } from "asynciterator";
+import { Frame } from "jsonld/jsonld-spec";
+import * as urlLib from 'url';
+import { inspect } from 'util';
+import RateLimiter from "./RateLimiter";
+import MemberIterator from "./MemberIterator";
+import * as RdfString from "rdf-string";
+import { Member } from "@treecg/types";
+import { DataFactory } from 'rdf-data-factory';
+import { Logger } from "@treecg/types";
+import { MediatorRdfParseHandle } from "@comunica/bus-rdf-parse";
+import LRU from 'lru-cache';
 
 const stringifyStream = require('stream-to-string');
 const streamifyString = require('streamify-string');
+const followRedirects = require('follow-redirects');
+const CacheableRequest = require('cacheable-request');
+const CachePolicy = require('http-cache-semantics');
 
-import {Bookkeeper} from './Bookkeeper';
-import {IActionRdfFrame, IActorRdfFrameOutput} from "@treecg/bus-rdf-frame";
-
-import * as f from "@dexagod/rdf-retrieval";
-import {AsyncIterator, ArrayIterator} from "asynciterator";
-import {Frame} from "jsonld/jsonld-spec";
-
-import * as urlLib from 'url' ;
-import {inspect} from 'util';
-
-import RateLimiter from "./RateLimiter";
-import MemberIterator from "./MemberIterator";
-
-import * as RdfString from "rdf-string";
-import {Member} from "@treecg/types";
-import {DataFactory} from 'rdf-data-factory';
-import {Logger} from "@treecg/types";
-import {MediatorRdfParseHandle} from "@comunica/bus-rdf-parse";
-const LRU = require("lru-cache");
+const { http, https } = followRedirects;
+const cacheableRequestHttp = new CacheableRequest(http.request);
+const cacheableRequestHttps = new CacheableRequest(https.request);
+const FETCH_PAUSE = 2000; // in milliseconds; pause before fetching the next fragment
+followRedirects.maxRedirects = 10;
 
 export interface IEventStreamArgs {
     pollingInterval?: number,
@@ -107,6 +95,7 @@ export class EventStream extends Readable {
 
     private downloading: boolean;
     private syncingmode: boolean;
+    private paused: boolean = false;
 
 
     public constructor(
@@ -115,9 +104,9 @@ export class EventStream extends Readable {
         args: IEventStreamArgs,
         state: State | null
     ) {
-        super({objectMode: true, highWaterMark: 1000});
-        this.mediators = mediators;
+        super({ objectMode: true, highWaterMark: 1000 });
 
+        this.mediators = mediators;
         this.accessUrl = url;
         this.fromTime = args.fromTime;
         this.disableSynchronization = args.disableSynchronization;
@@ -125,34 +114,26 @@ export class EventStream extends Readable {
         this.pollingInterval = args.pollingInterval;
         this.representation = args.representation;
         this.requestHeaders = args.requestHeaders;
-
         this.mimeType = args.mimeType;
         this.jsonLdContext = args.jsonLdContext;
         this.dereferenceMembers = args.dereferenceMembers;
         this.emitMemberOnce = args.emitMemberOnce;
-        this.processedURIsCount = args.processedURIsCount;
-
+        this.processedURIsCount = args.processedURIsCount!;
+        this.processedURIs = new LRU({ max: this.processedURIsCount });
+        this.bookkeeper = new Bookkeeper();
         this.logger = new Logger(this, args.loggingLevel);
-
+        this.downloading = false;
+        this.syncingmode = false;
         if (args.requestsPerMinute) {
             this.rateLimiter = new RateLimiter(60000. / args.requestsPerMinute);
         } else {
             this.rateLimiter = new RateLimiter(0);
         }
-
-        this.processedURIs = new LRU({
-            max: this.processedURIsCount
-        });
-        this.bookkeeper = new Bookkeeper();
-
         if (state != null) {
             this.importState(state);
         } else {
             this.bookkeeper.addFragment(this.accessUrl, 0);
         }
-
-        this.downloading = false;
-        this.syncingmode = false;
     }
 
     public ignorePages(urls: string[]) {
@@ -178,20 +159,22 @@ export class EventStream extends Readable {
         });
     }
 
-    private paused: boolean = false;
-
     public async _read() {
         try {
             if (!this.downloading && this.paused) {
+                // Reading process has been externally paused
                 super.pause();
-            } else if (!this.downloading && this.isPaused() && this.bookkeeper.nextFragmentExists()) {
+            } else if (!this.downloading && !this.paused && this.bookkeeper.nextFragmentExists()) {
+                // Reading process is not paused, is not downloading new data and there is more data available
                 if (!this.disableSynchronization && this.bookkeeper.inSyncingMode() && !this.syncingmode) {
+                    // We have reached the most recent fragment and synchronization is enabled
                     this.syncingmode = true;
                     this.emit('now only syncing');
                     if (!this.downloading && this.paused) {
                         super.pause();
                     }
                 } else {
+                    // Proceed and fetch more data
                     await this.fetchNextPage();
                 }
             } else if (!this.downloading) {
@@ -228,7 +211,7 @@ export class EventStream extends Readable {
                     for (const quad of member.quads) {
                         quads.push(RdfString.quadToStringQuad(quad));
                     }
-                    memberBuffer.push({id: member.id, quads: quads});
+                    memberBuffer.push({ id: member.id, quads: quads });
                 }
             } else {
                 memberBuffer.push(member);
@@ -256,7 +239,7 @@ export class EventStream extends Readable {
                     for (const quad of member.quads) {
                         quads.push(RdfString.stringQuadToQuad(quad));
                     }
-                    let _member: Member = {id: member.id, quads: quads};
+                    let _member: Member = { id: member.id, quads: quads };
                     super.unshift(_member);
                 }
             } else {
@@ -266,15 +249,9 @@ export class EventStream extends Readable {
             }
         }
 
-        this.processedURIs = new LRU({
-            max: this.processedURIsCount
-        });
+        this.processedURIs = new LRU({ max: this.processedURIsCount! });
         this.processedURIs.load(JSON.parse(state.processedURIs));
     }
-
-    // protected logErrorMessage(error: any) {
-    //     process.stderr.write(`[${new Date().toISOString()}]  ERROR: ${inspect(error)}\n`);
-    // }
 
     protected async retrieve(pageUrl: string) {
         this.logger.info(`GET ${pageUrl}`);
@@ -294,11 +271,15 @@ export class EventStream extends Readable {
             this.logger.debug("Size of processedURIs: " + this.processedURIs.length);
             // Retrieve media type
             // TODO: Fetch mediaType by using response and comunica actor
-            const mediaType = page.headers['content-type'].indexOf(';') > 0 ? page.headers['content-type'].substr(0, page.headers['content-type'].indexOf(';')) : page.headers['content-type'];
+            const mediaType = page.headers['content-type'].indexOf(';') > 0 ? 
+                page.headers['content-type'].substr(0, page.headers['content-type'].indexOf(';')) : 
+                page.headers['content-type'];
 
             if (!this.disableSynchronization && this.pollingInterval) {
                 // Based on the HTTP Caching headers, poll this fragment for synchronization
-                const policy = new CachePolicy(page.request, page.response, {shared: false}); // If options.shared is false, then the response is evaluated from a perspective of a single-user cache (i.e. private is cacheable and s-maxage is ignored)
+                // If options.shared is false, then the response is evaluated from a perspective of a single-user cache 
+                // (i.e. private is cacheable and s-maxage is ignored)
+                const policy = new CachePolicy(page.request, page.response, { shared: false }); 
                 const ttl = Math.max(this.pollingInterval, policy.storable() ? policy.timeToLive() : 0); // pollingInterval is fallback
                 this.bookkeeper.addFragment(page.url, ttl);
             }
@@ -313,7 +294,7 @@ export class EventStream extends Readable {
                 metadata: await this.quadArrayToQuadStream(quadsArrayOfPage),
                 url: page.url
             });
-            this.emit("metadata", {...treeMetadata.metadata, url: page.url});
+            this.emit("metadata", { ...treeMetadata.metadata, url: page.url });
 
             // When there are no tree:relations found, search for a tree:view to continue
             // In this case, we expect that the URL parameter provided contains a tree collection's URI
@@ -321,11 +302,15 @@ export class EventStream extends Readable {
                 // Page URL should be a collection URI
                 // Check the URL with and without www
                 const pageUrlWithoutWWW = pageUrl.replace('://www.', '://');
-                if (treeMetadata.metadata.treeMetadata.collections.get(pageUrl) && treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"]) {
-                    const view = treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"][0]["@id"]; // take first view encountered
+                if (treeMetadata.metadata.treeMetadata.collections.get(pageUrl) 
+                    && treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"]) {
+                    // take first view encountered
+                    const view = treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"][0]["@id"];
                     this.bookkeeper.addFragment(view, 0);
-                } else if (treeMetadata.metadata.treeMetadata.collections.get(pageUrlWithoutWWW) && treeMetadata.metadata.treeMetadata.collections.get(pageUrlWithoutWWW)["view"]) {
-                    const view = treeMetadata.metadata.treeMetadata.collections.get(pageUrlWithoutWWW)["view"][0]["@id"]; // take first view encountered
+                } else if (treeMetadata.metadata.treeMetadata.collections.get(pageUrlWithoutWWW) 
+                    && treeMetadata.metadata.treeMetadata.collections.get(pageUrlWithoutWWW)["view"]) {
+                    // take first view encountered
+                    const view = treeMetadata.metadata.treeMetadata.collections.get(pageUrlWithoutWWW)["view"][0]["@id"];
                     this.bookkeeper.addFragment(view, 0);
                 }
             }
@@ -359,7 +344,7 @@ ${inspect(e)}`);
         }
     }
 
-    protected* getMembers(quads: RDF.Quad[], memberUris: string[]): Generator<IMember> {
+    protected * getMembers(quads: RDF.Quad[], memberUris: string[]): Generator<IMember> {
         const subjectIndex: Record<string, RDF.Quad[]> = {};
         for (const quad of quads) {
             const subject = quad.subject.value;
@@ -455,18 +440,18 @@ ${inspect(e)}`);
                             let framedResult = (await this.mediators.mediatorRdfFrame.mediate({
                                 context: context,
                                 data: quadStream,
-                                frames: [{"@id": id}],
+                                frames: [{ "@id": id }],
                                 jsonLdContext: this.jsonLdContext
                             })).data;
                             let firstEntry = framedResult.entries().next();
-                            this.push({"id": firstEntry.value[0]["@id"], object: firstEntry.value[1]});
+                            this.push({ "id": firstEntry.value[0]["@id"], object: firstEntry.value[1] });
                         } else {
                             let result = JSON.parse(await stringifyStream((await this.mediators.mediatorRdfSerializeHandle.mediate({
                                 context: context,
-                                handle: { quadStream: quadStream, context: context},
+                                handle: { quadStream: quadStream, context: context },
                                 handleMediaType: "application/ld+json"
                             })).handle.data));
-                           this.push({"id": result[0]["@id"], object: result});
+                            this.push({ "id": result[0]["@id"], object: result });
                         }
                     } else {
                         //Build an array from the quads iterator
@@ -490,7 +475,7 @@ ${inspect(e)}`);
                     if (this.mimeType != "application/ld+json" || this.disableFraming) {
                         outputString = await stringifyStream((await this.mediators.mediatorRdfSerializeHandle.mediate({
                             context: context,
-                            handle: { quadStream: quadStream, context: context},
+                            handle: { quadStream: quadStream, context: context },
                             handleMediaType: this.mimeType
                         })).handle.data);
                     } else {
@@ -531,7 +516,7 @@ ${inspect(error)}`);
             const cacheReq = r(options, (res: any) => {
                 let data = '';
 
-                // A chunk of data has been recieved.
+                // A chunk of data has been received.
                 res.on('data', (chunk: any) => {
                     data += chunk;
                 });
@@ -570,7 +555,7 @@ ${inspect(error)}`);
             context: context,
             handle: {
                 data: streamifyString(data),
-                metadata: { baseIRI: baseIRI},
+                metadata: { baseIRI: baseIRI },
                 context: context
             }, handleMediaType: mediaType
         })).handle.data

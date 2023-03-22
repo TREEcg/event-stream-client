@@ -24,22 +24,6 @@
     "index.d.ts",
     "index.js"
   ],
-  "jest": {
-    "globals": {
-      "ts-jest": {
-        "tsconfig": "../../tsconfig.json"
-      }
-    },
-    "transform": {
-      "^.+\\.ts$": "ts-jest"
-    },
-    "testRegex": "(/test/.*|(\\.|/)(test|spec))-test.ts$",
-    "moduleFileExtensions": [
-      "ts",
-      "js"
-    ],
-    "collectCoverage": true
-  },
   "dependencies": {
     "@comunica/actor-dereference-rdf-parse": "^2.6.8",
     "@comunica/actor-http-fetch": "^2.6.8",

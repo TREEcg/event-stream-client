@@ -1,5 +1,5 @@
 const PriorityQueue = require('js-priority-queue');
-import LRU from 'lru-cache'
+import LRU from 'lru-cache';
 
 export class Bookkeeper {
     protected readonly queue = new PriorityQueue({ comparator: compareFragments});

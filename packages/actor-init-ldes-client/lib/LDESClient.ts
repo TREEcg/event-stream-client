@@ -1,29 +1,14 @@
+import { IActorTest } from "@comunica/core";
 import {ActorInit, IActionInit, IActorInitArgs, IActorOutputInit} from "@comunica/bus-init";
-import { Actor, IActorTest, Mediator } from "@comunica/core";
-import {
-    IActionRdfMetadataExtract,
-    IActorRdfMetadataExtractOutput,
-    ActorRdfMetadataExtract, MediatorRdfMetadataExtract
-} from '@comunica/bus-rdf-metadata-extract';
-
-import * as moment from 'moment';
-
-import minimist = require("minimist");
-
-import { existsSync, readFileSync } from 'fs';
-
-import {
-    MediatorRdfParseHandle
-} from "@comunica/bus-rdf-parse";
-import {
-    IActionRdfFilterObject,
-    IActorRdfFilterObjectOutput,
-    MediatorRdfFilterObject
-} from "@treecg/bus-rdf-filter-object";
-import {IActionRdfFrame, IActorRdfFrameOutput, MediatorRdfFrame} from "@treecg/bus-rdf-frame";
+import { MediatorRdfParseHandle } from "@comunica/bus-rdf-parse";
+import { MediatorRdfMetadataExtract } from '@comunica/bus-rdf-metadata-extract';
+import { MediatorRdfFilterObject } from "@treecg/bus-rdf-filter-object";
+import { MediatorRdfFrame} from "@treecg/bus-rdf-frame";
 import { EventStream, IEventStreamArgs, State } from "./EventStream";
-import {isLogLevel, LogLevel} from "@treecg/types";
 import {MediatorRdfSerializeHandle} from "@comunica/bus-rdf-serialize";
+import * as moment from 'moment';
+import minimist = require("minimist");
+import { existsSync, readFileSync } from 'fs';
 
 export class LDESClient extends ActorInit implements ILDESClientArgs {
     public static readonly HELP_MESSAGE = `actor-init-ldes-client syncs event streams
@@ -43,7 +28,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     --dereferenceMembers         whether to dereference members, because the collection pages do not contain all information. Value can be set to "true" or "false", defaults to "false"
     --requestsPerMinute          How many requests per minutes may be sent to the same host
     --loggingLevel               The detail level of logging; useful for debugging problems. (default: info)
-    --processedURIsCount         The maximum number of processed URIs that remain in the cache. (default: 10000)
+    --processedURIsCount         The maximum number of processed URIs that remain in the cache. (default: 15000)
     --help                       print this help message
   `;
 
@@ -165,9 +150,9 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
         if (!options.pollingInterval) {
             options.pollingInterval = this.pollingInterval;
         }
-        //If mimetype is set: output serialized string
-        //If mimetype isn’t set, use the in-mem representation if it is set
-        //If the representation isn’t set, then just fall back to the standard mimetype
+        // If mimetype is set: output serialized string
+        // If mimetype isn’t set, use the in-mem representation if it is set
+        // If the representation isn’t set, then just fall back to the standard mimetype
         if (!options.mimeType && !options.representation) {
             options.mimeType = this.mimeType;
         }
@@ -212,6 +197,10 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
 
         if (!options.loggingLevel) {
             options.loggingLevel = this.loggingLevel;
+        }
+
+        if(!options.processedURIsCount) {
+            options.processedURIsCount = this.processedURIsCount;
         }
 
         const mediators = {

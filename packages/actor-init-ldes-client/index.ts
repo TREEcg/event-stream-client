@@ -7,8 +7,8 @@ export { EventStream, State } from "./lib/EventStream";
 //export default <LDESClient> require('./engine-default');
 
 /**
- * Create a new comunica engine from the default config.
- * @return {ActorInitTypeaheadBrowser} A comunica engine.
+ * Create a new LDES client engine from the default config.
+ * @return {LDESClient}  engine.
  */
 export function newEngine(): LDESClient {
     return require('./engine-default.js');

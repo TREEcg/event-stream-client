@@ -1,5 +1,3 @@
-import url from 'url';
-
 export default class RateLimiter {
     public readonly nextRequest: Record<string, number>;
     public readonly minTime: number;
