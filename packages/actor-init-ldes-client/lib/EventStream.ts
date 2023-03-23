@@ -35,7 +35,6 @@ const CachePolicy = require('http-cache-semantics');
 const { http, https } = followRedirects;
 const cacheableRequestHttp = new CacheableRequest(http.request);
 const cacheableRequestHttps = new CacheableRequest(https.request);
-const FETCH_PAUSE = 2000; // in milliseconds; pause before fetching the next fragment
 followRedirects.maxRedirects = 10;
 
 export interface IEventStreamArgs {
@@ -88,10 +87,10 @@ export class EventStream extends Readable {
     protected readonly accessUrl: string;
     protected readonly logger: Logger;
     protected readonly processedURIsCount?: number;
-
-    protected processedURIs: any;
     protected readonly bookkeeper: Bookkeeper;
     protected readonly rateLimiter: RateLimiter;
+    protected processedURIs: any;
+    protected timeout: any;
 
     private downloading: boolean;
     private syncingmode: boolean;
@@ -144,19 +143,19 @@ export class EventStream extends Readable {
 
     private async fetchNextPage() {
         this.downloading = true;
-        let next = this.bookkeeper.getNextFragmentToFetch();
+        const next = this.bookkeeper.getNextFragmentToFetch();
         let now = new Date();
+        const wait = next.refetchTime.getTime() - now.getTime();
         // Do not refetch too soon
-        while (next.refetchTime.getTime() > now.getTime()) {
-            await this.sleep(FETCH_PAUSE);
-            this.logger.info(`Waiting ${(next.refetchTime.getTime() - now.getTime()) / 1000}s before refetching: ${next.url}`);
-            now = new Date();
+        if (wait > 0) {
+            this.logger.info(`Waiting ${wait / 1000}s before refetching: ${next.url}`);
+            await this.sleep(wait);
         }
-        return await this.retrieve(next.url).then(() => {
-            this.downloading = false;
-            this.emit('page processed', next.url);
-            this._read();
-        });
+        // Retrieve data
+        await this.retrieve(next.url);
+        this.downloading = false;
+        this.emit('page processed', next.url);
+        this._read();
     }
 
     public async _read() {
@@ -187,6 +186,12 @@ export class EventStream extends Readable {
         }
     }
 
+    protected sleep(ms: number) {
+        return new Promise(resolve =>  {
+            this.timeout = setTimeout(resolve, ms);
+        });
+    }
+
     public pause(): this {
         this.paused = true;
         return this;
@@ -196,6 +201,13 @@ export class EventStream extends Readable {
         this.paused = false;
         super.resume();
         return this
+    }
+
+    public destroy(): this {
+        // Properly close the stream by clearing any pending tasks
+        clearTimeout(this.timeout);
+        super.destroy();
+        return this;
     }
 
     public exportState(): State {
@@ -271,15 +283,15 @@ export class EventStream extends Readable {
             this.logger.debug("Size of processedURIs: " + this.processedURIs.length);
             // Retrieve media type
             // TODO: Fetch mediaType by using response and comunica actor
-            const mediaType = page.headers['content-type'].indexOf(';') > 0 ? 
-                page.headers['content-type'].substr(0, page.headers['content-type'].indexOf(';')) : 
+            const mediaType = page.headers['content-type'].indexOf(';') > 0 ?
+                page.headers['content-type'].substr(0, page.headers['content-type'].indexOf(';')) :
                 page.headers['content-type'];
 
             if (!this.disableSynchronization && this.pollingInterval) {
                 // Based on the HTTP Caching headers, poll this fragment for synchronization
                 // If options.shared is false, then the response is evaluated from a perspective of a single-user cache 
                 // (i.e. private is cacheable and s-maxage is ignored)
-                const policy = new CachePolicy(page.request, page.response, { shared: false }); 
+                const policy = new CachePolicy(page.request, page.response, { shared: false });
                 const ttl = Math.max(this.pollingInterval, policy.storable() ? policy.timeToLive() : 0); // pollingInterval is fallback
                 this.bookkeeper.addFragment(page.url, ttl);
             }
@@ -302,12 +314,12 @@ export class EventStream extends Readable {
                 // Page URL should be a collection URI
                 // Check the URL with and without www
                 const pageUrlWithoutWWW = pageUrl.replace('://www.', '://');
-                if (treeMetadata.metadata.treeMetadata.collections.get(pageUrl) 
+                if (treeMetadata.metadata.treeMetadata.collections.get(pageUrl)
                     && treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"]) {
                     // take first view encountered
                     const view = treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"][0]["@id"];
                     this.bookkeeper.addFragment(view, 0);
-                } else if (treeMetadata.metadata.treeMetadata.collections.get(pageUrlWithoutWWW) 
+                } else if (treeMetadata.metadata.treeMetadata.collections.get(pageUrlWithoutWWW)
                     && treeMetadata.metadata.treeMetadata.collections.get(pageUrlWithoutWWW)["view"]) {
                     // take first view encountered
                     const view = treeMetadata.metadata.treeMetadata.collections.get(pageUrlWithoutWWW)["view"][0]["@id"];
@@ -543,10 +555,6 @@ ${inspect(error)}`);
             cacheReq.on('request', (request: any) => request.end());
             cacheReq.on('error', (e: any) => reject(e));
         });
-    }
-
-    protected sleep(ms: number) {
-        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     protected async stringToQuadStream(data: string, baseIRI: string, mediaType: string): Promise<RDF.Stream> {

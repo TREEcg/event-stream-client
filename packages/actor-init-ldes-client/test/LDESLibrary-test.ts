@@ -90,7 +90,6 @@ describe('LDESClient as a lib', () => {
         const options = {
             representation: "Object",
             disableFraming: true,
-            disableSynchronization: true
         };
         const stream = LDESClient.createReadStream(ldes, options);
 
