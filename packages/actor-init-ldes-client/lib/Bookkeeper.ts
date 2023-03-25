@@ -88,7 +88,7 @@ interface FragmentInfo {
     refetchTime: Date;
 }
 
-interface SerializedBookkeper {
+export interface SerializedBookkeper {
     queue: string;
     queued: string;
     blacklist: string;

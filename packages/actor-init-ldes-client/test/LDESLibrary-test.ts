@@ -1,4 +1,5 @@
 import { newEngine } from '@treecg/actor-init-ldes-client';
+import { OutputRepresentation } from '../lib/EventStream';
 
 describe('LDESClient as a lib', () => {
     const url = "https://semiceu.github.io/LinkedDataEventStreams/example.ttl";
@@ -33,7 +34,7 @@ describe('LDESClient as a lib', () => {
 
     test('Stream should emit quads when configured that way', (done) => {
         const options = {
-            representation: "Quads",
+            representation: OutputRepresentation.Quads,
             disableSynchronization: true
         };
 
@@ -46,7 +47,7 @@ describe('LDESClient as a lib', () => {
 
     test('Stream should emit Object when configured with Object', (done) => {
         const options = {
-            representation: "Object",
+            representation: OutputRepresentation.Object,
             disableSynchronization: true
         };
         const stream = LDESClient.createReadStream(url, options);
@@ -58,7 +59,7 @@ describe('LDESClient as a lib', () => {
 
     test('The stream should end when done', (done) => {
         const options = {
-            representation: "Object",
+            representation: OutputRepresentation.Object,
             disableSynchronization: true
         };
         const stream = LDESClient.createReadStream(url, options);
@@ -74,7 +75,7 @@ describe('LDESClient as a lib', () => {
 
     test('Stream should emit metadata', (done) => {
         const options = {
-            representation: "Object",
+            representation: OutputRepresentation.Object,
             disableSynchronization: true
         };
         const stream = LDESClient.createReadStream(url, options);
@@ -88,7 +89,7 @@ describe('LDESClient as a lib', () => {
     test('Should disable framing with representation \'Object\'', (done) => {
         const ldes = 'https://brechtvdv.github.io/demo-data/example.ttl';
         const options = {
-            representation: "Object",
+            representation: OutputRepresentation.Object,
             disableFraming: true,
         };
         const stream = LDESClient.createReadStream(ldes, options);

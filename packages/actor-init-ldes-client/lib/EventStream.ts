@@ -6,25 +6,25 @@ import {
 } from '@comunica/bus-rdf-metadata-extract';
 import { MediatorRdfSerializeHandle } from '@comunica/bus-rdf-serialize';
 import { Quad } from "@rdfjs/types";
-import * as moment from 'moment';
-import * as RDF from 'rdf-js';
 import { Readable } from 'readable-stream';
 import { JsonLdDocument } from "jsonld";
-import { Bookkeeper } from './Bookkeeper';
+import { Bookkeeper, SerializedBookkeper } from './Bookkeeper';
 import { IActionRdfFrame, IActorRdfFrameOutput } from "@treecg/bus-rdf-frame";
-import * as f from "@dexagod/rdf-retrieval";
 import { AsyncIterator, ArrayIterator } from "asynciterator";
 import { Frame } from "jsonld/jsonld-spec";
-import * as urlLib from 'url';
 import { inspect } from 'util';
-import RateLimiter from "./RateLimiter";
-import MemberIterator from "./MemberIterator";
-import * as RdfString from "rdf-string";
 import { Member } from "@treecg/types";
 import { DataFactory } from 'rdf-data-factory';
 import { Logger } from "@treecg/types";
 import { MediatorRdfParseHandle } from "@comunica/bus-rdf-parse";
+import RateLimiter from "./RateLimiter";
+import MemberIterator from "./MemberIterator";
 import LRU from 'lru-cache';
+import * as moment from 'moment';
+import * as RDF from 'rdf-js';
+import * as f from "@dexagod/rdf-retrieval";
+import * as urlLib from 'url';
+import * as RdfString from "rdf-string";
 
 const stringifyStream = require('stream-to-string');
 const streamifyString = require('streamify-string');
@@ -37,9 +37,14 @@ const cacheableRequestHttp = new CacheableRequest(http.request);
 const cacheableRequestHttps = new CacheableRequest(https.request);
 followRedirects.maxRedirects = 10;
 
+export enum OutputRepresentation {
+    Quads = "Quads",
+    Object = "Object"
+}
+
 export interface IEventStreamArgs {
     pollingInterval?: number,
-    representation?: string,
+    representation?: OutputRepresentation,
     requestHeaders?: { [key: string]: number | string | string[] },
     mimeType?: string,
     jsonLdContext?: JsonLdDocument,
@@ -75,7 +80,7 @@ export class EventStream extends Readable {
     protected readonly mediators: IEventStreamMediators;
 
     protected readonly pollingInterval?: number;
-    protected readonly representation?: string;
+    protected readonly representation?: OutputRepresentation;
     protected readonly requestHeaders?: { [key: string]: number | string | string[] };
     protected readonly mimeType?: string;
     protected readonly jsonLdContext?: JsonLdDocument;
@@ -168,7 +173,7 @@ export class EventStream extends Readable {
                 if (!this.disableSynchronization && this.bookkeeper.inSyncingMode() && !this.syncingmode) {
                     // We have reached the most recent fragment and synchronization is enabled
                     this.syncingmode = true;
-                    this.emit('now only syncing');
+                    this.emit('synchronizing');
                     if (!this.downloading && this.paused) {
                         super.pause();
                     }
@@ -217,7 +222,7 @@ export class EventStream extends Readable {
         let memberBuffer: any = [];
         while (this.readableLength > 0) {
             let member = this.read();
-            if (this.representation === 'Quads') {
+            if (this.representation === OutputRepresentation.Quads) {
                 if (member !== null) {
                     let quads = [];
                     for (const quad of member.quads) {
@@ -244,7 +249,7 @@ export class EventStream extends Readable {
         this.bookkeeper.deserialize(state.bookkeeper);
 
         if (state.memberBuffer != undefined && JSON.parse(state.memberBuffer) != null) {
-            if (this.representation === 'Quads') {
+            if (this.representation === OutputRepresentation.Quads) {
                 let internalBuffer = JSON.parse(state.memberBuffer);
                 for (const member of internalBuffer) {
                     let quads = [];
@@ -447,7 +452,7 @@ ${inspect(e)}`);
                 //If representation is set, let’s return the data without serialization, but in the requested representation (Object or Quads)
                 if (this.representation) {
                     //Can be "Object" or "Quads"
-                    if (this.representation === 'Object') {
+                    if (this.representation === OutputRepresentation.Object) {
                         if (!this.disableFraming) {
                             let framedResult = (await this.mediators.mediatorRdfFrame.mediate({
                                 context: context,
@@ -636,7 +641,7 @@ class PageMetadata {
 }
 
 export interface State {
-    bookkeeper: Object;
+    bookkeeper: SerializedBookkeper;
     memberBuffer: string;
     processedURIs: string;
 }

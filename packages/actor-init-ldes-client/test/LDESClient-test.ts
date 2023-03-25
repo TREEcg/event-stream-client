@@ -9,6 +9,7 @@ import { ActorInit } from '@comunica/bus-init';
 import { Bus, ActionContext } from '@comunica/core';
 import { MediatorRace } from '@comunica/mediator-race';
 import { LDESClient } from '../lib/LDESClient';
+import { OutputRepresentation } from '../lib/EventStream';
 
 describe('LDESClient', () => {
     let busInit: any;
@@ -111,7 +112,7 @@ describe('LDESClient', () => {
         let mimeType: string;
         let pollingInterval: number;
         let disableFraming: boolean;
-        let representation: string;
+        let representation: OutputRepresentation;
         let processedURIsCount: number;
 
         beforeEach(() => {

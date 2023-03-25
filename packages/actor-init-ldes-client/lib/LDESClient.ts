@@ -4,11 +4,16 @@ import { MediatorRdfParseHandle } from "@comunica/bus-rdf-parse";
 import { MediatorRdfMetadataExtract } from '@comunica/bus-rdf-metadata-extract';
 import { MediatorRdfFilterObject } from "@treecg/bus-rdf-filter-object";
 import { MediatorRdfFrame} from "@treecg/bus-rdf-frame";
-import { EventStream, IEventStreamArgs, State } from "./EventStream";
 import {MediatorRdfSerializeHandle} from "@comunica/bus-rdf-serialize";
 import * as moment from 'moment';
 import minimist = require("minimist");
 import { existsSync, readFileSync } from 'fs';
+import { 
+    EventStream, 
+    IEventStreamArgs, 
+    State, 
+    OutputRepresentation 
+} from "./EventStream";
 
 export class LDESClient extends ActorInit implements ILDESClientArgs {
     public static readonly HELP_MESSAGE = `actor-init-ldes-client syncs event streams
@@ -44,7 +49,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
 
     public pollingInterval: number;
     public mimeType: string;
-    public representation: string;
+    public representation: OutputRepresentation;
     public jsonLdContextPath?: string;
     public jsonLdContextString?: string;
     public requestHeadersPath?: string;
