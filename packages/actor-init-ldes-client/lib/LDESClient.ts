@@ -5,9 +5,10 @@ import { MediatorRdfMetadataExtract } from '@comunica/bus-rdf-metadata-extract';
 import { MediatorRdfFilterObject } from "@treecg/bus-rdf-filter-object";
 import { MediatorRdfFrame} from "@treecg/bus-rdf-frame";
 import {MediatorRdfSerializeHandle} from "@comunica/bus-rdf-serialize";
-import * as moment from 'moment';
-import minimist = require("minimist");
 import { existsSync, readFileSync } from 'fs';
+import * as moment from 'moment';
+import * as minimist from 'minimist';
+import * as Streamify from 'streamify-string';
 import { 
     EventStream, 
     IEventStreamArgs, 
@@ -15,13 +16,15 @@ import {
     OutputRepresentation 
 } from "./EventStream";
 
+import type { Readable } from 'readable-stream';
+
 export class LDESClient extends ActorInit implements ILDESClientArgs {
     public static readonly HELP_MESSAGE = `actor-init-ldes-client syncs event streams
   Usage:
-    actor-init-ldes-client --pollingInterval 5000 https://lodi.ilabt.imec.be/coghent/industriemuseum/objecten
+    actor-init-ldes-client --pollingInterval 5000 https://semiceu.github.io/LinkedDataEventStreams/example.ttl
 
   Options:
-    --pollingInterval            Number of milliseconds before refetching uncacheable fragments (e.g., 5000)
+    --pollingInterval            Number of milliseconds before refetching non-cacheable fragments (e.g., 5000)
     --mimeType                   the MIME type of the output (application/ld+json or text/turtle)
     --context                    path to a file with the JSON-LD context you want to use when MIME type is application/ld+json (e.g., ./context.jsonld)
     --requestHeadersPath         path to a file with the HTTP request headers you want to use (e.g., ./headers.json)
@@ -75,7 +78,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     public async run(action: IActionInit): Promise<IActorOutputInit> {
         const args = minimist(action.argv);
         if (!args["_"].length) {
-            return { stderr: require('streamify-string')(<Error>new Error(LDESClient.HELP_MESSAGE)) }
+            return { stderr: <Readable>Streamify(new Error(LDESClient.HELP_MESSAGE).message) }
         }
 
         const pollingInterval: number = args.pollingInterval ? parseInt(args.pollingInterval) : this.pollingInterval;

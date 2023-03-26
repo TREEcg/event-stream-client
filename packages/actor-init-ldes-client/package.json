@@ -50,7 +50,6 @@
     "@treecg/actor-rdf-metadata-extract-tree": "^2.0.0",
     "@treecg/bus-rdf-filter-object": "^3.0.0",
     "@treecg/bus-rdf-frame": "^3.0.0",
-    "@treecg/types": "^0.4.0",
     "cacheable-request": "^7.0.1",
     "follow-redirects": "^1.13.0",
     "http-cache-semantics": "^4.1.1",
@@ -61,6 +60,11 @@
     "rdf-dereference": "^2.1.0",
     "rdf-string": "^1.6.3",
     "streamify-string": "^1.0.1"
+  },
+  "devDependencies": {
+    "@treecg/types": "^0.4.0",
+    "@types/http-cache-semantics": "^4.0.1",
+    "@types/streamify-string": "^1.0.0"
   },
   "bin": {
     "actor-init-ldes-client": "./bin/run.js"
@@ -76,7 +80,7 @@
     "build": "npm run build:ts && npm run build:components",
     "build:ts": "node \"../../node_modules/typescript/bin/tsc\"",
     "build:components": "componentsjs-generator",
-    "start": "node ./bin/run.js https://lodi.ilabt.imec.be/iow-ldes/hierarchical?type=https%3A%2F%2Furi.fiware.org%2Fns%2Fdata-models%23WaterQualityObserved&timeAt=2022-09-07T00:00:00.000Z&endTimeAt=2022-09-07T00:28:48.000Z"
+    "start": "node ./bin/run.js https://semiceu.github.io/LinkedDataEventStreams/example.ttl"
   },
   "author": "",
   "license": "MIT",
