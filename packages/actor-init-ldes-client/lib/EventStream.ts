@@ -4,38 +4,30 @@ import {
     IActorRdfMetadataExtractOutput,
     ActorRdfMetadataExtract
 } from '@comunica/bus-rdf-metadata-extract';
+import { MediatorRdfParseHandle } from "@comunica/bus-rdf-parse";
 import { MediatorRdfSerializeHandle } from '@comunica/bus-rdf-serialize';
-import { Quad } from "@rdfjs/types";
-import { Readable } from 'readable-stream';
-import { JsonLdDocument } from "jsonld";
-import { Bookkeeper, SerializedBookkeper } from './Bookkeeper';
 import { IActionRdfFrame, IActorRdfFrameOutput } from "@treecg/bus-rdf-frame";
+import { Member, Logger } from "@treecg/types";
+import { Quad } from "@rdfjs/types";
+import LRU from 'lru-cache';
+import { Readable } from 'readable-stream';
 import { AsyncIterator, ArrayIterator } from "asynciterator";
 import { Frame } from "jsonld/jsonld-spec";
 import { inspect } from 'util';
-import { Member } from "@treecg/types";
 import { DataFactory } from 'rdf-data-factory';
-import { Logger } from "@treecg/types";
-import { MediatorRdfParseHandle } from "@comunica/bus-rdf-parse";
-import RateLimiter from "./RateLimiter";
-import MemberIterator from "./MemberIterator";
-import LRU from 'lru-cache';
+import { JsonLdDocument } from "jsonld";
+import * as ContentType from 'content-type';
+import * as CachePolicy from 'http-cache-semantics';
 import * as moment from 'moment';
 import * as RDF from 'rdf-js';
 import * as f from "@dexagod/rdf-retrieval";
-import * as urlLib from 'url';
 import * as RdfString from "rdf-string";
+import { Bookkeeper, SerializedBookkeper } from './Bookkeeper';
+import RateLimiter from "./RateLimiter";
+import MemberIterator from "./MemberIterator";
 
 const stringifyStream = require('stream-to-string');
 const streamifyString = require('streamify-string');
-const followRedirects = require('follow-redirects');
-const CacheableRequest = require('cacheable-request');
-const CachePolicy = require('http-cache-semantics');
-
-const { http, https } = followRedirects;
-const cacheableRequestHttp = new CacheableRequest(http.request);
-const cacheableRequestHttps = new CacheableRequest(https.request);
-followRedirects.maxRedirects = 10;
 
 export enum OutputRepresentation {
     Quads = "Quads",
@@ -149,11 +141,10 @@ export class EventStream extends Readable {
     private async fetchNextPage() {
         this.downloading = true;
         const next = this.bookkeeper.getNextFragmentToFetch();
-        let now = new Date();
-        const wait = next.refetchTime.getTime() - now.getTime();
+        const wait = next.refetchTime.getTime() - new Date().getTime();
         // Do not refetch too soon
         if (wait > 0) {
-            this.logger.info(`Waiting ${wait / 1000}s before refetching: ${next.url}`);
+            this.logger.debug(`Waiting ${wait / 1000}s before refetching: ${next.url}`);
             await this.sleep(wait);
         }
         // Retrieve data
@@ -183,7 +174,7 @@ export class EventStream extends Readable {
                 }
             } else if (!this.downloading) {
                 //end of the stream
-                this.logger.info("done");
+                this.logger.debug("done");
                 this.push(null);
             }
         } catch (e) {
@@ -192,7 +183,7 @@ export class EventStream extends Readable {
     }
 
     protected sleep(ms: number) {
-        return new Promise(resolve =>  {
+        return new Promise(resolve => {
             this.timeout = setTimeout(resolve, ms);
         });
     }
@@ -271,15 +262,14 @@ export class EventStream extends Readable {
     }
 
     protected async retrieve(pageUrl: string) {
-        this.logger.info(`GET ${pageUrl}`);
+        this.logger.debug(`GET ${pageUrl}`);
         const startTime = new Date();
 
         await this.rateLimiter.planRequest(pageUrl);
 
         try {
             const page = await this.getPage(pageUrl);
-            const message = `${page.statusCode} ${page.url} (${new Date().getTime() - startTime.getTime()}) ms`;
-            this.logger.info(message);
+            this.logger.debug(`${page.statusCode} ${page.url} (${new Date().getTime() - startTime.getTime()}) ms`);
 
             // Remember that the fragment has been retrieved
             this.processedURIs.set(pageUrl, {});
@@ -288,9 +278,7 @@ export class EventStream extends Readable {
             this.logger.debug("Size of processedURIs: " + this.processedURIs.length);
             // Retrieve media type
             // TODO: Fetch mediaType by using response and comunica actor
-            const mediaType = page.headers['content-type'].indexOf(';') > 0 ?
-                page.headers['content-type'].substr(0, page.headers['content-type'].indexOf(';')) :
-                page.headers['content-type'];
+            const mediaType = page.contentType;
 
             if (!this.disableSynchronization && this.pollingInterval) {
                 // Based on the HTTP Caching headers, poll this fragment for synchronization
@@ -358,6 +346,32 @@ export class EventStream extends Readable {
         } catch (e) {
             this.logger.error(`Failed to retrieve ${pageUrl}
 ${inspect(e)}`);
+        }
+    }
+
+    protected async getPage(pageUrl: string): Promise<PageMetadata> {
+        try {
+            const req = {
+                headers: {
+                    'Accept': 'application/ld+json',
+                    ...this.requestHeaders
+                }
+            }
+            const res = await fetch(pageUrl, req);
+            const resHeaders: Array<[string, string]> = [];
+            res.headers.forEach((v, k) => resHeaders.push([k, v]));
+
+            return <PageMetadata>{
+                url: res.url,
+                request: req,
+                response: { status: res.status, headers: Object.fromEntries(resHeaders) },
+                statusCode: res.status,
+                data: await res.text(),
+                contentType: ContentType.parse(<string>res.headers.get('content-type')).type
+            };
+        } catch (err) {
+            this.logger.error(inspect(err));
+            throw err;
         }
     }
 
@@ -517,51 +531,6 @@ ${inspect(error)}`);
         }
     }
 
-    protected getPage(pageUrl: string): Promise<PageMetadata> {
-        return new Promise((resolve, reject) => {
-            const protocol = new URL(pageUrl).protocol;
-            let r = protocol === 'https:' ? cacheableRequestHttps : cacheableRequestHttp;
-
-            const options = {
-                ...urlLib.parse(pageUrl),
-                headers: {
-                    Accept: 'application/ld+json',
-                    ...this.requestHeaders,
-                }
-            };
-
-            const cacheReq = r(options, (res: any) => {
-                let data = '';
-
-                // A chunk of data has been received.
-                res.on('data', (chunk: any) => {
-                    data += chunk;
-                });
-
-                // The whole response has been received. Print out the result.
-                res.on('end', () => {
-                    if (!res['req']) {
-                        res['req'] = {};
-                    }
-                    // This is necessary for cachePolicy
-                    res['req']['headers'] = res['headers'];
-                    resolve({
-                        "request": res.req,
-                        "response": res,
-                        "headers": res.headers,
-                        "url": res.responseUrl ? res.responseUrl : pageUrl,
-                        "data": data,
-                        "statusCode": res.statusCode,
-                        "fromCache": res.fromCache
-                    });
-                })
-            })
-
-            cacheReq.on('request', (request: any) => request.end());
-            cacheReq.on('error', (e: any) => reject(e));
-        });
-    }
-
     protected async stringToQuadStream(data: string, baseIRI: string, mediaType: string): Promise<RDF.Stream> {
         const context = new ActionContext({});
         return (await this.mediators.mediatorRdfParseHandle.mediate({
@@ -630,14 +599,13 @@ ${inspect(error)}`);
     }
 }
 
-class PageMetadata {
-    public "request": object;
-    public "response": object;
-    public "headers": any;
-    public "url": any;
-    public "data": string;
-    public "statusCode": number;
-    public "fromCache": boolean;
+interface PageMetadata {
+    request: CachePolicy.Request;
+    response: CachePolicy.Response;
+    url: string;
+    data: string;
+    statusCode: number;
+    contentType: string;
 }
 
 export interface State {

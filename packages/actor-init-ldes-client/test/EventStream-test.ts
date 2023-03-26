@@ -3,8 +3,8 @@ import { State, OutputRepresentation } from '../lib/EventStream';
 
 describe('EventStream', () => {
     const LDESClient = newEngine();
-    const url = "https://smartdata.dev-vlaanderen.be/base/gemeente";
-    const memberCount = 764;
+    const url = "https://semiceu.github.io/LinkedDataEventStreams/example.ttl";
+    const memberCount = 2;
 
     test('Test if all members are emitted, representation Quads', (done) => {
         const options = {
