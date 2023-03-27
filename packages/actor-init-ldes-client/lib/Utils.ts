@@ -15,7 +15,8 @@ export function stream2String(stream: StreamReadable): Promise<string> {
         let text: string = '';
         stream.on('data', (data) => {
             text += data?.toString();
-        }).on('end', () => resolve(text))
-            .on('error', (err: Error) => reject(err))
+        })
+        .on('end', () => resolve(text))
+        .on('error', (err: Error) => reject(err))
     });
 };

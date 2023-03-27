@@ -10,7 +10,7 @@ import { IActionRdfFrame, IActorRdfFrameOutput } from "@treecg/bus-rdf-frame";
 import { Member, Logger } from "@treecg/types";
 import { Readable as StreamReadable } from 'stream';
 import { Readable } from 'readable-stream';
-import { AsyncIterator, ArrayIterator } from "asynciterator";
+import { AsyncIterator, ArrayIterator, EmptyIterator } from "asynciterator";
 import { Frame } from "jsonld/jsonld-spec";
 import { inspect } from 'util';
 import { DataFactory } from 'rdf-data-factory';
@@ -130,12 +130,6 @@ export class EventStream extends Readable {
         }
     }
 
-    public ignorePages(urls: string[]) {
-        for (const url of urls) {
-            this.bookkeeper.blacklistFragment(url);
-        }
-    }
-
     private async fetchNextPage() {
         this.downloading = true;
         const next = this.bookkeeper.getNextFragmentToFetch();
@@ -175,8 +169,8 @@ export class EventStream extends Readable {
                 this.logger.debug("done");
                 this.push(null);
             }
-        } catch (e) {
-            console.error(e);
+        } catch (err) {
+            this.logger.error(inspect(err));
         }
     }
 
@@ -202,6 +196,12 @@ export class EventStream extends Readable {
         clearTimeout(this.timeout);
         super.destroy();
         return this;
+    }
+
+    public ignorePages(urls: string[]) {
+        for (const url of urls) {
+            this.bookkeeper.blacklistFragment(url);
+        }
     }
 
     public exportState(): State {
@@ -266,7 +266,7 @@ export class EventStream extends Readable {
         await this.rateLimiter.planRequest(pageUrl);
 
         try {
-            // TODO: See if we can do this with Comunica RDF dereference actors
+            // TODO: Perform data fetching with Comunica RDF dereference actors
             const page = await this.getPage(pageUrl);
             this.logger.debug(`${page.statusCode} ${page.url} (${new Date().getTime() - startTime.getTime()}) ms`);
 
@@ -284,8 +284,10 @@ export class EventStream extends Readable {
                 // If options.shared is false, then the response is evaluated from a perspective of a single-user cache 
                 // (i.e. private is cacheable and s-maxage is ignored)
                 const policy = new CachePolicy(page.request, page.response, { shared: false });
-                const ttl = Math.max(this.pollingInterval, policy.storable() ? policy.timeToLive() : 0); // pollingInterval is fallback
+                // pollingInterval is fallback
+                const ttl = Math.max(this.pollingInterval, policy.storable() ? policy.timeToLive() : 0);
                 this.bookkeeper.addFragment(page.url, ttl);
+                this.logger.debug(`Scheduled page (${page.url}) for polling in ${ttl / 1000} seconds`);
             }
 
             const context = new ActionContext({});
@@ -318,16 +320,28 @@ export class EventStream extends Readable {
                 // Page URL should be a collection URI
                 // Check the URL with and without www
                 const pageUrlWithoutWWW = pageUrl.replace('://www.', '://');
+
+                /**
+                 * TODO: There is an issue with the TREE metadata extractor
+                 * changing the casing of the LDES IRI e.g.:
+                 *    https://semiceu.github.io/LinkedDataEventStreams/example.ttl#eventstream
+                 * gets changed to:
+                 *    https://semiceu.github.io/linkeddataeventstreams/example.ttl#eventstream
+                 * which prevents tree:views to get booked
+                 */
+
                 if (treeMetadata.metadata.treeMetadata.collections.get(pageUrl)
                     && treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"]) {
                     // take first view encountered
                     const view = treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"][0]["@id"];
                     this.bookkeeper.addFragment(view, 0);
+                    this.logger.debug(`Scheduled TREE view (${view}) for retrieval`);
                 } else if (treeMetadata.metadata.treeMetadata.collections.get(pageUrlWithoutWWW)
                     && treeMetadata.metadata.treeMetadata.collections.get(pageUrlWithoutWWW)["view"]) {
                     // take first view encountered
                     const view = treeMetadata.metadata.treeMetadata.collections.get(pageUrlWithoutWWW)["view"][0]["@id"];
                     this.bookkeeper.addFragment(view, 0);
+                    this.logger.debug(`Scheduled TREE view (${view}) for retrieval`);
                 }
             }
 
@@ -345,6 +359,7 @@ export class EventStream extends Readable {
                         // do not add when synchronization is disabled and node has already been processed
                         if (!this.disableSynchronization || (this.disableSynchronization && !this.processedURIs.has(node['@id']))) {
                             this.bookkeeper.addFragment(node['@id'], 0);
+                            this.logger.debug(`Scheduled TREE node (${node['@id']}) for retrieval`);
                         }
                     }
                 }
@@ -408,12 +423,18 @@ ${inspect(e)}`);
         // Load quads into a RDF-JS store for easier BGP lookups
         const store = new Store(quads);
         const result: Record<string, AsyncIterator<RDF.Quad>> = {};
+        // Get ldes:timestampPath
+        const timestampPath = this.extractTimestampPath(store);
+        // Yield flag
+        let yielded = false;
 
         for (const memberUri of memberUris) {
+            // Get all quads of member
             const memberQuads: RDF.Quad[] = store.getQuads(memberUri, null, null, null);
-            if (this.fromTime) {
-                // Check the event time; skip if needed
-                const eventTime = this.extractEventTime(memberQuads);
+
+            // Check member's timestamp and skip if required
+            if (this.fromTime && timestampPath) {
+                const eventTime = this.extractEventTime(memberQuads, timestampPath);
                 if (!eventTime || eventTime < this.fromTime) {
                     continue;
                 }
@@ -439,22 +460,34 @@ ${inspect(e)}`);
                     quads: quads,
                 } as IMember;
             }
+            yielded = true;
+        }
+        // Handle the case where no Members are eligible to be emitted
+        if (!yielded) {
+            yield {
+                uri: '',
+                quads: new EmptyIterator()
+            }
         }
         return result;
     }
 
-    protected extractEventTime(quads: RDF.Quad[]): Date | undefined {
-        for (const quad of quads) {
-            if (quad.subject.termType === 'NamedNode') {
-                const predicate = quad.predicate.value;
-                if (predicate === "http://www.w3.org/ns/prov#generatedAtTime") {
-                    // TODO: make predicate configurable OR read from stream metadata
-                    return new Date(quad.object.value);
-                }
-            }
+    protected extractTimestampPath(store: Store): RDF.Quad_Object | undefined {
+        // TODO: This should be done in a dedicated Comunica actor that extracts all LDES-related metadata
+        // Determine ldes:timestampPath predicate
+        const quad = store.getQuads(null, 'https://w3id.org/ldes#timestampPath', null, null)[0]
+        if (quad) {
+            return quad.object;
         }
+    }
 
-        return undefined;
+    protected extractEventTime(quads: RDF.Quad[], timestampPath: RDF.Quad_Object): Date | undefined {
+        const memberStore = new Store(quads);
+        const timestampQuad = memberStore.getQuads(null, timestampPath.value, null, null)[0];
+
+        if (timestampQuad) {
+            return new Date(timestampQuad.object.value);
+        }
     }
 
     protected extractMember(memberUri: string, store: Store, done: Set<string>): IMember {
@@ -468,14 +501,14 @@ ${inspect(e)}`);
                 // Type coercion, should never happen
                 break;
             }
-            const memberQuads = store.getQuads(subject, null, null, null);
+            const subjectQuads = store.getQuads(subject, null, null, null);
 
-            if (!memberQuads.length) {
+            if (!subjectQuads.length) {
                 // Nothing is known about this resource
                 continue;
             }
 
-            for (const quad of memberQuads) {
+            for (const quad of subjectQuads) {
                 result.push(quad);
 
                 if (quad.object.termType === 'NamedNode' || quad.object.termType === 'BlankNode') {
@@ -494,80 +527,96 @@ ${inspect(e)}`);
     }
 
     protected async processMembers(members: Generator<IMember>) {
-        let factory = new DataFactory();
+        const factory = new DataFactory();
+
         for (const member of members) {
             const id = member.uri;
             const quadStream = member.quads;
-
-            try {
-                const context = new ActionContext({});
-                // If representation is set, let’s return the data without serialization, 
-                // but in the requested representation (Object or Quads)
-                if (this.representation) {
-                    // Can be "Object" or "Quads"
-                    if (this.representation === OutputRepresentation.Object) {
-                        if (!this.disableFraming) {
-                            let framedResult = (await this.mediators.mediatorRdfFrame.mediate({
-                                context: context,
-                                data: quadStream,
-                                frames: [{ "@id": id }],
-                                jsonLdContext: this.jsonLdContext
-                            })).data;
-                            let firstEntry = framedResult.entries().next();
-                            this.push({ "id": firstEntry.value[0]["@id"], object: firstEntry.value[1] });
+            // Check if member stream is empty
+            if (!(quadStream instanceof EmptyIterator)) {
+                try {
+                    const context = new ActionContext({});
+                    // If representation is set, let’s return the data without serialization, 
+                    // but in the requested representation (Object or Quads)
+                    if (this.representation) {
+                        // Can be "Object" or "Quads"
+                        if (this.representation === OutputRepresentation.Object) {
+                            if (!this.disableFraming) {
+                                const framedResult = (await this.mediators.mediatorRdfFrame.mediate({
+                                    context: context,
+                                    data: quadStream,
+                                    frames: [{ "@id": id }],
+                                    jsonLdContext: this.jsonLdContext
+                                })).data;
+                                const firstEntry = framedResult.entries().next();
+                                this.push({ "id": firstEntry.value[0]["@id"], object: firstEntry.value[1] });
+                            } else {
+                                const result = JSON.parse(await stream2String(
+                                    <StreamReadable>(await this.mediators.mediatorRdfSerializeHandle.mediate({
+                                        context: context,
+                                        handle: { quadStream: quadStream, context: context },
+                                        handleMediaType: "application/ld+json"
+                                    })).handle.data));
+                                this.push({ "id": result[0]["@id"], object: result });
+                            }
                         } else {
-                            let result = JSON.parse(await stream2String(
+                            // Build an array from the quads iterator
+                            await new Promise<void>((resolve, reject) => {
+                                const quadArray: Array<RDF.Quad> = [];
+                                quadStream.forEach((item) => {
+                                    quadArray.push(item);
+                                });
+                                quadStream.on('end', () => {
+                                    let _member: Member = {
+                                        id: factory.namedNode(member.uri),
+                                        quads: quadArray
+                                    };
+                                    this.push(_member);
+                                    resolve();
+                                });
+                            });
+                        }
+                    } else {
+                        let outputString;
+                        if (this.mimeType !== "application/ld+json" || this.disableFraming) {
+                            const serializedString = await stream2String(
                                 <StreamReadable>(await this.mediators.mediatorRdfSerializeHandle.mediate({
                                     context: context,
                                     handle: { quadStream: quadStream, context: context },
-                                    handleMediaType: "application/ld+json"
-                                })).handle.data));
-                            this.push({ "id": result[0]["@id"], object: result });
-                        }
-                    } else {
-                        //Build an array from the quads iterator
-                        await new Promise<void>((resolve, reject) => {
-                            let quadArray: Array<RDF.Quad> = [];
-                            quadStream.forEach((item) => {
-                                quadArray.push(item);
-                            });
-                            quadStream.on('end', () => {
-                                let _member: Member = {
-                                    id: factory.namedNode(member.uri),
-                                    quads: quadArray
-                                };
-                                this.push(_member);
-                                resolve();
-                            });
-                        });
-                    }
-                } else {
-                    let outputString;
-                    if (this.mimeType !== "application/ld+json" || this.disableFraming) {
-                        outputString = await stream2String(
-                            <StreamReadable>(await this.mediators.mediatorRdfSerializeHandle.mediate({
+                                    handleMediaType: this.mimeType
+                                })).handle.data);
+
+                            if (serializedString) {
+                                outputString = serializedString;
+                            } else {
+                                outputString = '';
+                            }
+                        } else {
+                            // Create framed JSON-LD output
+                            const frame = {
+                                "@id": id
+                            };
+                            const framedObjects: Map<Frame, JsonLdDocument> = (await this.mediators.mediatorRdfFrame.mediate({
                                 context: context,
-                                handle: { quadStream: quadStream, context: context },
-                                handleMediaType: this.mimeType
-                            })).handle.data);
-                    } else {
-                        // Create framed JSON-LD output
-                        const frame = {
-                            "@id": id
-                        };
-                        const framedObjects: Map<Frame, JsonLdDocument> = (await this.mediators.mediatorRdfFrame.mediate({
-                            context: context,
-                            data: quadStream,
-                            frames: [frame],
-                            jsonLdContext: this.jsonLdContext
-                        })).data;
-                        outputString = JSON.stringify(framedObjects.get(frame));
+                                data: quadStream,
+                                frames: [frame],
+                                jsonLdContext: this.jsonLdContext
+                            })).data;
+
+                            if (framedObjects.get(frame)) {
+                                outputString = JSON.stringify(framedObjects.get(frame));
+                            } else {
+                                outputString = '';
+                            }
+                        }
+                        this.push(`${outputString}\n`);
                     }
-                    this.push(`${outputString}\n`);
+                } catch (error) {
+                    this.logger.error(`Failed to process member ${id}
+    ${inspect(error)}`);
                 }
-            } catch (error) {
-                this.logger.error(`Failed to process member ${id}
-${inspect(error)}`);
+            } else {
+                this.push('');
             }
         }
     }

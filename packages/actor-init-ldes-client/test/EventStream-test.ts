@@ -54,6 +54,21 @@ describe('EventStream', () => {
 
     });
 
+    test('Test if all members are emitted, with framing', (done) => {
+        const options = {
+            disableSynchronization: true,
+            disableFraming: false
+        };
+
+        const mock = jest.fn();
+        LDESClient.createReadStream(url, options).on('data', () => {
+            mock();
+        }).on('end', () => {
+            expect(mock).toHaveBeenCalledTimes(memberCount);
+            done();
+        });
+    });
+
     test('Test if the pause event is emitted, when pause after data', (done) => {
         const options = {
             representation: OutputRepresentation.Quads,
@@ -461,5 +476,20 @@ describe('EventStream', () => {
             stream1.pause();
             stream1.read();
         }, 5000);
+    });
+
+    test('Test if all members are emitted, with time pruning', (done) => {
+        const options = {
+            disableSynchronization: true,
+            fromTime: new Date('2021-09-07T08:00:00')
+        };
+
+        const mock = jest.fn();
+        LDESClient.createReadStream(url, options).on('data', (data) => {
+            mock();
+        }).on('end', () => {
+            expect(mock).toHaveBeenCalledTimes(memberCount);
+            done();
+        });
     });
 });
