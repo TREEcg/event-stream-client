@@ -1,3 +1,4 @@
+// TODO: use a more modern priority queue
 const PriorityQueue = require('js-priority-queue');
 import LRU from 'lru-cache';
 

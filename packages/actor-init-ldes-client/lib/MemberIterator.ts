@@ -1,8 +1,8 @@
 import { Quad } from "@rdfjs/types";
 import { AsyncIterator } from "asynciterator";
 import rdfDereferencer from "rdf-dereference";
-import * as f from "@dexagod/rdf-retrieval"
 import RateLimiter from "./RateLimiter";
+import { stream2Array } from "./Utils";
 
 export default class MemberIterator extends AsyncIterator<Quad> {
     private waiting: boolean;
@@ -79,7 +79,7 @@ export default class MemberIterator extends AsyncIterator<Quad> {
 
         try {
             const { data } = await rdfDereferencer.dereference(url);
-            return await f.quadStreamToQuadArray(data);
+            return await stream2Array<Quad>(data);
         } catch (error) {
             if (attempts > 0) {
                 return this.fetchPageRetry(url, attempts - 1);

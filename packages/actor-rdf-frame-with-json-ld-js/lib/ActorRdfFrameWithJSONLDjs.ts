@@ -1,6 +1,5 @@
 import { ActorRdfFrame, IActionRdfFrame, IActorRdfFrameOutput } from '@treecg/bus-rdf-frame';
 import { IActorArgs, IActorTest } from "@comunica/core";
-
 import * as jsonld from 'jsonld';
 import { ContextDefinition, JsonLdDocument } from "jsonld/jsonld";
 import { Frame } from 'jsonld/jsonld-spec';

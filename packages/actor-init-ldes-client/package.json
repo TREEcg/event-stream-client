@@ -42,8 +42,6 @@
     "@comunica/query-sparql": "^2.6.8",
     "@comunica/runner": "^2.6.8",
     "@comunica/runner-cli": "^2.6.8",
-    "@dexagod/rdf-retrieval": "^1.0.3",
-    "@rdfjs/data-model": "^2.0.1",
     "@treecg/actor-rdf-filter-object-with-framing": "^3.0.0",
     "@treecg/actor-rdf-filter-objects-with-quadstore": "^3.0.0",
     "@treecg/actor-rdf-frame-with-json-ld-js": "^3.0.0",
@@ -57,8 +55,7 @@
     "moment": "^2.29.4",
     "n3": "^1.16.3",
     "rdf-dereference": "^2.1.0",
-    "rdf-string": "^1.6.3",
-    "streamify-string": "^1.0.1"
+    "rdf-string": "^1.6.3"
   },
   "devDependencies": {
     "@treecg/types": "^0.4.0",

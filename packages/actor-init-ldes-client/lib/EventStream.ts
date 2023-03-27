@@ -8,26 +8,24 @@ import { MediatorRdfParseHandle } from "@comunica/bus-rdf-parse";
 import { MediatorRdfSerializeHandle } from '@comunica/bus-rdf-serialize';
 import { IActionRdfFrame, IActorRdfFrameOutput } from "@treecg/bus-rdf-frame";
 import { Member, Logger } from "@treecg/types";
-import { Quad } from "@rdfjs/types";
-import LRU from 'lru-cache';
+import { Readable as StreamReadable } from 'stream';
 import { Readable } from 'readable-stream';
 import { AsyncIterator, ArrayIterator } from "asynciterator";
 import { Frame } from "jsonld/jsonld-spec";
 import { inspect } from 'util';
 import { DataFactory } from 'rdf-data-factory';
 import { JsonLdDocument } from "jsonld";
+import { Store } from "n3";
+import LRU from 'lru-cache';
 import * as ContentType from 'content-type';
 import * as CachePolicy from 'http-cache-semantics';
 import * as moment from 'moment';
 import * as RDF from 'rdf-js';
-import * as f from "@dexagod/rdf-retrieval";
 import * as RdfString from "rdf-string";
 import { Bookkeeper, SerializedBookkeper } from './Bookkeeper';
 import RateLimiter from "./RateLimiter";
 import MemberIterator from "./MemberIterator";
-
-const stringifyStream = require('stream-to-string');
-const streamifyString = require('streamify-string');
+import { stream2Array, stream2String } from "./Utils";
 
 export enum OutputRepresentation {
     Quads = "Quads",
@@ -268,16 +266,17 @@ export class EventStream extends Readable {
         await this.rateLimiter.planRequest(pageUrl);
 
         try {
+            // TODO: See if we can do this with Comunica RDF dereference actors
             const page = await this.getPage(pageUrl);
             this.logger.debug(`${page.statusCode} ${page.url} (${new Date().getTime() - startTime.getTime()}) ms`);
 
             // Remember that the fragment has been retrieved
             this.processedURIs.set(pageUrl, {});
-            this.processedURIs.set(page.url, {}); // can be a redirected response <> pageUrl
-            this.logger.debug(page.url + " added to processedURIs");
-            this.logger.debug("Size of processedURIs: " + this.processedURIs.length);
+            // can be a redirected response <> pageUrl
+            this.processedURIs.set(page.url, {});
+
             // Retrieve media type
-            // TODO: Fetch mediaType by using response and comunica actor
+            // TODO: Fetch mediaType by using response and a Comunica actor
             const mediaType = page.contentType;
 
             if (!this.disableSynchronization && this.pollingInterval) {
@@ -289,16 +288,28 @@ export class EventStream extends Readable {
                 this.bookkeeper.addFragment(page.url, ttl);
             }
 
-            const quadsArrayOfPage = await this.stringToQuadArray(page.data.toString(), page.url, mediaType);
-
-            // Parse into RDF Stream to retrieve TREE metadata
             const context = new ActionContext({});
+
+            // Get the array of quads fetched from a page
+            const pageQuads = await stream2Array<RDF.Quad>(
+                (await this.mediators.mediatorRdfParseHandle.mediate({
+                    context: context,
+                    handle: {
+                        context: context,
+                        data: page.data,
+                        metadata: { baseIRI: page.url }
+                    }, handleMediaType: mediaType
+                })).handle.data
+            );
+
+            // Extract TREE metadata
             const treeMetadata = await this.mediators.mediatorRdfMetadataExtract.mediate({
-                context: context,
+                context: new ActionContext({}),
                 requestTime: 0,
-                metadata: await this.quadArrayToQuadStream(quadsArrayOfPage),
+                metadata: StreamReadable.from(pageQuads),
                 url: page.url
             });
+
             this.emit("metadata", { ...treeMetadata.metadata, url: page.url });
 
             // When there are no tree:relations found, search for a tree:view to continue
@@ -320,7 +331,7 @@ export class EventStream extends Readable {
                 }
             }
 
-            // Retrieve TREE relations towards other nodes
+            // Process TREE relations towards other nodes
             for (const [_, relation] of treeMetadata.metadata.treeMetadata.relations) {
                 // Prune when the value of the relation is a datetime and less than what we need
                 // To be enhanced when more TREE filtering capabilities are available
@@ -340,7 +351,7 @@ export class EventStream extends Readable {
             }
 
             const memberUris: string[] = this.getMemberUris(treeMetadata);
-            const members = this.getMembers(quadsArrayOfPage, memberUris);
+            const members = this.getMembers(pageQuads, memberUris);
 
             await this.processMembers(members);
         } catch (e) {
@@ -357,7 +368,11 @@ ${inspect(e)}`);
                     ...this.requestHeaders
                 }
             }
+
+            // Use native fetch to get page data
             const res = await fetch(pageUrl, req);
+
+            // Extract response headers
             const resHeaders: Array<[string, string]> = [];
             res.headers.forEach((v, k) => resHeaders.push([k, v]));
 
@@ -366,7 +381,7 @@ ${inspect(e)}`);
                 request: req,
                 response: { status: res.status, headers: Object.fromEntries(resHeaders) },
                 statusCode: res.status,
-                data: await res.text(),
+                data: StreamReadable.fromWeb(<any>res.body?.pipeThrough(<any>new TextDecoderStream())),
                 contentType: ContentType.parse(<string>res.headers.get('content-type')).type
             };
         } catch (err) {
@@ -375,22 +390,30 @@ ${inspect(e)}`);
         }
     }
 
-    protected * getMembers(quads: RDF.Quad[], memberUris: string[]): Generator<IMember> {
-        const subjectIndex: Record<string, RDF.Quad[]> = {};
-        for (const quad of quads) {
-            const subject = quad.subject.value;
-            if (!subjectIndex[subject]) {
-                subjectIndex[subject] = [quad];
-            } else {
-                subjectIndex[subject].push(quad);
+    // Returns array of memberURI (string) -> immutable (boolean)
+    protected getMemberUris(treeMetadata: any): string[] {
+        const members: string[] = [];
+        // Retrieve members from all collections found in the fragment
+        const collections = treeMetadata.metadata.treeMetadata.collections;
+        for (const [c, collectionValue] of collections.entries()) {
+            for (let m in collectionValue.member) {
+                const member = collectionValue.member[m]["@id"];
+                members.push(member);
             }
         }
+        return members;
+    }
 
+    protected * getMembers(quads: RDF.Quad[], memberUris: string[]): Generator<IMember> {
+        // Load quads into a RDF-JS store for easier BGP lookups
+        const store = new Store(quads);
         const result: Record<string, AsyncIterator<RDF.Quad>> = {};
+
         for (const memberUri of memberUris) {
+            const memberQuads: RDF.Quad[] = store.getQuads(memberUri, null, null, null);
             if (this.fromTime) {
                 // Check the event time; skip if needed
-                const eventTime = this.extractEventTime(subjectIndex[memberUri]);
+                const eventTime = this.extractEventTime(memberQuads);
                 if (!eventTime || eventTime < this.fromTime) {
                     continue;
                 }
@@ -405,7 +428,7 @@ ${inspect(e)}`);
 
             if (!this.dereferenceMembers) {
                 const done = new Set(memberUris);
-                yield this.extractMember(memberUri, subjectIndex, done);
+                yield this.extractMember(memberUri, store, done);
             } else {
                 const quads = new MemberIterator(memberUri, this.rateLimiter);
                 quads.on('error', (msg, e) => {
@@ -420,7 +443,21 @@ ${inspect(e)}`);
         return result;
     }
 
-    protected extractMember(memberUri: string, subjectIndex: Record<string, RDF.Quad[]>, done: Set<string>): IMember {
+    protected extractEventTime(quads: RDF.Quad[]): Date | undefined {
+        for (const quad of quads) {
+            if (quad.subject.termType === 'NamedNode') {
+                const predicate = quad.predicate.value;
+                if (predicate === "http://www.w3.org/ns/prov#generatedAtTime") {
+                    // TODO: make predicate configurable OR read from stream metadata
+                    return new Date(quad.object.value);
+                }
+            }
+        }
+
+        return undefined;
+    }
+
+    protected extractMember(memberUri: string, store: Store, done: Set<string>): IMember {
         const queue: string[] = [memberUri];
         const result: RDF.Quad[] = [];
 
@@ -431,13 +468,14 @@ ${inspect(e)}`);
                 // Type coercion, should never happen
                 break;
             }
+            const memberQuads = store.getQuads(subject, null, null, null);
 
-            if (!subjectIndex[subject]) {
+            if (!memberQuads.length) {
                 // Nothing is known about this resource
                 continue;
             }
 
-            for (const quad of subjectIndex[subject]) {
+            for (const quad of memberQuads) {
                 result.push(quad);
 
                 if (quad.object.termType === 'NamedNode' || quad.object.termType === 'BlankNode') {
@@ -463,9 +501,10 @@ ${inspect(e)}`);
 
             try {
                 const context = new ActionContext({});
-                //If representation is set, let’s return the data without serialization, but in the requested representation (Object or Quads)
+                // If representation is set, let’s return the data without serialization, 
+                // but in the requested representation (Object or Quads)
                 if (this.representation) {
-                    //Can be "Object" or "Quads"
+                    // Can be "Object" or "Quads"
                     if (this.representation === OutputRepresentation.Object) {
                         if (!this.disableFraming) {
                             let framedResult = (await this.mediators.mediatorRdfFrame.mediate({
@@ -477,17 +516,18 @@ ${inspect(e)}`);
                             let firstEntry = framedResult.entries().next();
                             this.push({ "id": firstEntry.value[0]["@id"], object: firstEntry.value[1] });
                         } else {
-                            let result = JSON.parse(await stringifyStream((await this.mediators.mediatorRdfSerializeHandle.mediate({
-                                context: context,
-                                handle: { quadStream: quadStream, context: context },
-                                handleMediaType: "application/ld+json"
-                            })).handle.data));
+                            let result = JSON.parse(await stream2String(
+                                <StreamReadable>(await this.mediators.mediatorRdfSerializeHandle.mediate({
+                                    context: context,
+                                    handle: { quadStream: quadStream, context: context },
+                                    handleMediaType: "application/ld+json"
+                                })).handle.data));
                             this.push({ "id": result[0]["@id"], object: result });
                         }
                     } else {
                         //Build an array from the quads iterator
                         await new Promise<void>((resolve, reject) => {
-                            let quadArray: Array<Quad> = [];
+                            let quadArray: Array<RDF.Quad> = [];
                             quadStream.forEach((item) => {
                                 quadArray.push(item);
                             });
@@ -503,12 +543,13 @@ ${inspect(e)}`);
                     }
                 } else {
                     let outputString;
-                    if (this.mimeType != "application/ld+json" || this.disableFraming) {
-                        outputString = await stringifyStream((await this.mediators.mediatorRdfSerializeHandle.mediate({
-                            context: context,
-                            handle: { quadStream: quadStream, context: context },
-                            handleMediaType: this.mimeType
-                        })).handle.data);
+                    if (this.mimeType !== "application/ld+json" || this.disableFraming) {
+                        outputString = await stream2String(
+                            <StreamReadable>(await this.mediators.mediatorRdfSerializeHandle.mediate({
+                                context: context,
+                                handle: { quadStream: quadStream, context: context },
+                                handleMediaType: this.mimeType
+                            })).handle.data);
                     } else {
                         // Create framed JSON-LD output
                         const frame = {
@@ -530,80 +571,13 @@ ${inspect(error)}`);
             }
         }
     }
-
-    protected async stringToQuadStream(data: string, baseIRI: string, mediaType: string): Promise<RDF.Stream> {
-        const context = new ActionContext({});
-        return (await this.mediators.mediatorRdfParseHandle.mediate({
-            context: context,
-            handle: {
-                data: streamifyString(data),
-                metadata: { baseIRI: baseIRI },
-                context: context
-            }, handleMediaType: mediaType
-        })).handle.data
-    }
-
-    protected async stringToQuadArray(data: string, baseIRI: string, mediaType: string): Promise<RDF.Quad[]> {
-        const context = new ActionContext({});
-        return new Promise(async (resolve, reject) => {
-            let quadArray: RDF.Quad[] = [];
-            const stream = (await this.mediators.mediatorRdfParseHandle.mediate({
-                context: context,
-                handle: {
-                    context: context,
-                    data: streamifyString(data),
-                    metadata: { baseIRI: baseIRI }
-                }, handleMediaType: mediaType
-            })).handle.data;
-            stream.on('data', (quad: any) => {
-                quadArray.push(quad);
-            });
-            stream.on('end', () => {
-                resolve(quadArray);
-            });
-        });
-    }
-
-    protected async quadArrayToQuadStream(data: RDF.Quad[]): Promise<RDF.Stream> {
-        return new Promise(async (resolve, reject) => {
-            resolve(f.quadArrayToQuadStream(data.slice()));
-        });
-    }
-
-    // Returns array of memberURI (string) -> immutable (boolean)
-    protected getMemberUris(treeMetadata: any): string[] {
-        let members: string[] = [];
-        // Retrieve members from all collections found in the fragment
-        const collections = treeMetadata.metadata.treeMetadata.collections;
-        for (const [c, collectionValue] of collections.entries()) {
-            for (let m in collectionValue.member) {
-                const member = collectionValue.member[m]["@id"];
-                members.push(member);
-            }
-        }
-        return members;
-    }
-
-    protected extractEventTime(quads: RDF.Quad[]): Date | undefined {
-        for (const quad of quads) {
-            if (quad.subject.termType === 'NamedNode') {
-                const predicate = quad.predicate.value;
-                if (predicate === "http://www.w3.org/ns/prov#generatedAtTime") {
-                    // Todo: make predicate configurable OR read from stream metadata
-                    return new Date(quad.object.value);
-                }
-            }
-        }
-
-        return undefined;
-    }
 }
 
 interface PageMetadata {
     request: CachePolicy.Request;
     response: CachePolicy.Response;
     url: string;
-    data: string;
+    data: StreamReadable;
     statusCode: number;
     contentType: string;
 }
