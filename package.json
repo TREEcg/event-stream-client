@@ -11,7 +11,7 @@
     "lint-changed": "lerna run lint --since HEAD",
     "build-changed": "lerna run build --since HEAD",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | coveralls",
-    "test-ci": "jest --ci --maxWorkers=4 --coverage",
+    "test-ci": "NODE_OPTIONS=--experimental-vm-modules npx jest --ci --maxWorkers=4 --coverage",
     "coveralls-ci": "cat ./coverage/lcov.info | coveralls",
     "lint": "tslint packages/*/lib/**/*.ts packages/*/test/**/*.ts --exclude '**/*.d.ts'",
     "clean": "rm -rf ./node_modules && rm -rf ./packages/*/node_modules",
