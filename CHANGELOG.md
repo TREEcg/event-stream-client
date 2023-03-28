@@ -1,5 +1,11 @@
 # Change Log
 
+<a name="v4.0.1"></a>
+## [v4.0.1](https://github.com/TREEcg/event-stream-client/compare/v4.0.0...v4.0.1) - 2023-03-28
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Update components.js config](https://github.com/TREEcg/event-stream-client/commit/097cbb5d2721d825b36d31d276c237a03563cd3b)
+
 <a name="v4.0.0"></a>
 ## [v4.0.0](https://github.com/TREEcg/event-stream-client/compare/v3.0.2...v4.0.0) - 2023-03-28
 
