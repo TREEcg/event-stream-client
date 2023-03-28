@@ -1,5 +1,33 @@
 # Change Log
 
+<a name="v4.0.0"></a>
+## [v4.0.0](https://github.com/TREEcg/event-stream-client/compare/v3.0.2...v4.0.0) - 2023-03-28
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Merge pull request #66 from TREEcg/fix/update-dependencies](https://github.com/TREEcg/event-stream-client/commit/e65ea920e74ac24e281ae1aff5f321b542f13629)
+* [Remove coverage threshold (for now)](https://github.com/TREEcg/event-stream-client/commit/34234fe9e2323374381e7366c5708158b864ec71)
+* [Fix component.js build process](https://github.com/TREEcg/event-stream-client/commit/6e679ca7df3a45c3ffa904ff9385c40278f11ebe)
+* [Go back to npm ci + fully remove yarn commands](https://github.com/TREEcg/event-stream-client/commit/df6e6e6715de803884e1318e570ee2c09e866d29)
+* [Try normal npm i](https://github.com/TREEcg/event-stream-client/commit/f77f78037a1ecba31472a8879b628dcf4ac4beba)
+* [Commit package-lock.json](https://github.com/TREEcg/event-stream-client/commit/e7077881acfc4a93cbe55925d9ad051d7f8e7030)
+* [Add github action for CI](https://github.com/TREEcg/event-stream-client/commit/acd58da4c5273ce28654dedb049c82190d26ffa3)
+* [Changes include: - Fix time-based prunning of members - Extract ldes:timestampPath from LDES metadata - Handle edge case where no members are emitted on sync mode](https://github.com/TREEcg/event-stream-client/commit/855010eec1d365608d70124e88cf45051719dfc7)
+* [Changes include: - Remove unmaintained and stale dependencies - Use WebStreams to process fetched pages - Use RDFJS store to do BGP lookups - Clean up code](https://github.com/TREEcg/event-stream-client/commit/3c07df3e7e4d9bab6f90826b81eab9381655ec44)
+* [Remove in-memory caching of all page requests](https://github.com/TREEcg/event-stream-client/commit/453635482b4e5b94009d058838dc3c921b4048f8)
+* [Fix cli error message](https://github.com/TREEcg/event-stream-client/commit/54c20fd5a062f79beae90192de380d47ab49e353)
+* [Changes include: - Define enum type for output representation - Rename sychronization event - Make sure Event Stream tests run properly](https://github.com/TREEcg/event-stream-client/commit/a79270d5ec8374772f3a64ff642c275de7ec3e8b)
+* [Fix LDES client unit tests + properly close stream](https://github.com/TREEcg/event-stream-client/commit/1ffd6b928c3a11a773f5c53ad7a615bc85b11cea)
+* [Fix library unit tests + issue on stream pause/flow modes](https://github.com/TREEcg/event-stream-client/commit/c33a7097fa52ada8d514f66e26457b8dcd4142e3)
+* [Fix bookkeeper unit tests](https://github.com/TREEcg/event-stream-client/commit/218501fbbefe9b1145d24bf969f7ae386bde3039)
+* [Clean up dependencies](https://github.com/TREEcg/event-stream-client/commit/5bc95cb126c13a3cb32394db71875321aada22eb)
+* [Update dependencies](https://github.com/TREEcg/event-stream-client/commit/0dd2114766b594cdf51781145dd5d6a8fa70577d)
+* [Fix unit tests of RDF object filter with a quadstore](https://github.com/TREEcg/event-stream-client/commit/2b751ddb41bc758eb7d3d1554a768c4156374d13)
+* [Fix unit tests of rdf filtering with json-ld framing actor](https://github.com/TREEcg/event-stream-client/commit/fb2e98b983737cf9bf0020ef4785a8e93bdcd16b)
+* [Clean up and update more dependencies](https://github.com/TREEcg/event-stream-client/commit/60f3c20a42f2de7a2ca0679c31b83b65fbfca56f)
+* [Update jest and jsonld dependencies](https://github.com/TREEcg/event-stream-client/commit/e44a6367081acccfcf1600947c0a9caf6d851610)
+* [Update lerna and work with npm](https://github.com/TREEcg/event-stream-client/commit/9ce2a8e0c546a481964f0851c1e3f626ba9efd2f)
+* [Update typescript dependencies](https://github.com/TREEcg/event-stream-client/commit/26cfa56f61d691a6348120bd07c91d3c38f132b9)
+
 <a name="v3.0.2"></a>
 ## [v3.0.2](https://github.com/TREEcg/event-stream-client/compare/v3.0.1...v3.0.2) - 2023-03-03
 
