@@ -1,10 +1,10 @@
 import { IActorTest } from "@comunica/core";
-import {ActorInit, IActionInit, IActorInitArgs, IActorOutputInit} from "@comunica/bus-init";
+import { ActorInit, IActionInit, IActorInitArgs, IActorOutputInit } from "@comunica/bus-init";
 import { MediatorRdfParseHandle } from "@comunica/bus-rdf-parse";
 import { MediatorRdfMetadataExtract } from '@comunica/bus-rdf-metadata-extract';
 import { MediatorRdfFilterObject } from "@treecg/bus-rdf-filter-object";
-import { MediatorRdfFrame} from "@treecg/bus-rdf-frame";
-import {MediatorRdfSerializeHandle} from "@comunica/bus-rdf-serialize";
+import { MediatorRdfFrame } from "@treecg/bus-rdf-frame";
+import { MediatorRdfSerializeHandle } from "@comunica/bus-rdf-serialize";
 import { existsSync, readFileSync } from 'fs';
 import * as moment from 'moment';
 import * as minimist from 'minimist';

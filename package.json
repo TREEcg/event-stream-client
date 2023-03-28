@@ -15,7 +15,7 @@
     "coveralls-ci": "cat ./coverage/lcov.info | coveralls",
     "lint": "tslint packages/*/lib/**/*.ts packages/*/test/**/*.ts --exclude '**/*.d.ts'",
     "clean": "rm -rf ./node_modules && rm -rf ./packages/*/node_modules",
-    "build-watch": "nodemon -e ts --ignore '*.d.ts' --exec yarn run build",
+    "build-watch": "nodemon -e ts --ignore '*.d.ts' --exec npm run build",
     "publish": "npm run build && lerna publish",
     "publish-bare": "lerna exec -- npm publish --silent",
     "doc": "typedoc --name Comunica --disableOutputCheck --external-modulemap '.*packages/([^/]+)/.*' --mode modules --out documentation",
@@ -25,7 +25,7 @@
     "build:ts": "tsc",
     "build:components": "componentsjs-generator packages/*",
     "build-watch:ts": "tsc --watch",
-    "build-watch:components": "nodemon -e d.ts --exec yarn run build:components",
+    "build-watch:components": "nodemon -e d.ts --exec npm run build:components",
     "test": "NODE_OPTIONS=--experimental-vm-modules npx jest"
   },
   "jest": {
