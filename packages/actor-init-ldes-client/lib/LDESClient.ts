@@ -1,37 +1,30 @@
-import {ActorInit, IActionInit, IActorInitArgs, IActorOutputInit} from "@comunica/bus-init";
-import { Actor, IActorTest, Mediator } from "@comunica/core";
-import {
-    IActionRdfMetadataExtract,
-    IActorRdfMetadataExtractOutput,
-    ActorRdfMetadataExtract, MediatorRdfMetadataExtract
-} from '@comunica/bus-rdf-metadata-extract';
-
-import * as moment from 'moment';
-
-import minimist = require("minimist");
-
+import { IActorTest } from "@comunica/core";
+import { ActorInit, IActionInit, IActorInitArgs, IActorOutputInit } from "@comunica/bus-init";
+import { MediatorRdfParseHandle } from "@comunica/bus-rdf-parse";
+import { MediatorRdfMetadataExtract } from '@comunica/bus-rdf-metadata-extract';
+import { MediatorRdfFilterObject } from "@treecg/bus-rdf-filter-object";
+import { MediatorRdfFrame } from "@treecg/bus-rdf-frame";
+import { MediatorRdfSerializeHandle } from "@comunica/bus-rdf-serialize";
 import { existsSync, readFileSync } from 'fs';
+import * as moment from 'moment';
+import * as minimist from 'minimist';
+import * as Streamify from 'streamify-string';
+import { 
+    EventStream, 
+    IEventStreamArgs, 
+    State, 
+    OutputRepresentation 
+} from "./EventStream";
 
-import {
-    MediatorRdfParseHandle
-} from "@comunica/bus-rdf-parse";
-import {
-    IActionRdfFilterObject,
-    IActorRdfFilterObjectOutput,
-    MediatorRdfFilterObject
-} from "@treecg/bus-rdf-filter-object";
-import {IActionRdfFrame, IActorRdfFrameOutput, MediatorRdfFrame} from "@treecg/bus-rdf-frame";
-import { EventStream, IEventStreamArgs, State } from "./EventStream";
-import {isLogLevel, LogLevel} from "@treecg/types";
-import {MediatorRdfSerializeHandle} from "@comunica/bus-rdf-serialize";
+import type { Readable } from 'readable-stream';
 
 export class LDESClient extends ActorInit implements ILDESClientArgs {
     public static readonly HELP_MESSAGE = `actor-init-ldes-client syncs event streams
   Usage:
-    actor-init-ldes-client --pollingInterval 5000 https://lodi.ilabt.imec.be/coghent/industriemuseum/objecten
+    actor-init-ldes-client --pollingInterval 5000 https://semiceu.github.io/LinkedDataEventStreams/example.ttl
 
   Options:
-    --pollingInterval            Number of milliseconds before refetching uncacheable fragments (e.g., 5000)
+    --pollingInterval            Number of milliseconds before refetching non-cacheable fragments (e.g., 5000)
     --mimeType                   the MIME type of the output (application/ld+json or text/turtle)
     --context                    path to a file with the JSON-LD context you want to use when MIME type is application/ld+json (e.g., ./context.jsonld)
     --requestHeadersPath         path to a file with the HTTP request headers you want to use (e.g., ./headers.json)
@@ -43,7 +36,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     --dereferenceMembers         whether to dereference members, because the collection pages do not contain all information. Value can be set to "true" or "false", defaults to "false"
     --requestsPerMinute          How many requests per minutes may be sent to the same host
     --loggingLevel               The detail level of logging; useful for debugging problems. (default: info)
-    --processedURIsCount         The maximum number of processed URIs that remain in the cache. (default: 10000)
+    --processedURIsCount         The maximum number of processed URIs that remain in the cache. (default: 15000)
     --help                       print this help message
   `;
 
@@ -59,7 +52,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
 
     public pollingInterval: number;
     public mimeType: string;
-    public representation: string;
+    public representation: OutputRepresentation;
     public jsonLdContextPath?: string;
     public jsonLdContextString?: string;
     public requestHeadersPath?: string;
@@ -85,7 +78,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     public async run(action: IActionInit): Promise<IActorOutputInit> {
         const args = minimist(action.argv);
         if (!args["_"].length) {
-            return { stderr: require('streamify-string')(<Error>new Error(LDESClient.HELP_MESSAGE)) }
+            return { stderr: <Readable>Streamify(new Error(LDESClient.HELP_MESSAGE).message) }
         }
 
         const pollingInterval: number = args.pollingInterval ? parseInt(args.pollingInterval) : this.pollingInterval;
@@ -165,9 +158,9 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
         if (!options.pollingInterval) {
             options.pollingInterval = this.pollingInterval;
         }
-        //If mimetype is set: output serialized string
-        //If mimetype isn’t set, use the in-mem representation if it is set
-        //If the representation isn’t set, then just fall back to the standard mimetype
+        // If mimetype is set: output serialized string
+        // If mimetype isn’t set, use the in-mem representation if it is set
+        // If the representation isn’t set, then just fall back to the standard mimetype
         if (!options.mimeType && !options.representation) {
             options.mimeType = this.mimeType;
         }
@@ -212,6 +205,10 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
 
         if (!options.loggingLevel) {
             options.loggingLevel = this.loggingLevel;
+        }
+
+        if(!options.processedURIsCount) {
+            options.processedURIsCount = this.processedURIsCount;
         }
 
         const mediators = {

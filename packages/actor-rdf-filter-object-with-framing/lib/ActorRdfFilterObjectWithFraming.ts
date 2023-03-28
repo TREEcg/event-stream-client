@@ -1,17 +1,13 @@
-import { ActorRdfFilterObject, IActionRdfFilterObject, IActorRdfFilterObjectOutput } from "@treecg/bus-rdf-filter-object";
-import {Actor, IActorArgs, IActorTest, Mediator} from '@comunica/core';
+import { 
+  ActorRdfFilterObject, 
+  IActionRdfFilterObject, 
+  IActorRdfFilterObjectOutput } from "@treecg/bus-rdf-filter-object";
+import { IActorArgs, IActorTest } from '@comunica/core';
 import * as RDF from "rdf-js";
-import {IActionRdfFrame, IActorRdfFrameOutput, MediatorRdfFrame} from "@treecg/bus-rdf-frame";
-import {JsonLdDocument} from "jsonld/jsonld";
-import { Frame, Url, JsonLdProcessor, RemoteDocument, JsonLdObj, JsonLdArray } from 'jsonld/jsonld-spec';
-
-import {
-  IActionRdfParseHandle,
-  IActorOutputRdfParseHandle,
-  IActorTestRdfParseHandle, MediatorRdfParseHandle
-} from "@comunica/bus-rdf-parse";
-
-import * as f from "@dexagod/rdf-retrieval"
+import { MediatorRdfFrame } from "@treecg/bus-rdf-frame";
+import { JsonLdDocument } from "jsonld/jsonld";
+import { Frame } from 'jsonld/jsonld-spec';
+import { MediatorRdfParseHandle } from "@comunica/bus-rdf-parse";
 
 /**
  * An RDF Filter Object actor that extracts quads related to a specific object using JSON-LD framing.
@@ -22,7 +18,7 @@ export class ActorRdfFilterObjectWithFraming extends ActorRdfFilterObject {
 
   public readonly mediatorRdfFrame: MediatorRdfFrame;
 
-  public constructor(args: IActorArgs<IActionRdfFilterObject, IActorTest, IActorRdfFilterObjectOutput>) {
+  public constructor(args: IActorRdfFilterObjectWithFramingArgs) {
     super(args);
   }
 
@@ -40,15 +36,26 @@ export class ActorRdfFilterObjectWithFraming extends ActorRdfFilterObject {
       };
       frames.push(frame);
     }
-      // Retrieve JSON-LD of object
-      //let test = await f.quadStreamToString(action.data);
-      const frameMapping : Map<Frame, JsonLdDocument> = (await this.mediatorRdfFrame.mediate({context: action.context, data: action.data, frames: frames})).data;
+    // Retrieve JSON-LD of object
+    //let test = await f.quadStreamToString(action.data);
+    const frameMapping: Map<Frame, JsonLdDocument> = (await this.mediatorRdfFrame.mediate({ 
+      context: action.context, 
+      data: action.data, 
+      frames 
+    })).data;
 
     for (let framedObject of frameMapping.values()) {
       // Convert back into RDF Stream
       const objectURI = (framedObject as any)['@id'];
-      let framedObjectAsStream = require('streamify-string')(JSON.stringify(framedObject));
-      const filteredDataStream : RDF.Stream = (await this.mediatorRdfParseHandle.mediate({context: action.context, handle: {context: action.context, data: framedObjectAsStream, metadata: { baseIRI: <string> '' }}, handleMediaType: "application/ld+json"})).handle.data;
+      const framedObjectAsStream = require('streamify-string')(JSON.stringify(framedObject));
+      const filteredDataStream: RDF.Stream = (await this.mediatorRdfParseHandle.mediate({ 
+        context: action.context, 
+        handle: { 
+          context: action.context, 
+          data: framedObjectAsStream, 
+          metadata: { baseIRI: <string>'' } },
+        handleMediaType: "application/ld+json" 
+      })).handle.data;
       result.set(objectURI, filteredDataStream);
     }
 

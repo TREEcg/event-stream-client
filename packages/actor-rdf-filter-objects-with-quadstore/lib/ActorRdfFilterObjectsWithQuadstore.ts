@@ -1,24 +1,16 @@
 import { ActorRdfFilterObject, IActionRdfFilterObject, IActorRdfFilterObjectOutput } from '@treecg/bus-rdf-filter-object';
-import {Actor, IActorArgs, IActorTest, Mediator} from '@comunica/core';
-import * as RDF from "rdf-js";
-import {IActionRdfFrame, IActorRdfFrameOutput} from "../../bus-rdf-frame";
-import * as f from "@dexagod/rdf-retrieval";
-
-import {
-  IActionRdfParseHandle,
-  IActorOutputRdfParseHandle,
-  IActorTestRdfParseHandle
-} from "@comunica/bus-rdf-parse";
-
+import { IActorArgs, IActorTest } from '@comunica/core';
+import { Readable as StreamReadable } from 'stream';
 import { Store, Quad } from "n3"
 import { storeStream } from 'rdf-store-stream';
+import * as RDF from "rdf-js";
 
 /**
  * An RDF Filter Object actor that extracts quads related to a specific object using a quadstore.
  */
 export class ActorRdfFilterObjectsWithQuadstore extends ActorRdfFilterObject {
 
-  public constructor(args: IActorArgs<IActionRdfFilterObject, IActorTest, IActorRdfFilterObjectOutput>) {
+  public constructor(args: IActorRdfFilterObjectsWithQuadstoreArgs) {
     super(args);
   }
 
@@ -32,7 +24,7 @@ export class ActorRdfFilterObjectsWithQuadstore extends ActorRdfFilterObject {
 
     for (let id of action.objectURIs) {
       const quads = this.retrieveMember(store, id);
-      const quadStream = await f.quadArrayToQuadStream(quads);
+      const quadStream = StreamReadable.from(quads);
       results.set(id, quadStream)
     }
 

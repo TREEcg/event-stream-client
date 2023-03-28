@@ -44,7 +44,7 @@
           "dereferenceMembers": false,
           "emitMemberOnce": true,
           "requestHeadersString": "{}",
-          "jsonLdContextString": "{\"@context\":  {}}",
+          "jsonLdContextString": "{\"@context\": {}}",
           "loggingLevel": "info",
           "processedURIsCount": 15000,
           "mediatorRdfMetadataExtractTree": {

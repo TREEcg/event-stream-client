@@ -1,5 +1,4 @@
-import {Actor, IAction, IActorArgs, IActorOutput, IActorTest, Mediate} from '@comunica/core';
-
+import { Actor, IAction, IActorArgs, IActorOutput, IActorTest, Mediate } from '@comunica/core';
 import type * as RDF from 'rdf-js';
 
 /**
