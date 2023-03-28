@@ -19,7 +19,7 @@
     "publish": "npm run build && lerna publish",
     "publish-bare": "lerna exec -- npm publish --silent",
     "doc": "typedoc --name Comunica --disableOutputCheck --external-modulemap '.*packages/([^/]+)/.*' --mode modules --out documentation",
-    "postinstall": "npm run build && lerna run prepare",
+    "postinstall": "npm run build && lerna run build:engine",
     "version": "manual-git-changelog onversion",
     "build": "npm run build:ts && npm run build:components",
     "build:ts": "tsc",
