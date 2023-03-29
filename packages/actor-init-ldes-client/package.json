@@ -48,6 +48,7 @@
     "@treecg/actor-rdf-metadata-extract-tree": "^2.0.0",
     "@treecg/bus-rdf-filter-object": "^4.0.0",
     "@treecg/bus-rdf-frame": "^4.0.0",
+    "@treecg/types": "^0.4.0",
     "content-type": "^1.0.5",
     "http-cache-semantics": "^4.1.1",
     "js-priority-queue": "^0.1.5",
@@ -58,7 +59,6 @@
     "rdf-string": "^1.6.3"
   },
   "devDependencies": {
-    "@treecg/types": "^0.4.0",
     "@types/content-type": "^1.1.5",
     "@types/http-cache-semantics": "^4.0.1",
     "@types/streamify-string": "^1.0.0"
