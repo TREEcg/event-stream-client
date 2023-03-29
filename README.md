@@ -1,5 +1,7 @@
 # event-stream-client
 
+[![Node.js CI](https://github.com/TREEcg/event-stream-client/actions/workflows/ci.yml/badge.svg)](https://github.com/TREEcg/event-stream-client/actions/workflows/ci.yml)
+
 ## Install
 
 ```
