@@ -1,5 +1,11 @@
 # Change Log
 
+<a name="v4.0.3"></a>
+## [v4.0.3](https://github.com/TREEcg/event-stream-client/compare/v4.0.2...v4.0.3) - 2023-03-29
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Move @treecg/types to runtime dependencies](https://github.com/TREEcg/event-stream-client/commit/e671880056c3d10f7affab8f74bbd55c57f03319)
+
 <a name="v4.0.2"></a>
 ## [v4.0.2](https://github.com/TREEcg/event-stream-client/compare/v4.0.1...v4.0.2) - 2023-03-29
 
