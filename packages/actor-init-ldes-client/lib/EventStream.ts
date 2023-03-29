@@ -27,45 +27,6 @@ import RateLimiter from "./RateLimiter";
 import MemberIterator from "./MemberIterator";
 import { stream2Array, stream2String } from "./Utils";
 
-export enum OutputRepresentation {
-    Quads = "Quads",
-    Object = "Object"
-}
-
-export interface IEventStreamArgs {
-    pollingInterval?: number,
-    representation?: OutputRepresentation,
-    requestHeaders?: { [key: string]: number | string | string[] },
-    mimeType?: string,
-    jsonLdContext?: JsonLdDocument,
-    fromTime?: Date,
-    emitMemberOnce?: boolean,
-    disablePolling?: boolean,
-    disableSynchronization?: boolean,
-    disableFraming?: boolean,
-    dereferenceMembers?: boolean,
-    requestsPerMinute?: number,
-    loggingLevel?: string,
-    processedURIsCount?: number,
-}
-
-export interface IEventStreamMediators {
-    mediatorRdfMetadataExtract: Mediator<ActorRdfMetadataExtract,
-        IActionRdfMetadataExtract, IActorTest, IActorRdfMetadataExtractOutput>;
-
-    mediatorRdfParseHandle: MediatorRdfParseHandle;
-
-    mediatorRdfFrame: Mediator<Actor<IActionRdfFrame, IActorTest, IActorRdfFrameOutput>,
-        IActionRdfFrame, IActorTest, IActorRdfFrameOutput>;
-
-    mediatorRdfSerializeHandle: MediatorRdfSerializeHandle;
-}
-
-interface IMember {
-    uri: string,
-    quads: RDF.Stream<RDF.Quad> & AsyncIterator<RDF.Quad>,
-}
-
 export class EventStream extends Readable {
     protected readonly mediators: IEventStreamMediators;
 
@@ -622,6 +583,11 @@ ${inspect(e)}`);
     }
 }
 
+interface IMember {
+    uri: string,
+    quads: RDF.Stream<RDF.Quad> & AsyncIterator<RDF.Quad>,
+}
+
 interface PageMetadata {
     request: CachePolicy.Request;
     response: CachePolicy.Response;
@@ -629,6 +595,40 @@ interface PageMetadata {
     data: StreamReadable;
     statusCode: number;
     contentType: string;
+}
+
+export enum OutputRepresentation {
+    Quads = "Quads",
+    Object = "Object"
+}
+
+export interface IEventStreamArgs {
+    pollingInterval?: number,
+    representation?: OutputRepresentation,
+    requestHeaders?: { [key: string]: number | string | string[] },
+    mimeType?: string,
+    jsonLdContext?: JsonLdDocument,
+    fromTime?: Date,
+    emitMemberOnce?: boolean,
+    disablePolling?: boolean,
+    disableSynchronization?: boolean,
+    disableFraming?: boolean,
+    dereferenceMembers?: boolean,
+    requestsPerMinute?: number,
+    loggingLevel?: string,
+    processedURIsCount?: number,
+}
+
+export interface IEventStreamMediators {
+    mediatorRdfMetadataExtract: Mediator<ActorRdfMetadataExtract,
+        IActionRdfMetadataExtract, IActorTest, IActorRdfMetadataExtractOutput>;
+
+    mediatorRdfParseHandle: MediatorRdfParseHandle;
+
+    mediatorRdfFrame: Mediator<Actor<IActionRdfFrame, IActorTest, IActorRdfFrameOutput>,
+        IActionRdfFrame, IActorTest, IActorRdfFrameOutput>;
+
+    mediatorRdfSerializeHandle: MediatorRdfSerializeHandle;
 }
 
 export interface State {
