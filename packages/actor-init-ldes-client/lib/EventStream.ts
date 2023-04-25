@@ -37,6 +37,7 @@ export class EventStream extends Readable {
     protected readonly jsonLdContext?: JsonLdDocument;
     protected readonly emitMemberOnce?: boolean;
     protected readonly fromTime?: Date;
+    protected readonly fromTimeStrict?: boolean;
     protected readonly disableSynchronization?: boolean;
     protected readonly disableFraming?: boolean;
     protected readonly dereferenceMembers?: boolean;
@@ -64,6 +65,7 @@ export class EventStream extends Readable {
         this.mediators = mediators;
         this.accessUrl = url;
         this.fromTime = args.fromTime;
+        this.fromTimeStrict = args.fromTimeStrict;
         this.disableSynchronization = args.disableSynchronization;
         this.disableFraming = args.disableFraming;
         this.pollingInterval = args.pollingInterval;
@@ -308,19 +310,28 @@ export class EventStream extends Readable {
 
             // Process TREE relations towards other nodes
             for (const [_, relation] of treeMetadata.metadata.treeMetadata.relations) {
-                // Prune when the value of the relation is a datetime and less than what we need
-                // To be enhanced when more TREE filtering capabilities are available
-                if (this.fromTime && relation["@type"][0] === "https://w3id.org/tree#LessThanRelation"
-                    && moment(relation.value[0]["@value"]).isValid()
-                    && new Date(relation.value[0]["@value"]).getTime() <= this.fromTime.getTime()) {
-                    // Prune - do nothing
-                } else {
-                    // Add node to book keeper with ttl 0 (as soon as possible)
-                    for (const node of relation.node) {
-                        // do not add when synchronization is disabled and node has already been processed
-                        if (!this.disableSynchronization || (this.disableSynchronization && !this.processedURIs.has(node['@id']))) {
-                            this.bookkeeper.addFragment(node['@id'], 0);
-                            this.logger.debug(`Scheduled TREE node (${node['@id']}) for retrieval`);
+                
+                const value = relation.value[0]["@value"];
+                if (this.fromTime && relation["@type"][0] && moment(value).isValid()) {
+                    // To be enhanced when more TREE filtering capabilities are available
+                    const valueDate = new Date(value);
+
+                    // Prune when the value of the relation contain values lower than what we need
+                    if (relation["@type"][0] === "https://w3id.org/tree#LessThanRelation"
+                        && valueDate.getTime() <= this.fromTime.getTime()) {}
+                    // Prune when the value of the relation includes values lower than what we need
+                    // and we want explicitly (fromTimeStrict) values larger than the given threshold (fromTime)
+                    else if (relation["@type"][0] === "https://w3id.org/tree#GreaterThanOrEqualToRelation"
+                            && valueDate.getTime() <= this.fromTime.getTime()
+                            && this.fromTimeStrict) {} 
+                    else {
+                        // Add node to book keeper with ttl 0 (as soon as possible)
+                        for (const node of relation.node) {
+                            // do not add when synchronization is disabled and node has already been processed
+                            if (!this.disableSynchronization || (this.disableSynchronization && !this.processedURIs.has(node['@id']))) {
+                                this.bookkeeper.addFragment(node['@id'], 0);
+                                this.logger.debug(`Scheduled TREE node (${node['@id']}) for retrieval`);
+                            }
                         }
                     }
                 }
@@ -609,6 +620,7 @@ export interface IEventStreamArgs {
     mimeType?: string,
     jsonLdContext?: JsonLdDocument,
     fromTime?: Date,
+    fromTimeStrict?: boolean,
     emitMemberOnce?: boolean,
     disablePolling?: boolean,
     disableSynchronization?: boolean,

@@ -32,6 +32,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     --disablePolling             DEPRECATED: use disableSynchronization
     --disableFraming             whether to disable JSON-LD framing when mimeType is application/ld+json or when representation is 'Object' (by default set to "false"). Value can be set to "true" or "false"
     --fromTime                   datetime to prune relations that have a lower datetime value (e.g., 2020-01-01T00:00:00)
+    --fromTimeStrict             indicates that only relations with values explicitly larger than the given threshold will be fetched 
     --emitMemberOnce             whether to emit a member only once, because collection contains immutable version objects. Value can be set to "true" or "false"
     --dereferenceMembers         whether to dereference members, because the collection pages do not contain all information. Value can be set to "true" or "false", defaults to "false"
     --requestsPerMinute          How many requests per minutes may be sent to the same host
@@ -59,6 +60,7 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     public requestHeadersString?: string;
     public emitMemberOnce: boolean;
     public fromTime?: Date;
+    public fromTimeStrict?: boolean;
     public disablePolling?: boolean;
     public disableSynchronization: boolean;
     public disableFraming: boolean;
@@ -99,6 +101,14 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
 
         if (args.fromTime && moment(args.fromTime).isValid()) {
             options.fromTime = new Date(args.fromTime);
+        }
+
+        if(args.fromTimeStrict) {
+            if(typeof args.fromTimeStrict == "boolean") {
+                options.fromTimeStrict = args.fromTimeStrict;
+            } else {
+                options.fromTimeStrict = args.fromTimeStrict.toLowerCase() == "true" ? true : false;
+            }
         }
 
         if (args.emitMemberOnce) {
@@ -185,6 +195,9 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
         }
         if (!options.fromTime) {
             options.fromTime = this.fromTime;
+        }
+        if(!options.fromTimeStrict) {
+            options.fromTimeStrict = this.fromTimeStrict;
         }
         // Copy disablePolling (deprecated) to disableSynchronization when only disablePolling is used
         if (!options.disableSynchronization && options.disablePolling)
