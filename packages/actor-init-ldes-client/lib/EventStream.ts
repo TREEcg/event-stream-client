@@ -310,7 +310,7 @@ export class EventStream extends Readable {
 
             // Process TREE relations towards other nodes
             for (const [_, relation] of treeMetadata.metadata.treeMetadata.relations) {
-                
+
                 const value = relation.value[0]["@value"];
                 if (this.fromTime && relation["@type"][0] && moment(value).isValid()) {
                     // To be enhanced when more TREE filtering capabilities are available
@@ -318,12 +318,12 @@ export class EventStream extends Readable {
 
                     // Prune when the value of the relation contain values lower than what we need
                     if (relation["@type"][0] === "https://w3id.org/tree#LessThanRelation"
-                        && valueDate.getTime() <= this.fromTime.getTime()) {}
+                        && valueDate.getTime() <= this.fromTime.getTime()) { }
                     // Prune when the value of the relation includes values lower than what we need
                     // and we want explicitly (fromTimeStrict) values larger than the given threshold (fromTime)
                     else if (relation["@type"][0] === "https://w3id.org/tree#GreaterThanOrEqualToRelation"
-                            && valueDate.getTime() <= this.fromTime.getTime()
-                            && this.fromTimeStrict) {} 
+                        && valueDate.getTime() <= this.fromTime.getTime()
+                        && this.fromTimeStrict) { }
                     else {
                         // Add node to book keeper with ttl 0 (as soon as possible)
                         for (const node of relation.node) {
@@ -332,6 +332,15 @@ export class EventStream extends Readable {
                                 this.bookkeeper.addFragment(node['@id'], 0);
                                 this.logger.debug(`Scheduled TREE node (${node['@id']}) for retrieval`);
                             }
+                        }
+                    }
+                } else {
+                    // Add node to book keeper with ttl 0 (as soon as possible)
+                    for (const node of relation.node) {
+                        // do not add when synchronization is disabled and node has already been processed
+                        if (!this.disableSynchronization || (this.disableSynchronization && !this.processedURIs.has(node['@id']))) {
+                            this.bookkeeper.addFragment(node['@id'], 0);
+                            this.logger.debug(`Scheduled TREE node (${node['@id']}) for retrieval`);
                         }
                     }
                 }
