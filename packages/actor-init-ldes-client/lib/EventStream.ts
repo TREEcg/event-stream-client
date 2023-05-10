@@ -310,9 +310,9 @@ export class EventStream extends Readable {
 
             // Process TREE relations towards other nodes
             for (const [_, relation] of treeMetadata.metadata.treeMetadata.relations) {
+                if (relation.value && this.fromTime && relation["@type"][0] && moment(relation.value[0]["@value"]).isValid()) {
+                    const value = relation.value[0]["@value"];
 
-                const value = relation.value[0]["@value"];
-                if (this.fromTime && relation["@type"][0] && moment(value).isValid()) {
                     // To be enhanced when more TREE filtering capabilities are available
                     const valueDate = new Date(value);
 
@@ -371,14 +371,14 @@ ${inspect(e)}`);
             // Extract response headers
             const resHeaders: Array<[string, string]> = [];
             res.headers.forEach((v, k) => resHeaders.push([k, v]));
-
+            let contentType = <string>res.headers.get('content-type')?.split(';')[0];
             return <PageMetadata>{
                 url: res.url,
                 request: req,
                 response: { status: res.status, headers: Object.fromEntries(resHeaders) },
                 statusCode: res.status,
                 data: StreamReadable.fromWeb(<any>res.body?.pipeThrough(<any>new TextDecoderStream())),
-                contentType: ContentType.parse(<string>res.headers.get('content-type')).type
+                contentType: ContentType.parse(contentType).type
             };
         } catch (err) {
             this.logger.error(inspect(err));
