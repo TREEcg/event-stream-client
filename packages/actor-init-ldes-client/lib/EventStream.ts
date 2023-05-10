@@ -366,14 +366,18 @@ ${inspect(e)}`);
             // Extract response headers
             const resHeaders: Array<[string, string]> = [];
             res.headers.forEach((v, k) => resHeaders.push([k, v]));
-
+            const trailingCharacterRegex = /;$/;
+            let contentType = <string>res.headers.get('content-type');
+            if (contentType) {
+                contentType = contentType.trim().replace(trailingCharacterRegex, ''); // Just removing some clutter
+            }
             return <PageMetadata>{
                 url: res.url,
                 request: req,
                 response: { status: res.status, headers: Object.fromEntries(resHeaders) },
                 statusCode: res.status,
                 data: StreamReadable.fromWeb(<any>res.body?.pipeThrough(<any>new TextDecoderStream())),
-                contentType: ContentType.parse(<string>res.headers.get('content-type')).type
+                contentType: ContentType.parse(contentType).type
             };
         } catch (err) {
             this.logger.error(inspect(err));
