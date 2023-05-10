@@ -314,9 +314,9 @@ export class EventStream extends Readable {
 
             // Process TREE relations towards other nodes
             for (const [_, relation] of treeMetadata.metadata.treeMetadata.relations) {
+                if (relation.value && this.fromTime && relation["@type"][0] && moment(relation.value[0]["@value"]).isValid()) {
+                    const value = relation.value[0]["@value"];
 
-                const value = relation.value[0]["@value"];
-                if (this.fromTime && relation["@type"][0] && moment(value).isValid()) {
                     // To be enhanced when more TREE filtering capabilities are available
                     const valueDate = new Date(value);
 
@@ -379,6 +379,8 @@ ${inspect(e)}`);
             let contentType = <string>res.headers.get('content-type');
             if (contentType) {
                 contentType = contentType.trim().replace(trailingCharacterRegex, ''); // Just removing some clutter
+            } else {
+                contentType = "";
             }
             return <PageMetadata>{
                 url: res.url,
