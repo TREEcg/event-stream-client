@@ -2,7 +2,6 @@ import { IActorTest } from "@comunica/core";
 import { ActorInit, IActionInit, IActorInitArgs, IActorOutputInit } from "@comunica/bus-init";
 import { MediatorRdfParseHandle } from "@comunica/bus-rdf-parse";
 import { MediatorRdfMetadataExtract } from '@comunica/bus-rdf-metadata-extract';
-import { MediatorRdfFilterObject } from "@treecg/bus-rdf-filter-object";
 import { MediatorRdfFrame } from "@treecg/bus-rdf-frame";
 import { MediatorRdfSerializeHandle } from "@comunica/bus-rdf-serialize";
 import { existsSync, readFileSync } from 'fs';
@@ -44,8 +43,6 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
     public readonly mediatorRdfMetadataExtractTree: MediatorRdfMetadataExtract;
 
     public readonly mediatorRdfParseHandle: MediatorRdfParseHandle;
-
-    public readonly mediatorRdfFilterObject: MediatorRdfFilterObject;
 
     public readonly mediatorRdfFrame: MediatorRdfFrame;
 
@@ -238,7 +235,6 @@ export class LDESClient extends ActorInit implements ILDESClientArgs {
 export interface ILDESClientArgs extends IActorInitArgs  {
     mediatorRdfMetadataExtractTree: MediatorRdfMetadataExtract,
     mediatorRdfParseHandle: MediatorRdfParseHandle,
-    mediatorRdfFilterObject: MediatorRdfFilterObject;
     mediatorRdfFrame: MediatorRdfFrame;
     mediatorRdfSerializeHandle: MediatorRdfSerializeHandle;
     pollingInterval: number;

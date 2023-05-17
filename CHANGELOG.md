@@ -1,5 +1,13 @@
 # Change Log
 
+<a name="v4.0.8"></a>
+## [v4.0.8](https://github.com/TREEcg/event-stream-client/compare/v4.0.7...v4.0.8) - 2023-05-17
+
+### TODO: categorize commits, choose titles from: Added, Changed, Deprecated, Removed, Fixed, Security.
+* [Remove unused dependencies on components.js config](https://github.com/TREEcg/event-stream-client/commit/a80add3551f6b82480cc59d752f326275b2aea4d)
+* [Add NPM badge to README](https://github.com/TREEcg/event-stream-client/commit/c18b8320abd6a64589adc4f6f2b8e9a8528e5920)
+* [Bump version](https://github.com/TREEcg/event-stream-client/commit/68d24edffa0399333d35b31bab1617a458dfef6a)
+
 <a name="v4.0.3"></a>
 ## [v4.0.3](https://github.com/TREEcg/event-stream-client/compare/v4.0.2...v4.0.3) - 2023-03-29
 
