@@ -2,9 +2,7 @@
   "@context": [
     "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/config-query-sparql/^2.0.0/components/context.jsonld",
     "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/actor-init-ldes-client/^4.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/actor-rdf-filter-objects-with-quadstore/^4.0.0/components/context.jsonld",
     "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/actor-rdf-frame-with-json-ld-js/^4.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/bus-rdf-filter-object/^4.0.0/components/context.jsonld",
     "https://linkedsoftwaredependencies.org/bundles/npm/@treecg/bus-rdf-frame/^4.0.0/components/context.jsonld",
     "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/bus-rdf-serialize/^2.0.0/components/context.jsonld",
     "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/runner/^2.0.0/components/context.jsonld",
@@ -53,11 +51,6 @@
           "mediatorRdfParseHandle": {
             "@id": "urn:comunica:default:rdf-parse/mediators#parse"
           },
-          "mediatorRdfFilterObject": {
-            "@id": "urn:comunica:default:rdf-filter-object/mediators#filter",
-            "@type": "MediatorRace",
-            "bus": { "@id": "ActorRdfFilterObject:_default_bus" }
-          },
           "mediatorRdfFrame": {
             "@id": "urn:comunica:default:rdf-frame/mediators#rdfFrame",
             "@type": "MediatorRace",
@@ -66,10 +59,6 @@
           "mediatorRdfSerializeHandle": {
             "@id": "urn:comunica:default:rdf-serialize/mediators#serialize"
           }
-        },
-        {
-          "@id": "urn:comunica:myRdfFilterObjectsWithQuadstore",
-          "@type": "ActorRdfFilterObjectsWithQuadstore"
         },
         {
           "@id": "urn:comunica:myActorRdfFrameWithJSONLDjs",
