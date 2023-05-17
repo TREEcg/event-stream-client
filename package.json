@@ -4,7 +4,7 @@
     "packages/*"
   ],
   "name": "@treecg/event-stream-client",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Syncs an entire TREE collection, but only emits the objects, does not store them. ",
   "scripts": {
     "test-changed": "lerna run test --since HEAD",
