@@ -84,7 +84,7 @@ export class Bookkeeper {
     }
 }
 
-interface FragmentInfo {
+export interface FragmentInfo {
     url: string;
     refetchTime: Date;
 }

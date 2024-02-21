@@ -22,7 +22,7 @@ import * as CachePolicy from 'http-cache-semantics';
 import * as moment from 'moment';
 import * as RDF from 'rdf-js';
 import * as RdfString from "rdf-string";
-import { Bookkeeper, SerializedBookkeper } from './Bookkeeper';
+import { Bookkeeper, SerializedBookkeper, FragmentInfo } from './Bookkeeper';
 import RateLimiter from "./RateLimiter";
 import MemberIterator from "./MemberIterator";
 import { stream2Array, stream2String } from "./Utils";
@@ -53,8 +53,6 @@ export class EventStream extends Readable {
 
     private downloading: boolean;
     private syncingmode: boolean;
-    private paused: boolean = false;
-
 
     public constructor(
         url: string,
@@ -97,65 +95,53 @@ export class EventStream extends Readable {
 
     }
 
-    private async fetchNextPage() {
-        this.downloading = true;
-        const next = this.bookkeeper.getNextFragmentToFetch();
-        const wait = next.refetchTime.getTime() - new Date().getTime();
+    private async fetchNextFragmentResources(fragment: FragmentInfo): Promise<Array<string | object>> {
+        const wait = fragment.refetchTime.getTime() - new Date().getTime();
         // Do not refetch too soon
         if (wait > 0) {
-            this.logger.debug(`Waiting ${wait / 1000}s before refetching: ${next.url}`);
+            this.emit('synchronizing', { wait, url: fragment.url });
+            this.logger.debug(`Waiting ${wait / 1000}s before refetching: ${fragment.url}`);
             await this.sleep(wait);
         }
         // Retrieve data
-        await this.retrieve(next.url);
-        this.downloading = false;
-        this.emit('page processed', next.url);
-        this._read();
+        const members = await this.retrieve(fragment.url);
+        return await this.processMembers(members);
+    }
+
+    private async fetchNextPage() {
+        try {
+            this.downloading = true; // TODO: do we need to know public isBuffering?
+            let needsNextPage;
+            do {
+                if( this.bookkeeper.nextFragmentExists() ) {
+                    const nextFragment = this.bookkeeper.getNextFragmentToFetch();
+                    const resources = await this.fetchNextFragmentResources(nextFragment);
+                    if (resources.length) {
+                        for (const resource of resources)
+                            this.push(resource);
+                        needsNextPage = false;
+                    } else {
+                        needsNextPage = true;
+                    }
+                    this.emit('page processed', nextFragment.url);
+                } else {
+                    needsNextPage = false;
+                    this.push(null);
+                }
+            } while (needsNextPage);
+        } finally {
+            this.downloading = false;
+        }
     }
 
     public async _read() {
-        try {
-            if (!this.downloading && this.paused) {
-                // Reading process has been externally paused
-                super.pause();
-            } else if (!this.downloading && !this.paused && this.bookkeeper.nextFragmentExists()) {
-                // Reading process is not paused, is not downloading new data and there is more data available
-                if (!this.disableSynchronization && this.bookkeeper.inSyncingMode() && !this.syncingmode) {
-                    // We have reached the most recent fragment and synchronization is enabled
-                    this.syncingmode = true;
-                    this.emit('synchronizing');
-                    if (!this.downloading && this.paused) {
-                        super.pause();
-                    }
-                } else {
-                    // Proceed and fetch more data
-                    await this.fetchNextPage();
-                }
-            } else if (!this.downloading) {
-                //end of the stream
-                this.logger.debug("done");
-                this.push(null);
-            }
-        } catch (err) {
-            this.logger.error(inspect(err));
-        }
+        this.fetchNextPage();
     }
 
     protected sleep(ms: number) {
         return new Promise(resolve => {
             this.timeout = setTimeout(resolve, ms);
         });
-    }
-
-    public pause(): this {
-        this.paused = true;
-        return this;
-    }
-
-    public resume(): this {
-        this.paused = false;
-        super.resume();
-        return this
     }
 
     public destroy(): this {
@@ -226,13 +212,13 @@ export class EventStream extends Readable {
         this.processedURIs.load(JSON.parse(state.processedURIs));
     }
 
-    protected async retrieve(pageUrl: string) {
+    protected async retrieve(pageUrl: string): Promise<Generator<IMember>> {
         this.logger.debug(`GET ${pageUrl}`);
         const startTime = new Date();
 
         await this.rateLimiter.planRequest(pageUrl);
 
-        try {
+        // try {
             // TODO: Perform data fetching with Comunica RDF dereference actors
             const page = await this.getPage(pageUrl);
             this.logger.debug(`${page.statusCode} ${page.url} (${new Date().getTime() - startTime.getTime()}) ms`);
@@ -248,7 +234,7 @@ export class EventStream extends Readable {
 
             if (!this.disableSynchronization && this.pollingInterval) {
                 // Based on the HTTP Caching headers, poll this fragment for synchronization
-                // If options.shared is false, then the response is evaluated from a perspective of a single-user cache 
+                // If options.shared is false, then the response is evaluated from a perspective of a single-user cache
                 // (i.e. private is cacheable and s-maxage is ignored)
                 const policy = new CachePolicy(page.request, page.response, { shared: false });
                 // pollingInterval is fallback
@@ -353,11 +339,11 @@ export class EventStream extends Readable {
             const memberUris: string[] = this.getMemberUris(treeMetadata);
             const members = this.getMembers(pageQuads, memberUris);
 
-            await this.processMembers(members);
-        } catch (e) {
-            this.logger.error(`Failed to retrieve ${pageUrl}
-${inspect(e)}`);
-        }
+            return members;
+//         } catch (e) {
+//             this.logger.error(`Failed to retrieve ${pageUrl}
+// ${inspect(e)}`);
+//         }
     }
 
     protected async getPage(pageUrl: string): Promise<PageMetadata> {
@@ -494,7 +480,7 @@ ${inspect(e)}`);
         //console.log(id, forwardQuads,inverseQuads);
 
         for (const q of forwardQuads) {
-            if (!member.includes(q) && !processedSubjects.has(q.object.value)) { 
+            if (!member.includes(q) && !processedSubjects.has(q.object.value)) {
                 member.push(q);
                 if (q.object.termType !== 'Literal' && !memberUris.includes(q.object.value)) {
                     member = member.concat(this.extractMember(store, q.object, processedSubjects, memberUris));
@@ -509,21 +495,30 @@ ${inspect(e)}`);
         }*/
         return member
     }
-    
-    protected async processMembers(members: Generator<IMember>) {
+
+    protected async processMembers(members: Generator<IMember>) : Promise<Array<string|object>>  {
+        const emitsObjects = this.representation === OutputRepresentation.Object;
+        const resultCollector:Array<string|object> = [];
 
         for (const member of members) {
             const id = member.uri;
             const quadStream = member.quads;
             // Check if member stream is empty
-            if (!(quadStream instanceof EmptyIterator)) {
+            if (quadStream instanceof EmptyIterator) {
+                // TODO: It seems a member which does not have any other
+                // information does not need to be put on the stream but
+                // it's not clear which triples have been removed yet
+                // and hence it may be that this is a token object that
+                // should be pushed on the stream regardless.
+                this.logger.warn(`Member ${member.uri} has an EmptyIterator as quads, not emitting.`);
+            } else {
                 try {
                     const context = new ActionContext({});
-                    // If representation is set, let’s return the data without serialization, 
+                    // If representation is set, let’s return the data without serialization,
                     // but in the requested representation (Object or Quads)
                     if (this.representation) {
                         // Can be "Object" or "Quads"
-                        if (this.representation === OutputRepresentation.Object) {
+                        if (emitsObjects) {
                             if (!this.disableFraming) {
                                 const framedResult = (await this.mediators.mediatorRdfFrame.mediate({
                                     context: context,
@@ -532,7 +527,7 @@ ${inspect(e)}`);
                                     jsonLdContext: this.jsonLdContext
                                 })).data;
                                 const firstEntry = framedResult.entries().next();
-                                this.push({ "id": firstEntry.value[0]["@id"], object: firstEntry.value[1] });
+                                resultCollector.push({ "id": firstEntry.value[0]["@id"], object: firstEntry.value[1] });
                             } else {
                                 const result = JSON.parse(await stream2String(
                                     <StreamReadable>(await this.mediators.mediatorRdfSerializeHandle.mediate({
@@ -540,7 +535,7 @@ ${inspect(e)}`);
                                         handle: { quadStream: quadStream, context: context },
                                         handleMediaType: "application/ld+json"
                                     })).handle.data));
-                                this.push({ "id": result[0]["@id"], object: result });
+                                resultCollector.push({ "id": result[0]["@id"], object: result });
                             }
                         } else {
                             // Build an array from the quads iterator
@@ -554,7 +549,7 @@ ${inspect(e)}`);
                                         id: this.factory.namedNode(member.uri),
                                         quads: quadArray
                                     };
-                                    this.push(_member);
+                                    resultCollector.push(_member);
                                     resolve();
                                 });
                             });
@@ -592,16 +587,15 @@ ${inspect(e)}`);
                                 outputString = '';
                             }
                         }
-                        this.push(`${outputString}\n`);
+                        resultCollector.push(`${outputString}\n`);
                     }
                 } catch (error) {
                     this.logger.error(`Failed to process member ${id}
     ${inspect(error)}`);
                 }
-            } else {
-                this.push('');
             }
         }
+        return resultCollector;
     }
 }
 
