@@ -1,4 +1,5 @@
 import { ActionContext, Actor, IActorTest, Mediator } from "@comunica/core";
+import { backOff as exponentialBackoff } from 'exponential-backoff';
 import {
     IActionRdfMetadataExtract,
     IActorRdfMetadataExtractOutput,
@@ -26,6 +27,15 @@ import { Bookkeeper, SerializedBookkeper, FragmentInfo } from './Bookkeeper';
 import RateLimiter from "./RateLimiter";
 import MemberIterator from "./MemberIterator";
 import { stream2Array, stream2String } from "./Utils";
+
+function backoff<T>( topic: string, functor: () => Promise<T> ): Promise<T> {
+    return exponentialBackoff<T>( functor, {
+        retry(e, attemptNr) {
+            console.warn(`Failed to ${topic}.  Attempt: ${attemptNr}.  Error: ${e}`);
+            return true;
+        }
+    });
+}
 
 export class EventStream extends Readable {
     protected readonly mediators: IEventStreamMediators;
@@ -216,115 +226,109 @@ export class EventStream extends Readable {
         this.logger.debug(`GET ${pageUrl}`);
         const startTime = new Date();
 
+        // TODO: Perform data fetching with Comunica RDF dereference actors
         await this.rateLimiter.planRequest(pageUrl);
+        const page = await backoff(`fetch ${pageUrl}`, () => this.getPage(pageUrl));
 
-        // try {
-            // TODO: Perform data fetching with Comunica RDF dereference actors
-            const page = await this.getPage(pageUrl);
-            this.logger.debug(`${page.statusCode} ${page.url} (${new Date().getTime() - startTime.getTime()}) ms`);
+        this.logger.debug(`${page.statusCode} ${page.url} (${new Date().getTime() - startTime.getTime()}) ms`);
 
-            // Remember that the fragment has been retrieved
-            this.processedURIs.set(pageUrl, {});
-            // can be a redirected response <> pageUrl
-            this.processedURIs.set(page.url, {});
+        // Remember that the fragment has been retrieved
+        this.processedURIs.set(pageUrl, {});
+        // can be a redirected response <> pageUrl
+        this.processedURIs.set(page.url, {});
 
-            // Retrieve media type
-            // TODO: Fetch mediaType by using response and a Comunica actor
-            const mediaType = page.contentType;
+        // Retrieve media type
+        // TODO: Fetch mediaType by using response and a Comunica actor
+        const mediaType = page.contentType;
 
-            if (!this.disableSynchronization && this.pollingInterval) {
-                // Based on the HTTP Caching headers, poll this fragment for synchronization
-                // If options.shared is false, then the response is evaluated from a perspective of a single-user cache
-                // (i.e. private is cacheable and s-maxage is ignored)
-                const policy = new CachePolicy(page.request, page.response, { shared: false });
-                // pollingInterval is fallback
-                const ttl = Math.max(this.pollingInterval, policy.storable() ? policy.timeToLive() : 0);
-                this.bookkeeper.addFragment(page.url, ttl);
-                this.logger.debug(`Scheduled page (${page.url}) for polling in ${ttl / 1000} seconds`);
-            }
+        if (!this.disableSynchronization && this.pollingInterval) {
+            // Based on the HTTP Caching headers, poll this fragment for synchronization
+            // If options.shared is false, then the response is evaluated from a perspective of a single-user cache
+            // (i.e. private is cacheable and s-maxage is ignored)
+            const policy = new CachePolicy(page.request, page.response, { shared: false });
+            // pollingInterval is fallback
+            const ttl = Math.max(this.pollingInterval, policy.storable() ? policy.timeToLive() : 0);
+            this.bookkeeper.addFragment(page.url, ttl);
+            this.logger.debug(`Scheduled page (${page.url}) for polling in ${ttl / 1000} seconds`);
+        }
 
-            const context = new ActionContext({});
+        const context = new ActionContext({});
 
-            // Get the array of quads fetched from a page
-            const pageQuads = await stream2Array<RDF.Quad>(
-                (await this.mediators.mediatorRdfParseHandle.mediate({
-                    context: context,
-                    handle: {
+        // Get the array of quads fetched from a page
+        const pageQuads = await backoff(
+            `mediate rdf quad parsing ${page.url}`,
+            async () => {
+                return await stream2Array<RDF.Quad>(
+                    (await this.mediators.mediatorRdfParseHandle.mediate({
                         context: context,
-                        data: page.data,
-                        metadata: { baseIRI: page.url }
-                    }, handleMediaType: mediaType
-                })).handle.data
-            );
+                        handle: {
+                            context: context,
+                            data: page.data,
+                            metadata: { baseIRI: page.url }
+                        }, handleMediaType: mediaType
+                    })).handle.data
+                )});
+        // Extract TREE metadata
+        const treeMetadata = await backoff(
+            `mediate rdf tree metadata parsing ${page.url}`,
+            () => this.mediators.mediatorRdfMetadataExtract.mediate(
+                {
+                    context: new ActionContext({}),
+                    requestTime: 0,
+                    metadata: StreamReadable.from(pageQuads),
+                    url: page.url
+                }));
 
-            // Extract TREE metadata
-            const treeMetadata = await this.mediators.mediatorRdfMetadataExtract.mediate({
-                context: new ActionContext({}),
-                requestTime: 0,
-                metadata: StreamReadable.from(pageQuads),
-                url: page.url
-            });
+        this.emit("metadata", { ...treeMetadata.metadata, url: page.url });
 
-            this.emit("metadata", { ...treeMetadata.metadata, url: page.url });
+        // When there are no tree:relations found, search for a tree:view to continue
+        // In this case, we expect that the URL parameter provided contains a tree collection's URI
+        if (!treeMetadata.metadata.treeMetadata.relations.size) {
+            // Page URL should be a collection URI
+            // Check the URL with and without www
+            const pageUrlWithoutWWW = pageUrl.replace('://www.', '://');
 
-            // When there are no tree:relations found, search for a tree:view to continue
-            // In this case, we expect that the URL parameter provided contains a tree collection's URI
-            if (!treeMetadata.metadata.treeMetadata.relations.size) {
-                // Page URL should be a collection URI
-                // Check the URL with and without www
-                const pageUrlWithoutWWW = pageUrl.replace('://www.', '://');
+            /**
+             * TODO: There is an issue with the TREE metadata extractor
+             * changing the casing of the LDES IRI e.g.:
+             *    https://semiceu.github.io/LinkedDataEventStreams/example.ttl#eventstream
+             * gets changed to:
+             *    https://semiceu.github.io/linkeddataeventstreams/example.ttl#eventstream
+             * which prevents tree:views to get booked
+             */
 
-                /**
-                 * TODO: There is an issue with the TREE metadata extractor
-                 * changing the casing of the LDES IRI e.g.:
-                 *    https://semiceu.github.io/LinkedDataEventStreams/example.ttl#eventstream
-                 * gets changed to:
-                 *    https://semiceu.github.io/linkeddataeventstreams/example.ttl#eventstream
-                 * which prevents tree:views to get booked
-                 */
-
-                if (treeMetadata.metadata.treeMetadata.collections.get(pageUrl)
-                    && treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"]) {
-                    // take first view encountered
-                    const view = treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"][0]["@id"];
-                    this.bookkeeper.addFragment(view, 0);
-                    this.logger.debug(`Scheduled TREE view (${view}) for retrieval`);
-                } else if (treeMetadata.metadata.treeMetadata.collections.get(pageUrlWithoutWWW)
-                    && treeMetadata.metadata.treeMetadata.collections.get(pageUrlWithoutWWW)["view"]) {
-                    // take first view encountered
-                    const view = treeMetadata.metadata.treeMetadata.collections.get(pageUrlWithoutWWW)["view"][0]["@id"];
-                    this.bookkeeper.addFragment(view, 0);
-                    this.logger.debug(`Scheduled TREE view (${view}) for retrieval`);
-                }
+            if (treeMetadata.metadata.treeMetadata.collections.get(pageUrl)
+                && treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"]) {
+                // take first view encountered
+                const view = treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"][0]["@id"];
+                this.bookkeeper.addFragment(view, 0);
+                this.logger.debug(`Scheduled TREE view (${view}) for retrieval`);
+            } else if (treeMetadata.metadata.treeMetadata.collections.get(pageUrlWithoutWWW)
+                && treeMetadata.metadata.treeMetadata.collections.get(pageUrlWithoutWWW)["view"]) {
+                // take first view encountered
+                const view = treeMetadata.metadata.treeMetadata.collections.get(pageUrlWithoutWWW)["view"][0]["@id"];
+                this.bookkeeper.addFragment(view, 0);
+                this.logger.debug(`Scheduled TREE view (${view}) for retrieval`);
             }
+        }
 
-            // Process TREE relations towards other nodes
-            for (const [_, relation] of treeMetadata.metadata.treeMetadata.relations) {
-                if (relation.value && this.fromTime && relation["@type"][0] && moment(relation.value[0]["@value"]).isValid()) {
-                    const value = relation.value[0]["@value"];
+        // Process TREE relations towards other nodes
+        for (const [_, relation] of treeMetadata.metadata.treeMetadata.relations) {
+            if (relation.value && this.fromTime && relation["@type"][0] && moment(relation.value[0]["@value"]).isValid()) {
+                const value = relation.value[0]["@value"];
 
-                    // To be enhanced when more TREE filtering capabilities are available
-                    const valueDate = new Date(value);
+                // To be enhanced when more TREE filtering capabilities are available
+                const valueDate = new Date(value);
 
-                    // Prune when the value of the relation contain values lower than what we need
-                    if (relation["@type"][0] === "https://w3id.org/tree#LessThanRelation"
-                        && valueDate.getTime() <= this.fromTime.getTime()) { }
-                    // Prune when the value of the relation includes values lower than what we need
-                    // and we want explicitly (fromTimeStrict) values larger than the given threshold (fromTime)
-                    else if (relation["@type"][0] === "https://w3id.org/tree#GreaterThanOrEqualToRelation"
-                        && valueDate.getTime() <= this.fromTime.getTime()
-                        && this.fromTimeStrict) { }
-                    else {
-                        // Add node to book keeper with ttl 0 (as soon as possible)
-                        for (const node of relation.node) {
-                            // do not add when synchronization is disabled and node has already been processed
-                            if (!this.disableSynchronization || (this.disableSynchronization && !this.processedURIs.has(node['@id']))) {
-                                this.bookkeeper.addFragment(node['@id'], 0);
-                                this.logger.debug(`Scheduled TREE node (${node['@id']}) for retrieval`);
-                            }
-                        }
-                    }
-                } else {
+                // Prune when the value of the relation contain values lower than what we need
+                if (relation["@type"][0] === "https://w3id.org/tree#LessThanRelation"
+                    && valueDate.getTime() <= this.fromTime.getTime()) { }
+                // Prune when the value of the relation includes values lower than what we need
+                // and we want explicitly (fromTimeStrict) values larger than the given threshold (fromTime)
+                else if (relation["@type"][0] === "https://w3id.org/tree#GreaterThanOrEqualToRelation"
+                    && valueDate.getTime() <= this.fromTime.getTime()
+                    && this.fromTimeStrict) { }
+                else {
                     // Add node to book keeper with ttl 0 (as soon as possible)
                     for (const node of relation.node) {
                         // do not add when synchronization is disabled and node has already been processed
@@ -334,16 +338,22 @@ export class EventStream extends Readable {
                         }
                     }
                 }
+            } else {
+                // Add node to book keeper with ttl 0 (as soon as possible)
+                for (const node of relation.node) {
+                    // do not add when synchronization is disabled and node has already been processed
+                    if (!this.disableSynchronization || (this.disableSynchronization && !this.processedURIs.has(node['@id']))) {
+                        this.bookkeeper.addFragment(node['@id'], 0);
+                        this.logger.debug(`Scheduled TREE node (${node['@id']}) for retrieval`);
+                    }
+                }
             }
+        }
 
-            const memberUris: string[] = this.getMemberUris(treeMetadata);
-            const members = this.getMembers(pageQuads, memberUris);
+        const memberUris: string[] = this.getMemberUris(treeMetadata);
+        const members = this.getMembers(pageQuads, memberUris);
 
-            return members;
-//         } catch (e) {
-//             this.logger.error(`Failed to retrieve ${pageUrl}
-// ${inspect(e)}`);
-//         }
+        return members;
     }
 
     protected async getPage(pageUrl: string): Promise<PageMetadata> {
@@ -520,21 +530,25 @@ export class EventStream extends Readable {
                         // Can be "Object" or "Quads"
                         if (emitsObjects) {
                             if (!this.disableFraming) {
-                                const framedResult = (await this.mediators.mediatorRdfFrame.mediate({
-                                    context: context,
-                                    data: quadStream,
-                                    frames: [{ "@id": id }],
-                                    jsonLdContext: this.jsonLdContext
-                                })).data;
+                                const framedResult = await backoff(
+                                    `frame result for ${id}`,
+                                    async () => (await this.mediators.mediatorRdfFrame.mediate({
+                                        context: context,
+                                        data: quadStream,
+                                        frames: [{ "@id": id }],
+                                        jsonLdContext: this.jsonLdContext
+                                    })).data);
                                 const firstEntry = framedResult.entries().next();
                                 resultCollector.push({ "id": firstEntry.value[0]["@id"], object: firstEntry.value[1] });
                             } else {
-                                const result = JSON.parse(await stream2String(
-                                    <StreamReadable>(await this.mediators.mediatorRdfSerializeHandle.mediate({
-                                        context: context,
-                                        handle: { quadStream: quadStream, context: context },
-                                        handleMediaType: "application/ld+json"
-                                    })).handle.data));
+                                const result = await backoff(
+                                    `serialize rdf`,
+                                    async () => JSON.parse(await stream2String(
+                                        <StreamReadable>(await this.mediators.mediatorRdfSerializeHandle.mediate({
+                                            context: context,
+                                            handle: { quadStream: quadStream, context: context },
+                                            handleMediaType: "application/ld+json"
+                                        })).handle.data)));
                                 resultCollector.push({ "id": result[0]["@id"], object: result });
                             }
                         } else {
@@ -557,12 +571,14 @@ export class EventStream extends Readable {
                     } else {
                         let outputString;
                         if (this.mimeType !== "application/ld+json" || this.disableFraming) {
-                            const serializedString = await stream2String(
-                                <StreamReadable>(await this.mediators.mediatorRdfSerializeHandle.mediate({
-                                    context: context,
-                                    handle: { quadStream: quadStream, context: context },
-                                    handleMediaType: this.mimeType
-                                })).handle.data);
+                            const serializedString = await backoff(
+                                `serialize rdf`,
+                                async () => await stream2String(
+                                    <StreamReadable>(await this.mediators.mediatorRdfSerializeHandle.mediate({
+                                        context: context,
+                                        handle: { quadStream: quadStream, context: context },
+                                        handleMediaType: this.mimeType
+                                    })).handle.data));
 
                             if (serializedString) {
                                 outputString = serializedString;
@@ -574,12 +590,15 @@ export class EventStream extends Readable {
                             const frame = {
                                 "@id": id
                             };
-                            const framedObjects: Map<Frame, JsonLdDocument> = (await this.mediators.mediatorRdfFrame.mediate({
-                                context: context,
-                                data: quadStream,
-                                frames: [frame],
-                                jsonLdContext: this.jsonLdContext
-                            })).data;
+                            const framedObjects: Map<Frame, JsonLdDocument> = await backoff(
+                                `frame json-ld`,
+                                async () => (await this.mediators.mediatorRdfFrame.mediate(
+                                    {
+                                        context: context,
+                                        data: quadStream,
+                                        frames: [frame],
+                                        jsonLdContext: this.jsonLdContext
+                                    })).data);
 
                             if (framedObjects.get(frame)) {
                                 outputString = JSON.stringify(framedObjects.get(frame));
