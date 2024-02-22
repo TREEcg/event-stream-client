@@ -68,7 +68,6 @@
   "homepage": "https://github.com/TREEcg/event-stream-client#readme",
   "dependencies": {
     "componentsjs-generator": "^3.1.0",
-    "exponential-backoff": "^3.1.1",
     "lerna": "^6.5.1",
     "typescript": "^5.0.2"
   },
