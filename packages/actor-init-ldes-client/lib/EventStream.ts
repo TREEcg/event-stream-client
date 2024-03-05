@@ -294,13 +294,16 @@ export class EventStream extends Readable {
                  *    https://semiceu.github.io/LinkedDataEventStreams/example.ttl#eventstream
                  * gets changed to:
                  *    https://semiceu.github.io/linkeddataeventstreams/example.ttl#eventstream
-                 * which prevents tree:views to get booked
+                 * which prevents tree:views to get booked.
+                 * 
+                 * It also removes trailing slashes, which is incorrect.
                  */
+                let safePageUrl = pageUrl.endsWith("/") ? pageUrl.slice(0, -1) : pageUrl;
 
-                if (treeMetadata.metadata.treeMetadata.collections.get(pageUrl)
-                    && treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"]) {
+                if (treeMetadata.metadata.treeMetadata.collections.get(safePageUrl)
+                    && treeMetadata.metadata.treeMetadata.collections.get(safePageUrl)["view"]) {
                     // take first view encountered
-                    const view = treeMetadata.metadata.treeMetadata.collections.get(pageUrl)["view"][0]["@id"];
+                    const view = treeMetadata.metadata.treeMetadata.collections.get(safePageUrl)["view"][0]["@id"];
                     this.bookkeeper.addFragment(view, 0);
                     this.logger.debug(`Scheduled TREE view (${view}) for retrieval`);
                 } else if (treeMetadata.metadata.treeMetadata.collections.get(pageUrlWithoutWWW)
